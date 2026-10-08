@@ -243,7 +243,7 @@ Unresolved. Anything marked `ASSUMED:` is a working assumption, not a confirmed 
 3. `ASSUMED:` The Berka dataset can be obtained as CSV without a paid account (author approved its use as a benchmark, D-25). If not, Engine 1's multi-series benchmark is MoneyData + synthetic cohort only, and the global LSTM trains on the synthetic cohort.
 4. `ASSUMED:` Horizon cap of 52 weeks for risk checks; plans longer than 12 months are scored on their first year with a visible note.
 5. `ASSUMED:` Synthetic population size ~10,000 profiles is enough for stable 5×5 CV; P5 checks learning curves.
-6. Grab PayLater, Boost PayFlex and any other provider are not named in the app until the author collects a real checkout example for each; until then they use the manual "Other provider" entry (D-24).
+6. Providers other than SPayLater, TikTok PayLater and Atome are not named in the app until the author collects a real checkout example for each; until then they use the manual "Other provider" entry (D-24).
 7. Whether the supervisor and faculty consultants want to review the simulation-derived label design before P5 training starts (recommended).
 
 UAT ethics/consent approval: not required (author, 2026-10-08) — testers use synthetic persona data only.
