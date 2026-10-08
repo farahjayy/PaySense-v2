@@ -98,12 +98,16 @@ An ADR is worth writing when the decision (a) is expensive to reverse, (b) will 
 **Decision.** Use `uv` with a `.python-version` pin. Expected: 3.12. The P0 dependency spike installs the full stack (FastAPI, statsforecast, prophet, torch CPU, onnxruntime, scikit-learn, xgboost, lightgbm, shap, optuna) and records the result.
 **Why.** The dev machine only has 3.14; wheel availability for Prophet/cmdstan and PyTorch on 3.14 (Windows and Render) is unconfirmed.
 
-## D-24 — Two provider tiers: verified rules vs manual entry
-*2026-10-08 · author decision*
+## D-24 — Three named providers; everything else is manual "Other"
+*2026-10-08 · author decision; revised same day after the author asked whether to include Grab and Boost (recommendation: exclude)*
 
-**Decision.** SPayLater, TikTok PayLater and Atome are **verified** providers: their billing rules come from real users' checkouts (SPayLater and TikTok PayLater: nothing at checkout, first payment one month after the purchase; Atome: first payment charged on the purchase date) and drive the auto-filled schedule. Grab PayLater, Boost PayFlex and "Other" are **unverified**: they appear in the provider list, but the user must enter the first payment date and fee themselves — the app guesses nothing — and the plan shows a small "provider rules not verified" note. A provider moves to verified only when a real checkout example is recorded in `refdocs/context/bnpl-billing-rules-my.md` and a test pins the schedule.
-**Why.** The author has first-hand information only for these three. A guessed first due date creates phantom missed payments and shifts instalments into the wrong weeks of the simulation — which now *is* Engine 2's label (D-07).
-**Rejected.** Encoding Grab/Boost rules from secondary web sources (research §C tagged them [M]/[H] but unconfirmed against a real schedule); hiding unverified providers (students do use them, and the stack view must include every plan).
+**Decision.** The provider list is **SPayLater, TikTok PayLater, Atome and "Other provider (manual)"**.
+- SPayLater, TikTok PayLater and Atome are rule-driven. Their rules come from real student users' checkouts: SPayLater and TikTok PayLater charge nothing at checkout and send the first bill one month after the purchase; Atome charges the first payment on the purchase date. The schedule auto-fills and the first date stays editable.
+- "Other provider" applies **no rule and no fee formula**. The user types a provider name, the first payment date, the number of instalments and either the instalment amount or the total payable shown at their checkout. The app splits the total exactly in sen (leftover sen in the last instalment) and builds the schedule from exactly what was entered. The plan carries a small "schedule uses the dates and amounts you entered" note.
+- Grab PayLater and Boost PayFlex are **not named** in the app. A provider becomes a named, rule-driven option only after a real checkout example is recorded in `refdocs/context/bnpl-billing-rules-my.md` and a test pins its schedule.
+
+**Why.** The author has first-hand information only for these three. A guessed first due date creates phantom missed payments and moves instalments into the wrong weeks of the simulation, which is Engine 2's label (D-07). Naming a provider implies the app understands it, even with an "unverified" badge. Their fees also don't fit the single monthly-rate formula (research §C, medium confidence: Boost charges a flat RM5–10 fee plus 2.5% per month; Grab's interest varies by term), so a typed checkout amount is more accurate than any formula the app could apply.
+**Rejected.** Listing Grab/Boost as "unverified" providers (the earlier version of this ADR: still implies support, and still needs a fee formula); encoding their rules from secondary web sources; hiding the "Other" option (students use other providers, and the stack view must include every plan they have).
 
 ## D-25 — Berka is a benchmark, not the population
 *2026-10-08 · author approved its use*

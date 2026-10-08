@@ -153,7 +153,7 @@ Features may be added or removed only through an ADR; changing one changes `feat
 | **Ledger** | Transactions CRUD, Income / Expense / Savings, running-ledger balance (balance sync = correction), categories with word-boundary matching. |
 | **Import** | CSV upload → column mapping → preview with per-row edits and skip reasons → confirm. Persona CSVs and a generic bank-CSV mapping. |
 | **Recurring items** | Detection suggestions from history, user confirmation, manual add/edit; the backbone of known flows. |
-| **BNPL plans** | Provider-aware schedules (v1 port: sen maths, monthly fee rate, Atome checkout payment), mark paid (single and bulk), rename, delete-with-transactions, By month bills, provider limits, due-date reminders in-app. Providers in two tiers (D-24): **verified** — SPayLater, TikTok PayLater, Atome (rules confirmed from real users' checkouts); **unverified** — Grab PayLater, Boost PayFlex and "Other" (listed, but the user enters the first payment date and fee; nothing is guessed). |
+| **BNPL plans** | Provider-aware schedules (v1 port: sen maths, monthly fee rate, Atome checkout payment), mark paid (single and bulk), rename, delete-with-transactions, By month bills, provider limits, due-date reminders in-app. Providers (D-24): only **SPayLater, TikTok PayLater and Atome** are named and rule-driven (rules confirmed from real users' checkouts). Any other provider uses **"Other provider (manual)"**: the user types a provider name, first payment date, number of instalments and the instalment amount (or total payable) shown at checkout; the app splits the total exactly in sen and applies no fee formula or provider rule. |
 | **Financial health forecasting** | Engine 1 as §3.1. |
 | **BNPL risk classification** | Engine 2 as §3.1, risk check → confirm into a plan → frozen risk report. |
 | **Dashboard** | Balance, month summary, health gauge, 13-week balance band chart, BNPL stack (total monthly commitment across providers + due-date timeline), upcoming alerts, locked state below 4 months. |
@@ -229,7 +229,7 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-21 | Shortfall threshold is RM0 (cannot pay the instalment in full); a RM50 buffer is a UI warning only | Objective, provider-meaningful definition |
 | D-22 | TDD, 80% coverage target, conventional commits; Claude commits at verified phase ends, never pushes | Author's standing rules; pushes are done by the author |
 | D-23 | Python version pinned via uv to one every ML dependency installs on (expected 3.12; verified in P0) | Prophet, PyTorch, LightGBM, SHAP wheels on Windows and Render |
-| D-24 | Providers in two tiers: verified (SPayLater, TikTok PayLater, Atome) get schedule rules; unverified (Grab PayLater, Boost PayFlex, Other) require the user to enter the first payment date and fee | Only these three have rules confirmed from real users; guessing a first due date creates phantom missed payments (v1 lesson) |
+| D-24 | Only SPayLater, TikTok PayLater and Atome are named providers with schedule rules; every other provider uses a manual "Other provider" entry (user types dates and the checkout instalment amount) | Only these three have rules confirmed from real users; a guessed first due date creates phantom missed payments, and a flat monthly fee rate can't represent other providers' fees (v1 lesson) |
 | D-25 | Berka is used only as a real-transaction benchmark for Engine 1 (and to pre-train the global LSTM), never as a model of the target population | Czech adult accounts from the 1990s; the student population is represented by the cited synthetic generator |
 
 ---
@@ -243,7 +243,7 @@ Unresolved. Anything marked `ASSUMED:` is a working assumption, not a confirmed 
 3. `ASSUMED:` The Berka dataset can be obtained as CSV without a paid account (author approved its use as a benchmark, D-25). If not, Engine 1's multi-series benchmark is MoneyData + synthetic cohort only, and the global LSTM trains on the synthetic cohort.
 4. `ASSUMED:` Horizon cap of 52 weeks for risk checks; plans longer than 12 months are scored on their first year with a visible note.
 5. `ASSUMED:` Synthetic population size ~10,000 profiles is enough for stable 5×5 CV; P5 checks learning curves.
-6. Unverified providers (Grab PayLater, Boost PayFlex) get schedule rules only after the author collects a real checkout example; until then they follow D-24's manual-entry rule.
+6. Grab PayLater, Boost PayFlex and any other provider are not named in the app until the author collects a real checkout example for each; until then they use the manual "Other provider" entry (D-24).
 7. Whether the supervisor and faculty consultants want to review the simulation-derived label design before P5 training starts (recommended).
 
 UAT ethics/consent approval: not required (author, 2026-10-08) — testers use synthetic persona data only.

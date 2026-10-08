@@ -62,6 +62,6 @@ What has actually been run, not what has been written. A row here needs a real c
 
 - No code exists yet; a file-structure doc will be written once there is a tree to describe (README §Project layout carries the planned layout until then).
 - Five working assumptions are open (`changelog/DECISIONS.md` bottom) — the first two are resolved by the P0 spike.
-- Grab PayLater and Boost PayFlex rules are unverified — manual first-payment entry until a real checkout is recorded (D-24).
+- Providers other than SPayLater, TikTok PayLater and Atome use the manual "Other provider" entry until the author records a real checkout example for them (D-24).
 - The simulation-label design should be shown to the supervisor before P5 (PRD §8 Q7).
 - `gh` (GitHub CLI) is not installed; the author creates GitHub repos and pushes herself.

@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-08 — Provider list narrowed to three named providers (D-24 revised)
+- **Changed:** PRD §4 (BNPL plans row), §7 (D-24), §8 (Q6); DECISIONS D-24; STATUS known gaps; kickoff superprompt.
+- **Decided:** only SPayLater, TikTok PayLater and Atome are named and rule-driven; every other provider uses a manual "Other provider" entry where the user types the first payment date, instalment count and the checkout instalment amount (or total payable). Supersedes the scaffold-time wording that listed Grab PayLater and Boost PayFlex as "unverified" providers.
+- **Why:** naming a provider implies the app understands its rules, and a flat monthly fee rate can't represent Boost's or Grab's fees; a typed checkout amount is more accurate.
+- **Verified:** nothing verified this session (documentation only).
+- **Known issues / next steps:** none new; the P1 plan must implement the "Other provider" form and schedule-from-entered-amount path.
+
 ### 2026-10-08 — Project scaffolded
 - **Changed:** Created the project doc system — `refdocs/` (PRD, STATUS, sources, context/ ×4, guides/, changelog/DECISIONS, plans/, execution/), `CLAUDE.md`, `README.md`, `.gitignore`, `.env.example` files, `.claude/` (settings, secret-guard hook, agents, commands, memory/preflight), and the kickoff superprompt. No application code yet.
 - **Decided:** D-01 to D-25 (PRD §7). Load-bearing: component forecaster with Monte Carlo (D-04); candidates stay within the literature review, with benchmarks and monotonic constraints added (D-05, superseding an earlier "add Chronos + EBM" choice after the author asked for a recommendation); Engine 2 label = Engine 1's simulated shortfall probability (D-07); one shared feature module with a schema hash (D-09); username-only login (D-03, supervisor decision); no real personal data in this public repo (D-14); verified vs unverified BNPL providers (D-24); Berka as a benchmark only (D-25). UAT ethics approval not required (author).
