@@ -16,7 +16,7 @@ The product's end point is "is this BNPL purchase safe, and what would make it s
 - A saved report is frozen and linked to its plan (`bnpl_plans.risk_check_id`, `risk_score_at_creation`); the table already allows `risk_check_type = 'current_state'`, unused until now.
 - The engine already takes a proposed schedule plus the other plans (`engines/risk/check.py: run_check`), the Monte Carlo already excludes nothing it is not told to, and an unpaid overdue instalment is already handled (`flows.known_flows`).
 - Plan payments are already left out of the weekly variable series (`series._is_plan_payment`), so logging or not logging a past instalment never changes the forecast, only the month totals.
-- The mockup canvas (`PaySense Pond Theme Mockup`) fixed the look: teal sidebar, Bricolage Grotesque and Figtree, the three result faces used widely, bubbly corners, overview bar option A.
+- The mockup canvas (`PaySense Pond Theme Mockup`) fixed the look: teal sidebar, Bricolage Grotesque and Figtree, the three result faces used widely, bubbly corners, overview bar option A2 (a category icon on each row and in the panel).
 
 ## 3. Scope
 
@@ -31,7 +31,7 @@ B. **Statistics stay with the plan.** The plan card shows the face, band and sco
 
 C. **The pond theme** across the app, with the login page sharing the same tokens: teal sidebar, new fonts, bubbly corners, the faces on the health score, risk result, instalments and plan cards, the chart and category colours checked to 3:1 or better.
 
-D. **Ledger polish agreed in discussion:** the category overview bar (option A: dots, small categories grouped into "Others"); income-vs-expense bars; a "Coming up" list (confirmed recurring items and BNPL instalments in date order); a ↻ badge on transactions matched to a recurring item.
+D. **Ledger polish agreed in discussion:** the category overview bar (option A2: one colour bar, a category icon on every transaction row and every panel row, small categories grouped into "Others"; the filter bar is a single row with month and type centred vertically in the box); income-vs-expense bars; a "Coming up" list (confirmed recurring items and BNPL instalments in date order); a ↻ badge on transactions matched to a recurring item.
 
 E. **Recurring-item matching:** whole words only, the payment's amount within about 15% of the item's amount, and a "matches N transactions" count on the Recurring page; a shorter page description.
 

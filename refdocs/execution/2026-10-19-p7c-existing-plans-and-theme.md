@@ -55,7 +55,7 @@
 
 ## Phase D: agreed ledger polish
 
-### Task L1: Category overview bar (option A), "Coming up", income-vs-expense bars, ↻ badge
+### Task L1: Category overview bar (option A2, with category icons), "Coming up", income-vs-expense bars, ↻ badge
 - **Verify:** unit tests; the "Coming up" list equals the server's recurring occurrences and unpaid instalments for the window (a backend endpoint with its own tests); the bar's segments add up to the panel's gross spend.
 
 ## Phase E: recurring matching
