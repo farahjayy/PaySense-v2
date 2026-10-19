@@ -331,7 +331,11 @@ export interface paths {
         /** List Plans */
         get: operations["list_plans"];
         put?: never;
-        /** Create Plan */
+        /**
+         * Create Plan
+         * @description Add a plan. The risk check is taken for the person the day it is added and kept with the
+         *     plan (ADR D-47); a plan is saved whether or not that check could run.
+         */
         post: operations["create_plan"];
         delete?: never;
         options?: never;
@@ -948,6 +952,52 @@ export interface components {
             paid_date?: string | null;
         };
         /**
+         * PlanCreateIn
+         * @description What "Add a plan" sends: the plan, plus which instalments that already fell due were paid.
+         *
+         *     Those are a record. They are stored paid on the day each fell due and change nothing about the
+         *     future; a payment is added to the transactions only when `log_payments` is set, because the
+         *     person may already have it in a statement they imported.
+         */
+        PlanCreateIn: {
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "spaylater" | "tiktok_paylater" | "atome" | "other";
+            /** Item Name */
+            item_name: string;
+            /**
+             * Purchase Date
+             * Format: date
+             */
+            purchase_date: string;
+            /** Num Installments */
+            num_installments: number;
+            /** Total Price Sen */
+            total_price_sen?: number | null;
+            /**
+             * Monthly Fee Rate Pct
+             * @default 0
+             */
+            monthly_fee_rate_pct: number;
+            /** First Payment Date */
+            first_payment_date?: string | null;
+            /** Provider Label */
+            provider_label?: string | null;
+            /** Instalment Sen */
+            instalment_sen?: number | null;
+            /** Total Payable Sen */
+            total_payable_sen?: number | null;
+            /** Paid Seqs */
+            paid_seqs?: number[];
+            /**
+             * Log Payments
+             * @default false
+             */
+            log_payments: boolean;
+        };
+        /**
          * PlanIn
          * @description Either a rule-driven provider (send `total_price_sen`) or "other" (send the dates and the
          *     instalment amount or total payable from your own checkout).
@@ -1038,6 +1088,17 @@ export interface components {
             next_due_date: string | null;
             /** Risk Score At Creation */
             risk_score_at_creation: number | null;
+            /** Risk Check Id */
+            risk_check_id: string | null;
+            /** Risk Check Type */
+            risk_check_type: ("before_purchase" | "current_state") | null;
+            /** Risk Band */
+            risk_band: ("Safe" | "Caution" | "At Risk") | null;
+            /**
+             * Added On
+             * Format: date
+             */
+            added_on: string;
             /** Installments */
             installments: components["schemas"]["InstalmentOut"][];
         };
@@ -1279,6 +1340,12 @@ export interface components {
             versions: components["schemas"]["VersionsOut"] | null;
             /** Check Id */
             check_id: string | null;
+            /**
+             * Check Type
+             * @default before_purchase
+             * @enum {string}
+             */
+            check_type: "before_purchase" | "current_state";
         };
         /** RiskConfirmOut */
         RiskConfirmOut: {
@@ -2652,7 +2719,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PlanIn"];
+                "application/json": components["schemas"]["PlanCreateIn"];
             };
         };
         responses: {

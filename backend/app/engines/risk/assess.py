@@ -8,6 +8,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from app.domain.plan_builder import PlanProposal
 from app.engines.forecasting.flows import occurrences
 from app.engines.forecasting.simulate import Forecaster
 from app.engines.risk.check import DEFAULT_PATHS, CheckResult, Predictor, RiskRequest, run_check
@@ -54,8 +55,13 @@ def assess(
     predictor: Predictor,
     seed: int,
     paths: int = DEFAULT_PATHS,
+    proposal: PlanProposal | None = None,
+    suggest: bool = True,
 ) -> Assessment:
-    """Raises `ProposalError` when the plan rules reject the request."""
+    """Raises `ProposalError` when the plan rules reject the request.
+
+    With `proposal` the schedule is used as it stands (a plan that has started), and with
+    `suggest=False` no smallest change is searched for: there is nothing left to change."""
 
     # candidates share one ledger: it is read once and the without-purchase simulation is reused
     cache: dict[Any, Any] = {}
@@ -63,7 +69,7 @@ def assess(
     def check(candidate: RiskRequest, at: int = paths) -> CheckResult:
         return run_check(
             rows, items, plans, provider_limits, candidate, today, forecaster, predictor,
-            paths=at, seed=seed, cache=cache,
+            paths=at, seed=seed, cache=cache, proposal=proposal,
         )  # fmt: skip
 
     result = check(request)
@@ -80,6 +86,8 @@ def assess(
     factors = tuple(
         select_factors(result.features, predictor.contributions(as_vector(result.features)))
     )
+    if not suggest:
+        return Assessment(result, factors, None)
     suggestion = search(
         request,
         next_income(items, today),

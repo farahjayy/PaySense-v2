@@ -21,11 +21,13 @@ from pydantic import Field
 from app.api.deps import CurrentUser, DbDep, TodayDep, rate_limited
 from app.api.forecast import ForecasterDep, SuspectMonthOut, daily_seed
 from app.api.plans import (
+    PlanCreateIn,
     PlanIn,
     PlanOut,
     PlanPreviewOut,
     plan_out,
     preview_out,
+    propose_for,
     store_plan,
 )
 from app.api.schemas import (
@@ -38,7 +40,8 @@ from app.core.errors import api_error, not_found, unprocessable
 from app.db import plans as plans_repo
 from app.db import provider_limits as limits_repo
 from app.db import recurring_items, risk_checks, transactions
-from app.domain.plan_builder import ProposalError
+from app.domain.plan_builder import PlanProposal, ProposalError
+from app.domain.schedule import Instalment
 from app.engines.forecasting.simulate import band as band_of
 from app.engines.risk.assess import assess
 from app.engines.risk.check import CheckResult, Curve, Predictor, RiskRequest
@@ -61,6 +64,7 @@ CONFLICT_ENVELOPE: dict[str, Any] = {
 }
 
 Band = Literal["Safe", "Caution", "At Risk"]
+CheckType = Literal["before_purchase", "current_state"]
 CHECKS_PER_MINUTE = 10
 # A check is 0.3-1 s of CPU and a transient memory spike, and a small host runs one worker, so how
 # many run at once is capped across all users. Beyond that a request is turned away at once with a
@@ -202,6 +206,9 @@ class RiskCheckOut(ApiModel):
     without_curve: CurveOut | None = None
     versions: VersionsOut | None = None
     check_id: str | None = None
+    # "before_purchase": the whole plan, as proposed. "current_state": only what is still owed on a
+    # plan that had already started when it was added (ADR D-47).
+    check_type: CheckType = "before_purchase"
 
 
 class RiskConfirmOut(ApiModel):
@@ -276,9 +283,11 @@ def _out(
     suggestion: Counterfactual | None,
     repayment: RepaymentFlag,
     predictor: Predictor,
+    kind: CheckType = "before_purchase",
 ) -> RiskCheckOut:
     ok = result.status == "ok"
     return RiskCheckOut(
+        check_type=kind,
         status=result.status,
         lock_reason=result.lock_reason,  # type: ignore[arg-type]
         months_of_history=result.months_of_history,
@@ -309,7 +318,15 @@ def _out(
 
 
 def _evaluate(
-    body: PlanIn, user_id: str, db: Any, today: dt.date, forecaster: Any, predictor: Predictor
+    body: PlanIn,
+    user_id: str,
+    db: Any,
+    today: dt.date,
+    forecaster: Any,
+    predictor: Predictor,
+    *,
+    proposal: PlanProposal | None = None,
+    kind: CheckType = "before_purchase",
 ) -> tuple[RiskCheckOut, CheckResult]:
     rows = transactions.list_for_forecast(db, user_id, today)
     items = recurring_items.list_items(db, user_id, active_only=True)
@@ -318,15 +335,22 @@ def _evaluate(
     try:
         found = assess(
             rows, items, plans, limits, _request(body), today, forecaster, predictor,
-            seed=daily_seed(user_id, today),
+            seed=daily_seed(user_id, today), proposal=proposal, suggest=proposal is None,
         )  # fmt: skip
     except ProposalError as err:
         raise unprocessable(err.code, err.message) from err
-    out = _out(found.result, found.factors, found.suggestion, _repayment(plans, today), predictor)
+    out = _out(
+        found.result, found.factors, found.suggestion, _repayment(plans, today), predictor, kind
+    )
     return out, found.result
 
 
-def _frozen_row(out: RiskCheckOut, request: PlanIn, features: dict[str, float]) -> dict[str, Any]:
+def _frozen_row(
+    out: RiskCheckOut,
+    request: PlanIn,
+    features: dict[str, float],
+    kind: CheckType = "before_purchase",
+) -> dict[str, Any]:
     if (
         out.probability is None
         or out.score is None
@@ -337,6 +361,7 @@ def _frozen_row(out: RiskCheckOut, request: PlanIn, features: dict[str, float]) 
         raise ValueError("only a completed check can be frozen")
     return {
         "input": {
+            "kind": kind,
             "request": request.model_dump(mode="json"),
             "plan": out.plan.model_dump(mode="json"),
             "notes": {
@@ -383,6 +408,7 @@ def _from_row(row: dict[str, Any]) -> RiskCheckOut:
     notes = stored["notes"]
     curves = row["curves"] or {}
     return RiskCheckOut(
+        check_type=stored.get("kind", "before_purchase"),
         status="ok",
         lock_reason=None,
         months_of_history=notes["months_of_history"],
@@ -514,3 +540,141 @@ def read_check(check_id: str, user: CurrentUser, db: DbDep) -> RiskCheckOut:
     if row is None:
         raise not_found("risk_check_not_found", "No such risk check.")
     return _from_row(row)
+
+
+# ------------------------------------------------------------------ snapshot when a plan is added
+def _paid_by_the_person(p: PlanProposal, paid: set[int]) -> set[int]:
+    """The instalments the person says they paid, leaving out any the provider took at checkout
+    (those are already paid and already logged)."""
+    return {i.seq for i in p.instalments if i.seq in paid and not i.paid_at_checkout}
+
+
+def _plan_has_started(p: PlanProposal, paid: set[int], today: dt.date) -> bool:
+    """True when the plan is not a purchase about to be made: an instalment already fell due or was
+    recorded as paid, or the purchase is older than a check accepts."""
+    behind = any(not i.paid_at_checkout and i.due_date < today for i in p.instalments)
+    too_old = p.purchase_date < today - dt.timedelta(days=DAYS_BACK)
+    return behind or too_old or bool(_paid_by_the_person(p, paid))
+
+
+def _still_owed(p: PlanProposal, paid: set[int], today: dt.date) -> PlanProposal | None:
+    """What is left to pay on a plan that has started, as a schedule of its own.
+
+    The instalments already paid are a record and are left out entirely. One that is behind and not
+    recorded as paid is owed now, so it falls today (as an overdue instalment already does in the
+    forecast). The fee is inside each amount already, so the schedule carries no fee of its own."""
+    marked = _paid_by_the_person(p, paid)
+    left = [i for i in p.instalments if not i.paid_at_checkout and i.seq not in marked]
+    if not left:
+        return None
+    schedule = tuple(
+        Instalment(
+            seq=n, due_date=max(i.due_date, today), amount_sen=i.amount_sen, paid_at_checkout=False
+        )
+        for n, i in enumerate(left, start=1)
+    )
+    owed = sum(i.amount_sen for i in schedule)
+    return PlanProposal(
+        provider=p.provider,
+        provider_label=p.provider_label,
+        schedule_source="manual",
+        total_price_sen=owed,
+        financed_sen=owed,
+        upfront_sen=0,
+        monthly_fee_rate_pct=0.0,
+        num_installments=len(schedule),
+        purchase_date=today,
+        first_payment_date=schedule[0].due_date,
+        instalments=schedule,
+        limit_applied=False,
+        remaining_limit_sen=None,
+    )
+
+
+def _check_paid_seqs(p: PlanProposal, paid: list[int], today: dt.date) -> None:
+    by_seq = {i.seq: i for i in p.instalments}
+    for seq in set(paid):
+        instalment = by_seq.get(seq)
+        if instalment is None:
+            raise unprocessable("unknown_instalment", f"This plan has no instalment {seq}.")
+        if instalment.due_date > today and not instalment.paid_at_checkout:
+            raise unprocessable(
+                "instalment_not_due",
+                f"Instalment {seq} is not due until {instalment.due_date:%d %B %Y}, "
+                "so it cannot already be paid.",
+            )
+
+
+def _take_snapshot(
+    body: PlanCreateIn,
+    p: PlanProposal,
+    user_id: str,
+    db: Any,
+    today: dt.date,
+    forecaster: Any,
+    predictor: Predictor | None,
+) -> dict[str, Any] | None:
+    """Run the check for this plan and freeze it; the plan's link fields, or None if there is
+    nothing to check or the check could not be made. Never raises: a plan is saved either way.
+
+    It runs BEFORE the plan exists, so the plan is never counted against itself: the ledger holds
+    only the other plans, and this one is the proposal."""
+    if predictor is None:
+        return None
+    paid = set(body.paid_seqs)
+    try:
+        if _plan_has_started(p, paid, today):
+            kind: CheckType = "current_state"
+            proposal = _still_owed(p, paid, today)
+            if proposal is None:
+                return None  # everything is paid: nothing is owed, so nothing to check
+        else:
+            kind, proposal = "before_purchase", None
+        with admitted():
+            out, result = _evaluate(
+                body, user_id, db, today, forecaster, predictor, proposal=proposal, kind=kind
+            )
+        if out.status != "ok" or result.features is None:
+            return None
+        stored = risk_checks.create(db, user_id, _frozen_row(out, body, result.features, kind))
+    except Exception:
+        logger.exception("could not take the risk snapshot for a new plan")
+        return None
+    return {
+        "risk_check_id": stored["id"],
+        "risk_check_type": kind,
+        "risk_score_at_creation": out.score,
+    }
+
+
+def create_with_snapshot(
+    body: PlanCreateIn,
+    user_id: str,
+    db: Any,
+    today: dt.date,
+    forecaster: Any,
+    predictor: Predictor | None,
+) -> dict[str, Any]:
+    """Add a plan, keeping the risk check taken the day it was added (ADR D-47)."""
+    p = propose_for(body, db, user_id)
+    _check_paid_seqs(p, body.paid_seqs, today)
+    link = _take_snapshot(body, p, user_id, db, today, forecaster, predictor)
+    try:
+        return store_plan(
+            db,
+            user_id,
+            body.item_name,
+            p,
+            risk=link,
+            already_paid=body.paid_seqs,
+            log_payments=body.log_payments,
+        )
+    except Exception:
+        if (
+            link is not None
+        ):  # the report was made for this plan; without it the report is unreachable
+            try:
+                risk_checks.delete(db, user_id, link["risk_check_id"])
+            except Exception:
+                logger.exception("could not remove an unused risk check %s", link["risk_check_id"])
+        raise

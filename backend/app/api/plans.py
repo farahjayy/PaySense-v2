@@ -5,12 +5,14 @@ is exactly what gets saved. The frontend holds no provider rule or limit arithme
 """
 
 import datetime as dt
+from collections.abc import Sequence
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.api.deps import CurrentUser, DbDep, TodayDep
+from app.api.deps import CurrentUser, DbDep, TodayDep, rate_limited
+from app.api.forecast import ForecasterDep
 from app.api.providers import ProviderKey
 from app.api.schemas import (
     CONFLICT_RESPONSE,
@@ -22,6 +24,7 @@ from app.api.types import AppDate, Sen, text
 from app.core.errors import api_error, not_found, unprocessable
 from app.db import plans as plans_repo
 from app.db import provider_limits as limits_repo
+from app.domain.flows import as_date
 from app.domain.plan_builder import PlanProposal, ProposalError, propose_plan
 from app.domain.plans import enrich_plan, remaining_limit_sen
 from app.domain.providers import get_provider
@@ -50,6 +53,19 @@ class PlanIn(BaseModel):
     provider_label: text(40, required=False) | None = None
     instalment_sen: Sen | None = None
     total_payable_sen: Sen | None = None
+
+
+class PlanCreateIn(PlanIn):
+    """What "Add a plan" sends: the plan, plus which instalments that already fell due were paid.
+
+    Those are a record. They are stored paid on the day each fell due and change nothing about the
+    future; a payment is added to the transactions only when `log_payments` is set, because the
+    person may already have it in a statement they imported."""
+
+    paid_seqs: list[Annotated[int, Field(ge=1, le=MAX_INSTALMENTS)]] = Field(
+        default_factory=list, max_length=MAX_INSTALMENTS
+    )
+    log_payments: bool = False
 
 
 class PlanPatch(BaseModel):
@@ -124,6 +140,13 @@ class PlanOut(ApiModel):
     remaining_count: int
     next_due_date: dt.date | None
     risk_score_at_creation: int | None
+    # The snapshot of the risk check taken the day the plan was added (ADR D-47): which report,
+    # whether it was of a purchase about to be made or of what was still owed on a plan that had
+    # started, and its band. None when there was no history yet to check against.
+    risk_check_id: str | None
+    risk_check_type: Literal["before_purchase", "current_state"] | None
+    risk_band: Literal["Safe", "Caution", "At Risk"] | None
+    added_on: dt.date
     installments: list[InstalmentOut]
 
 
@@ -164,7 +187,10 @@ def propose_for(body: PlanIn, db: Any, user_id: str) -> PlanProposal:
 
 
 def _plan_out(row: dict[str, Any], today: dt.date) -> PlanOut:
-    return PlanOut.model_validate(enrich_plan(row, row["installments"], today))
+    added = as_date(row.get("created_at") or row["purchase_date"])
+    return PlanOut.model_validate(
+        {**enrich_plan(row, row["installments"], today), "added_on": added}
+    )
 
 
 def _check_paid_date(paid_date: dt.date | None, today: dt.date) -> dt.date:
@@ -217,9 +243,12 @@ def store_plan(
     item_name: str,
     p: PlanProposal,
     risk: dict[str, Any] | None = None,
+    already_paid: Sequence[int] = (),
+    log_payments: bool = False,
 ) -> dict[str, Any]:
     """Save a proposal as a plan (with its schedule and checkout payments). `risk` carries the
-    frozen risk check's link fields when the plan comes from a risk check."""
+    frozen risk check's link fields; `already_paid` names instalments that had already fallen due
+    and were paid (recorded, and logged as expenses only if `log_payments`)."""
     return plans_repo.create_plan(
         db,
         user_id,
@@ -238,6 +267,8 @@ def store_plan(
             **(risk or {}),
         },
         p.instalments,
+        already_paid=already_paid,
+        log_payments=log_payments,
     )
 
 
@@ -245,10 +276,27 @@ def plan_out(row: dict[str, Any], today: dt.date) -> PlanOut:
     return _plan_out(row, today)
 
 
-@router.post("", response_model=PlanOut, status_code=201)
-def create_plan(body: PlanIn, user: CurrentUser, db: DbDep, today: TodayDep) -> PlanOut:
-    p = propose_for(body, db, user.id)
-    return _plan_out(store_plan(db, user.id, body.item_name, p), today)
+@router.post(
+    "",
+    response_model=PlanOut,
+    status_code=201,
+    dependencies=[rate_limited("plan-create", 20, 60)],
+)
+def create_plan(
+    body: PlanCreateIn,
+    request: Request,
+    user: CurrentUser,
+    db: DbDep,
+    today: TodayDep,
+    forecaster: ForecasterDep,
+) -> PlanOut:
+    """Add a plan. The risk check is taken for the person the day it is added and kept with the
+    plan (ADR D-47); a plan is saved whether or not that check could run."""
+    from app.api.risk import create_with_snapshot  # risk.py imports this module
+
+    predictor = getattr(request.app.state, "predictor", None)
+    row = create_with_snapshot(body, user.id, db, today, forecaster, predictor)
+    return _plan_out(row, today)
 
 
 @router.get("", response_model=list[PlanOut])

@@ -135,10 +135,14 @@ def run_check(
     paths: int = DEFAULT_PATHS,
     seed: int = 0,
     cache: dict[Any, Any] | None = None,
+    proposal: PlanProposal | None = None,
 ) -> CheckResult:
-    """Raises `ProposalError` when the plan rules reject the request (the API maps it to 422)."""
+    """Raises `ProposalError` when the plan rules reject the request (the API maps it to 422).
+
+    `proposal` is a schedule that is already known (what is still owed on a plan that has
+    started); when it is given the request is not turned into a schedule at all."""
     rows, items, plans = list(rows), list(items), list(plans)
-    proposal = propose_plan(
+    proposal = proposal or propose_plan(
         provider=request.provider,
         purchase_date=request.purchase_date,
         num_instalments=request.num_installments,

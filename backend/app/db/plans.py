@@ -17,7 +17,7 @@ from typing import Any
 
 from postgrest import APIError
 
-from app.db import transactions
+from app.db import risk_checks, transactions
 from app.db.base import ScopedTable
 from app.db.client import Database
 from app.domain.categorize import BNPL
@@ -189,7 +189,13 @@ def _best_effort(description: str, action: Any, *args: Any) -> None:
 
 
 def create_plan(
-    db: Database, user_id: str, plan: Mapping[str, Any], instalments: Sequence[Instalment]
+    db: Database,
+    user_id: str,
+    plan: Mapping[str, Any],
+    instalments: Sequence[Instalment],
+    *,
+    already_paid: Sequence[int] = (),
+    log_payments: bool = False,
 ) -> dict[str, Any]:
     """Create a plan with its schedule and log what was paid at checkout (an Atome first
     instalment, and any excess over the provider limit). All or nothing, as far as the database
@@ -197,13 +203,18 @@ def create_plan(
 
       1. insert the plan; 2. insert every instalment as UNPAID; 3. log the checkout payments (the
       excess, and each checkout instalment's payment, tied to that instalment); 4. only then flip
-      the checkout instalments to paid.
+      the checkout instalments to paid; 5. record any instalments the person says were already
+      paid (and log them only if asked).
 
     A crash between steps leaves a plan whose checkout instalments are unpaid with their payments
     already logged, which a later `mark_paid` completes without double-counting. On an error the
     plan and everything linked to it are removed, each cleanup step independent of the others.
     """
     row = _validate(plan, instalments)
+    by_due = {i.seq: i for i in instalments}
+    record_only = sorted(
+        seq for seq in set(already_paid) if seq in by_due and not by_due[seq].paid_at_checkout
+    )
     plans = ScopedTable(db, PLANS)
     created: dict[str, Any] | None = None
     try:
@@ -242,6 +253,16 @@ def create_plan(
                 by_seq[instalment.seq]["id"],
                 {"is_paid": True, "paid_date": purchase_day},
             )
+        # Instalments that already fell due and were paid before the plan was added: a record,
+        # dated the day each fell due. A payment is added to the ledger only when asked, because
+        # the person may already have it in a statement they imported.
+        for seq in record_only:
+            due = by_due[seq].due_date
+            if log_payments:
+                _ensure_payment(db, user_id, created, by_seq[seq], due)
+            ScopedTable(db, INSTALMENTS).update(
+                user_id, by_seq[seq]["id"], {"is_paid": True, "paid_date": due.isoformat()}
+            )
     except Exception:
         if created is not None:
             # Everything linked to the plan, including a payment whose id we never saw because
@@ -266,7 +287,8 @@ def get_with_instalments(db: Database, user_id: str, plan_id: str) -> dict[str, 
     if plan is None:
         return None
     rows = ScopedTable(db, INSTALMENTS).list_rows(user_id, order_by="seq", plan_id=plan_id)
-    return {**plan, "installments": rows}
+    band = risk_checks.bands(db, user_id).get(plan.get("risk_check_id") or "")
+    return {**plan, "installments": rows, "risk_band": band}
 
 
 def list_with_instalments(db: Database, user_id: str) -> list[dict[str, Any]]:
@@ -274,7 +296,15 @@ def list_with_instalments(db: Database, user_id: str) -> list[dict[str, Any]]:
     grouped: dict[str, list[dict[str, Any]]] = {}
     for row in ScopedTable(db, INSTALMENTS).list_rows(user_id, order_by="seq"):
         grouped.setdefault(row["plan_id"], []).append(row)
-    return [{**plan, "installments": grouped.get(plan["id"], [])} for plan in plans]
+    bands = risk_checks.bands(db, user_id) if any(p.get("risk_check_id") for p in plans) else {}
+    return [
+        {
+            **plan,
+            "installments": grouped.get(plan["id"], []),
+            "risk_band": bands.get(plan.get("risk_check_id") or ""),
+        }
+        for plan in plans
+    ]
 
 
 def used_limits(db: Database, user_id: str) -> dict[str, int]:

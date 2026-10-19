@@ -52,3 +52,9 @@ def get(db: Database, user_id: str, check_id: str) -> dict[str, Any] | None:
 
 def delete(db: Database, user_id: str, check_id: str) -> bool:
     return _table(db).delete(user_id, check_id)
+
+
+def bands(db: Database, user_id: str) -> dict[str, str]:
+    """The band of every one of the caller's reports, by report id (a plan shows its own)."""
+    rows = _table(db).list_rows(user_id, columns="id,label")
+    return {row["id"]: BANDS[row["label"]] for row in rows if row["label"] in BANDS}
