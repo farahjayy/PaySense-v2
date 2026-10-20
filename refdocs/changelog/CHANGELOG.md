@@ -28,6 +28,12 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-20 — Getting started: a way to bring it back after "Hide this"
+- **Reported:** "I click 'hide this' but nowhere is a button to make it on view again."
+- **Changed:** when the checklist is hidden (and unfinished) the dashboard shows one quiet line, "The getting started checklist is hidden. Show getting started", which clears the stored choice and brings the checklist back. A finished checklist still shows nothing. `GettingStarted.tsx`.
+- **Verified:** `cd frontend && npx vitest run` -> all passed (three new tests: show again, still offered next visit, nothing for a finished student); `npx tsc --noEmit`, `npx eslint .` clean; `npx playwright test` -> 18 passed. The three tests were written alongside the change, not run red first.
+- **Noted, not changed:** the choice is still kept in that browser only.
+
 ### 2026-10-20 — Sidebar: only the pages used every day (D-49)
 - **Reported:** Categories "should not be in the sidebar because it is a one-time view", and the same for Import (the author's earlier point, which I had wrongly settled as "keep both").
 - **Changed:** `AppShell` nav lists Dashboard, Transactions, Plans, Risk check, a divider, then Recurring and About the model; the phone bar shows the four everyday pages. The Transactions header has Categories and Import buttons; `/import` and `/categories` get a "Back to transactions" link (`ui/BackLink`) and keep Transactions highlighted (`lib/nav`). Browser journeys reach Import through Transactions. `uat/task-script.md` T2 notes that Import is found through Transactions.

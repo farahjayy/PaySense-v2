@@ -134,7 +134,41 @@ describe("GettingStarted", () => {
 
     expect(screen.queryByRole("list", { name: /getting started steps/i })).not.toBeInTheDocument();
     first.unmount();
-    const { settled, container } = renderSettled();
+    const { settled } = renderSettled();
+    await settled();
+    expect(screen.queryByRole("list", { name: /getting started steps/i })).not.toBeInTheDocument();
+  });
+
+  it("leaves a way to bring the checklist back once it is hidden", async () => {
+    serve({ months: 5, status: "ok" });
+    render(<GettingStarted />, { wrapper });
+    await screen.findByRole("list", { name: /getting started steps/i });
+    await userEvent.click(screen.getByRole("button", { name: /hide this/i }));
+
+    await userEvent.click(await screen.findByRole("button", { name: /show getting started/i }));
+
+    expect(await screen.findByRole("list", { name: /getting started steps/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /show getting started/i })).toBeNull();
+    expect(window.localStorage.getItem("paysense.gettingStarted.hidden")).toBeNull();
+  });
+
+  it("offers the way back on the next visit too, but not to a student who has finished every step", async () => {
+    window.localStorage.setItem("paysense.gettingStarted.hidden", "1");
+    serve({ months: 5, status: "ok" });
+    const first = render(<GettingStarted />, { wrapper });
+    expect(
+      await screen.findByRole("button", { name: /show getting started/i }),
+    ).toBeInTheDocument();
+    first.unmount();
+
+    serve({
+      months: 5,
+      status: "ok",
+      recurring: [{ id: "r1" }],
+      limits: [{ provider: "atome", limit_sen: 50000 }],
+      plans: [{ id: "p1", risk_score_at_creation: 61 }],
+    });
+    const { container, settled } = renderSettled();
     await settled();
     expect(container).toBeEmptyDOMElement();
   });

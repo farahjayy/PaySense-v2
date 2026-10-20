@@ -6,12 +6,7 @@ import { useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
 import { Face } from "@/components/ui/Face";
-import {
-  useForecast,
-  usePlans,
-  useProviderLimits,
-  useRecurringItems,
-} from "@/lib/api/queries";
+import { useForecast, usePlans, useProviderLimits, useRecurringItems } from "@/lib/api/queries";
 import { gettingStartedSteps } from "@/lib/onboarding";
 
 const HIDDEN_KEY = "paysense.gettingStarted.hidden";
@@ -55,14 +50,21 @@ export function GettingStarted() {
       // not kept, but hidden for this visit
     }
   }
+  function show() {
+    setHiddenNow(false);
+    try {
+      window.localStorage.removeItem(HIDDEN_KEY);
+      subscribers.forEach((notify) => notify());
+    } catch {
+      // the choice could not be cleared, but the checklist is back for this visit
+    }
+  }
   const forecast = useForecast();
   const recurring = useRecurringItems();
   const limits = useProviderLimits();
   const plans = usePlans();
 
-  if (hidden || !forecast.data || !recurring.data || !limits.data || !plans.data) {
-    return null;
-  }
+  if (!forecast.data || !recurring.data || !limits.data || !plans.data) return null;
   const steps = gettingStartedSteps({
     monthsOfHistory: forecast.data.months_of_history,
     recurringCount: recurring.data.length,
@@ -72,6 +74,20 @@ export function GettingStarted() {
   });
   const done = steps.filter((s) => s.done).length;
   if (done === steps.length) return null;
+  if (hidden) {
+    return (
+      <p className="flex items-center gap-2 text-[13px] text-ink-secondary">
+        The getting started checklist is hidden.
+        <button
+          type="button"
+          onClick={show}
+          className="font-semibold text-accent underline-offset-2 hover:underline"
+        >
+          Show getting started
+        </button>
+      </p>
+    );
+  }
 
   return (
     <Card>
