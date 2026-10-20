@@ -407,3 +407,24 @@ describe("RiskResult explanation of the two numbers", () => {
     expect(screen.getByText(/judged by a direct simulation/i)).toBeInTheDocument();
   });
 });
+
+describe("RiskReportScreen by report type", () => {
+  beforeEach(() => get.mockReset());
+
+  it("titles a check of the remaining schedule as exactly that", async () => {
+    get.mockResolvedValue(ok(result({ check_type: "current_state", suggestion: null })));
+    render(<RiskReportScreen id="abc" />, { wrapper });
+
+    expect(
+      await screen.findByRole("heading", { name: /saved check of what was left to pay/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/only the instalments still left to pay/i)).toBeInTheDocument();
+  });
+
+  it("keeps the ordinary title for a check taken before a purchase", async () => {
+    get.mockResolvedValue(ok(result({ check_type: "before_purchase" })));
+    render(<RiskReportScreen id="abc" />, { wrapper });
+
+    expect(await screen.findByRole("heading", { name: "Saved risk check" })).toBeInTheDocument();
+  });
+});

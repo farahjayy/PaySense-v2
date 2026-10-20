@@ -9,7 +9,7 @@ from collections.abc import Sequence
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt
 
 from app.api.deps import CurrentUser, DbDep, TodayDep, rate_limited
 from app.api.forecast import ForecasterDep
@@ -62,10 +62,10 @@ class PlanCreateIn(PlanIn):
     future; a payment is added to the transactions only when `log_payments` is set, because the
     person may already have it in a statement they imported."""
 
-    paid_seqs: list[Annotated[int, Field(ge=1, le=MAX_INSTALMENTS)]] = Field(
+    paid_seqs: list[Annotated[StrictInt, Field(ge=1, le=MAX_INSTALMENTS)]] = Field(
         default_factory=list, max_length=MAX_INSTALMENTS
     )
-    log_payments: bool = False
+    log_payments: StrictBool = False
 
 
 class PlanPatch(BaseModel):

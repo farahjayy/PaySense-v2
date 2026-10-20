@@ -400,3 +400,76 @@ def test_the_old_report_without_a_type_still_reads_as_before_purchase(api, amir,
 
     assert read["check_type"] == "before_purchase"
     assert confirmed["check"]["check_type"] == "before_purchase"
+
+
+def test_adding_the_same_plan_twice_in_a_row_is_refused_not_duplicated(api, amir, fake_db):
+    fill(fake_db)
+    payload = existing(paid_seqs=[1, 2, 3], log_payments=True)
+
+    first = create(api, amir, payload)
+    again = api.post("/api/plans", json=payload, headers=amir)
+
+    assert first["paid_count"] == 3
+    assert again.status_code == 409
+    assert again.json()["detail"]["code"] == "duplicate_plan"
+    assert len(api.get("/api/plans", headers=amir).json()) == 1
+    logged = plan_payments(fake_db)
+    assert len(logged) == 3  # not six
+
+
+def test_a_different_plan_straight_after_is_not_taken_for_a_repeat(api, amir, fake_db):
+    fill(fake_db)
+    create(api, amir, body(item_name="Headphones"))
+    create(api, amir, body(item_name="Keyboard"))
+
+    assert len(api.get("/api/plans", headers=amir).json()) == 2
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"paid_seqs": [True]},
+        {"paid_seqs": ["2"]},
+        {"paid_seqs": [1.0]},
+        {"log_payments": "yes"},
+        {"log_payments": 1},
+    ],
+)
+def test_the_fields_that_write_money_take_exact_types_only(api, amir, extra):
+    res = api.post("/api/plans", json=existing(**extra), headers=amir)
+
+    assert res.status_code == 422
+
+
+def test_a_report_is_kept_when_the_plan_it_belongs_to_was_saved_despite_an_error(
+    api, amir, fake_db, monkeypatch
+):
+    """The plan committed but the read-back failed: the report is the plan's, so it must stay."""
+    fill(fake_db)
+    from app.db import plans as plans_repo
+
+    real = plans_repo.get_with_instalments
+
+    def fail_after_commit(*args, **kwargs):
+        raise RuntimeError("the read-back timed out")
+
+    monkeypatch.setattr(plans_repo, "get_with_instalments", fail_after_commit)
+    monkeypatch.setattr("app.api.plans.plans_repo.get_with_instalments", fail_after_commit)
+    with pytest.raises(RuntimeError):  # the test client re-raises what would be a 500
+        api.post("/api/plans", json=body(), headers=amir)
+    monkeypatch.setattr(plans_repo, "get_with_instalments", real)
+
+    stored = plans_repo.list_with_instalments(fake_db, user_id(fake_db))
+    assert len(stored) == 1
+    assert stored[0]["risk_check_id"] is not None
+    assert (
+        api.get(f"/api/risk/checks/{stored[0]['risk_check_id']}", headers=amir).status_code == 200
+    )
+
+
+def test_a_purchase_far_in_the_future_is_saved_without_a_misleading_snapshot(api, amir, fake_db):
+    fill(fake_db)
+
+    plan = create(api, amir, body(purchase_date="2030-01-01"))
+
+    assert plan["risk_check_id"] is None

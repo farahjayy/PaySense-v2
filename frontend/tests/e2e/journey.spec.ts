@@ -116,6 +116,47 @@ test("a tester checks a purchase, tries the suggestion, adds the plan and reads 
   expect(violations).toEqual([]);
 });
 
+test("a plan that has already started keeps a check of what is left, and the report says so", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const violations = watchForCspViolations(page);
+  await signIn(page, "existing");
+
+  await page.getByRole("link", { name: "Import" }).first().click();
+  await page.getByLabel("Choose a statement file").setInputFiles(PERSONA_CSV);
+  await page.getByRole("button", { name: /^add \d+ transactions?$/i }).click();
+  await expect(page.getByText(/transactions added/i)).toBeVisible();
+
+  // Bought months ago with three instalments: all three have already fallen due.
+  await page.goto("/plans");
+  await page.getByRole("button", { name: "Add a plan" }).first().click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("What are you buying?").fill("Old tablet");
+  await dialog.getByLabel("Purchase date").fill("2025-08-01");
+  await dialog.getByLabel("Number of instalments").fill("3");
+  await dialog.getByLabel(/^price/i).fill("300");
+
+  const past = dialog.getByRole("group", { name: /already fell due/i });
+  await expect(past).toBeVisible();
+  await expect(past.getByRole("checkbox", { name: /paid$/i })).toHaveCount(3);
+  // the last one was not paid, so it is the part still owed
+  await past.getByRole("checkbox", { name: /instalment 3.*paid$/i }).uncheck();
+  await dialog.getByRole("button", { name: "Save plan" }).click();
+
+  await expect(page.getByRole("heading", { name: "Old tablet" })).toBeVisible();
+  await expect(page.getByText(/2 of 3 paid/)).toBeVisible();
+  await page.getByRole("button", { name: /analysis from/i }).click();
+  await expect(page.getByText(/only what was still left to pay/i)).toBeVisible();
+
+  await page.getByRole("link", { name: "Open the full report" }).click();
+  await expect(page).toHaveURL(/\/risk\/[0-9a-f-]{36}/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Saved check of what was left to pay" }),
+  ).toBeVisible();
+  expect(violations).toEqual([]);
+});
+
 test("the transactions page shows where the month went, and picking a category filters the list", async ({
   page,
 }) => {

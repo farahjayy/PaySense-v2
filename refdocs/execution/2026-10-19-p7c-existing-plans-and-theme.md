@@ -10,38 +10,21 @@
 
 ---
 
-## Phase A: existing plans (backend)
+## Phase A: existing plans (backend) — done (ADR D-47)
 
-### Task P1: Past instalments recorded as paid (tests first)
-- **Files:** `app/api/plans.py` (`PlanIn.paid_seqs`, `log_payments`), `app/db/plans.py` (`store_plan`, a `mark_paid` that does not log), `tests/api/test_plans_api.py`, `tests/test_plans_repo.py`.
-- **Steps:** instalments in `paid_seqs` are stored paid with `paid_date` = due date; a transaction is logged only when `log_payments` is true; a `seq` that is not in the plan, or is after today, is a 422; an instalment not listed stays unpaid and overdue.
-- **Verify:** her case (purchase four months back, six instalments, four recorded) leaves two owed and no transactions; with `log_payments` four linked payments exist and none is duplicated on a retry; two-user isolation test.
+Reality differs from the first draft of this phase: after the author walked through the Plans mockup, the design became **a snapshot taken when a plan is added, with no "check again"**, so there is no `POST /api/plans/{id}/risk-check` and no migration. Tasks P1 to P4 became:
 
-### Task P2: Current-state check of the remaining schedule (tests first)
-- **Files:** `app/api/risk.py` or `app/api/plans.py` (`POST /api/plans/{plan_id}/risk-check`), `app/engines/risk/check.py` (accept plans to leave out), `app/db/plans.py` (link and type), `tests/api/test_risk_api.py`, `tests/engines/test_check.py`.
-- **Steps:** build the remaining schedule from unpaid instalments (provider-less manual proposal: first date = the next unpaid due date, count = remaining, total = their sum); run with the plan excluded from the plans passed in; freeze as `current_state`; link to the plan, keep `risk_score_at_creation`; a plan with nothing unpaid is refused with a clear message; a locked ledger returns the locked result and stores nothing.
-- **Verify:** the result equals the check of the same schedule with the plan absent (the double-count test); a different user's plan is a 404; the old report link is replaced and the previous report is kept in `risk_checks` unreferenced only if it was a creation report.
+- **P1/P4 Snapshot on add.** `POST /api/plans` runs the risk check *before* saving (so a plan is never counted against itself), freezes it, links it (`risk_check_id`, `risk_check_type`, `risk_score_at_creation`); `PlanOut` also carries `risk_band` and `added_on`. A plan whose check cannot run is saved without a link. Per-person lock and a 120-second repeat guard (409 `duplicate_plan`), as for "Go ahead". No snapshot for a purchase dated beyond the check's reach.
+- **P2 Remaining schedule.** A plan with instalments already due is checked as `current_state` over what is still owed (overdue ones count as due today, fee 0, no suggestion). Nothing owed means no check.
+- **P1 Past instalments.** `paid_seqs` (exact integers 1 to 36, only instalments already due) are stored paid on their due day; `log_payments` (exact boolean, default off) also adds BNPL expense transactions.
+- **P3 Report type.** `RiskCheckOut.check_type`; old reports read as `before_purchase`. `npm run gen:api` run; `check:api` exits 0.
+- **Verify:** `backend/tests/api/test_plan_snapshot_api.py` (34 tests: snapshot, same answer as checking first, frozen report, locked ledger, no model, failing check, orphan cleanup, report kept when the plan did commit, not counted against itself, isolation, delete erases the snapshot, paid_seqs rules, logging, repeat refused, exact types, far-future purchase, remaining schedule, nothing owed); `risk_checks.bands` isolation test.
 
-### Task P3: Report type and plan fields
-- **Files:** `app/api/plans.py` (`PlanOut.risk_check_id`, `risk_check_type`, `risk_checked_at`), `app/api/risk.py` (`RiskCheckOut.check_type`, `_from_row`), tests; then `npm run gen:api`.
-- **Verify:** `check:api` exits 0; an old saved report still reads (back-filled, as D-46 did); money fields still pass the integer-sen walk.
+## Phase B: plan card and form (frontend) — done
 
-### Task P4: Run the check when an existing plan is added
-- **Files:** `app/api/plans.py` create route, tests.
-- **Steps:** after creation, if instalments remain and the ledger is long enough, run P2 and link it; never fail the creation because the check could not run.
-- **Verify:** created plan carries a report; a short ledger creates the plan with `risk_check_id` null.
-
-## Phase B: plan card and form (frontend)
-
-### Task P5: Past-instalments section in the plan form (tests first)
-- **Files:** `frontend/components/plans/PlanForm.tsx`, new `PastInstalments.tsx`, `lib/plans.ts`, tests.
-- **Steps:** the section appears only when the previewed schedule has dates before today; one Paid checkbox per past instalment (default ticked), the "also add to transactions" switch (default off) with its helper text, and the sentence that past instalments are a record and do not change the forecast.
-- **Verify:** unit tests for both defaults and for sending `paid_seqs` and `log_payments`.
-
-### Task P6: The plan keeps its statistics
-- **Files:** `frontend/components/screens/PlansScreen.tsx`, new `PlanRisk.tsx`, `app/(app)/risk/[id]/page.tsx`, `components/screens/RiskReportScreen.tsx`, tests.
-- **Steps:** face, band, score, "as at" date, View report, Check again; the report screen titles itself by `check_type` and hides "Going ahead?".
-- **Verify:** unit tests; Playwright: add an existing plan, see its card carry a report, open it.
+- **P5 Past-instalments section.** `PastInstalments.tsx` in `PlanForm`: shown when the previewed schedule has instalments due today or earlier (not the part paid at checkout); each ticked paid by default; an untick belongs to that instalment on that day, so a schedule change starts paid again; "also add these payments to my transactions" off by default; the section stays (dimmed) while the preview catches up and Save waits for a current preview.
+- **P6 The plan keeps its analysis.** `PlanRisk.tsx` on each plan card: collapsed "Analysis from <date>", the report fetched only when opened; face, band, chance, up to three reasons, the smallest change, a "covers only what was left to pay" note for `current_state`, and the link to the full report. `RiskReportScreen` titles itself by `check_type`. `Face.tsx` is the shared face (the login page still has its own copy; unify in T1).
+- **Verify:** `tests/unit/PlanSnapshot.test.tsx` (9), `plans.test.ts`, `RiskScreen.test.tsx`, axe test for the section; Playwright "a plan that has already started keeps a check of what is left" on desktop and phone.
 
 ## Phase C: pond theme
 

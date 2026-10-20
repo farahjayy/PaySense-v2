@@ -3,7 +3,7 @@
  * fees, the limit split); this only decides which fields apply to the chosen provider so the
  * request is one the server accepts.
  */
-import type { PlanInput, ProviderInfo } from "@/lib/api/queries";
+import type { PlanInput, PlanPreview, ProviderInfo } from "@/lib/api/queries";
 
 export type AmountMode = "instalment" | "total";
 
@@ -91,4 +91,16 @@ export function toPlanInput(
       ? { instalment_sen: draft.amountSen }
       : { total_payable_sen: draft.amountSen }),
   };
+}
+
+/**
+ * The instalments that had already fallen due when the plan is added (today included). These are a
+ * record of what was paid, not part of what is still to come; the part paid at checkout is not one
+ * of them because the checkout already settled it.
+ */
+export function pastInstalments(
+  installments: PlanPreview["installments"],
+  today: string,
+): PlanPreview["installments"] {
+  return installments.filter((i) => !i.paid_at_checkout && i.due_date <= today);
 }

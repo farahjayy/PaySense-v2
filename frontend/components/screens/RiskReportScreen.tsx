@@ -14,8 +14,16 @@ export function RiskReportScreen({ id }: { id: string }) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader
-        title="Saved risk check"
-        intro="The result you saw when you added this plan. It does not change when your ledger does."
+        title={
+          report.data?.check_type === "current_state"
+            ? "Saved check of what was left to pay"
+            : "Saved risk check"
+        }
+        intro={
+          report.data?.check_type === "current_state"
+            ? "The check taken the day you added this plan, covering only the instalments still left to pay. It does not change when your ledger does."
+            : "The result you saw when you added this plan. It does not change when your ledger does."
+        }
         actions={
           <Link href="/plans" className="text-[13px] font-medium text-accent hover:underline">
             Back to plans

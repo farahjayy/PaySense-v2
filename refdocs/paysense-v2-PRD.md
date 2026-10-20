@@ -257,6 +257,7 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-44 | Merchant text ignores month names ("Rent july" = "Rent august") | Each month looked like a different payee, so monthly items were never detected or matched |
 | D-45 | Spending by category uses the month summary's definition of spent; transfers ignored, refunds netted off the total, savings shown beside spending (`ASSUMED:` not subtracted), BNPL its own row | One definition of "spent" on every screen |
 | D-46 | The plan preview carries `fee_sen` and `total_cost_sen` from the server; the card says who pays what | The frontend computes no money; the old labels hid the fee and the real cost |
+| D-47 | A plan keeps the risk check taken the day it was added (check before save, never counted against itself); instalments already due are a record the person ticks as paid, logged as transactions only on request; the check of a started plan covers the remaining schedule | Statistics used to vanish once a purchase became a plan, and a half-paid plan still takes money out of the future |
 
 ---
 

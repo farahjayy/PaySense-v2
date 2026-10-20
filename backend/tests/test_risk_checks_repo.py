@@ -87,3 +87,12 @@ def test_the_user_id_comes_from_the_argument_never_the_row(db, two_users):
     amir, siti = two_users
     with pytest.raises(ValueError, match="user_id"):
         risk_checks.create(db, amir, row(user_id=siti))
+
+
+def test_bands_lists_only_the_callers_own_reports(db, two_users):
+    amir, siti = two_users
+    mine = risk_checks.create(db, amir, row(label="safe"))
+    theirs = risk_checks.create(db, siti, row(label="at_risk"))
+
+    assert risk_checks.bands(db, amir) == {mine["id"]: "Safe"}
+    assert risk_checks.bands(db, siti) == {theirs["id"]: "At Risk"}

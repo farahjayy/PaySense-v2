@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ProviderInfo } from "@/lib/api/queries";
-import { emptyDraft, toPlanInput, type PlanDraft } from "@/lib/plans";
+import { emptyDraft, pastInstalments, toPlanInput, type PlanDraft } from "@/lib/plans";
 
 const SPAYLATER: ProviderInfo = {
   key: "spaylater",
@@ -88,5 +88,27 @@ describe("toPlanInput", () => {
     expect(toPlanInput(draft({ priceSen: 30000, feePct: "abc" }), SPAYLATER)).toBeNull();
     expect(toPlanInput(draft({ provider: "other", amountSen: 5000 }), OTHER)).toBeNull();
     expect(toPlanInput(draft({ priceSen: 30000 }), undefined)).toBeNull();
+  });
+});
+
+describe("pastInstalments", () => {
+  const schedule = [
+    { seq: 1, due_date: "2026-06-05", amount_sen: 5000, paid_at_checkout: false },
+    { seq: 2, due_date: "2026-07-05", amount_sen: 5000, paid_at_checkout: false },
+    { seq: 3, due_date: "2026-10-19", amount_sen: 5000, paid_at_checkout: false },
+    { seq: 4, due_date: "2026-11-05", amount_sen: 5000, paid_at_checkout: false },
+  ];
+
+  it("lists the instalments that have already fallen due, today included", () => {
+    expect(pastInstalments(schedule, "2026-10-19").map((i) => i.seq)).toEqual([1, 2, 3]);
+  });
+
+  it("is empty for a plan that has not started", () => {
+    expect(pastInstalments(schedule, "2026-05-01")).toEqual([]);
+  });
+
+  it("leaves out the part already paid at checkout", () => {
+    const withCheckout = [{ ...schedule[0], paid_at_checkout: true }, ...schedule.slice(1)];
+    expect(pastInstalments(withCheckout, "2026-10-19").map((i) => i.seq)).toEqual([2, 3]);
   });
 });

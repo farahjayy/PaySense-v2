@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { PlanForm } from "@/components/plans/PlanForm";
+import { PlanRisk } from "@/components/plans/PlanRisk";
 import { ProviderLimits } from "@/components/plans/ProviderLimits";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
@@ -138,6 +139,7 @@ function PlanCard({ plan, onDelete }: { plan: Plan; onDelete: () => void }) {
           Delete plan
         </Button>
       </div>
+      <PlanRisk plan={plan} />
       {error && (
         <Banner tone="danger" className="mt-3" title="Not updated">
           {error}

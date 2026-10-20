@@ -15,7 +15,7 @@ from contextlib import contextmanager
 from dataclasses import asdict
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import Field
 
 from app.api.deps import CurrentUser, DbDep, TodayDep, rate_limited
@@ -619,8 +619,8 @@ def _take_snapshot(
 
     It runs BEFORE the plan exists, so the plan is never counted against itself: the ledger holds
     only the other plans, and this one is the proposal."""
-    if predictor is None:
-        return None
+    if predictor is None or p.purchase_date > today + dt.timedelta(days=DAYS_AHEAD):
+        return None  # beyond the simulation's reach a band would only look reassuring
     paid = set(body.paid_seqs)
     try:
         if _plan_has_started(p, paid, today):
@@ -637,6 +637,9 @@ def _take_snapshot(
         if out.status != "ok" or result.features is None:
             return None
         stored = risk_checks.create(db, user_id, _frozen_row(out, body, result.features, kind))
+    except HTTPException as refusal:  # the checks are busy: expected, so no traceback
+        logger.warning("no risk snapshot for a new plan: %s", refusal.detail)
+        return None
     except Exception:
         logger.exception("could not take the risk snapshot for a new plan")
         return None
@@ -655,10 +658,32 @@ def create_with_snapshot(
     forecaster: Any,
     predictor: Predictor | None,
 ) -> dict[str, Any]:
-    """Add a plan, keeping the risk check taken the day it was added (ADR D-47)."""
-    p = propose_for(body, db, user_id)
-    _check_paid_seqs(p, body.paid_seqs, today)
-    link = _take_snapshot(body, p, user_id, db, today, forecaster, predictor)
+    """Add a plan, keeping the risk check taken the day it was added (ADR D-47).
+
+    One at a time per person, and a repeat of a plan added moments ago is refused, exactly as
+    for "Go ahead": a double-click or a retry must not add a second plan or log its payments
+    twice."""
+    lock = _confirm_lock(user_id)
+    if not lock.acquire(blocking=False):  # never park a server thread behind a slow add
+        raise api_error(409, "plan_in_progress", "This plan is already being added. Wait a moment.")
+    try:
+        if _is_duplicate(plans_repo.list_with_instalments(db, user_id), body, _now()):
+            raise api_error(
+                409,
+                "duplicate_plan",
+                "This plan was just added. Check your plans before adding it again.",
+            )
+        p = propose_for(body, db, user_id)
+        _check_paid_seqs(p, body.paid_seqs, today)
+        link = _take_snapshot(body, p, user_id, db, today, forecaster, predictor)
+        return _store_with_link(body, p, link, user_id, db)
+    finally:
+        lock.release()
+
+
+def _store_with_link(
+    body: PlanCreateIn, p: PlanProposal, link: dict[str, Any] | None, user_id: str, db: Any
+) -> dict[str, Any]:
     try:
         return store_plan(
             db,
@@ -670,11 +695,20 @@ def create_with_snapshot(
             log_payments=body.log_payments,
         )
     except Exception:
-        if (
-            link is not None
-        ):  # the report was made for this plan; without it the report is unreachable
-            try:
-                risk_checks.delete(db, user_id, link["risk_check_id"])
-            except Exception:
-                logger.exception("could not remove an unused risk check %s", link["risk_check_id"])
+        if link is not None:
+            _drop_unused_report(user_id, db, link["risk_check_id"])
         raise
+
+
+def _drop_unused_report(user_id: str, db: Any, check_id: str) -> None:
+    """The plan was not saved, so its report is unreachable. But if the plan did commit and only
+    the read-back failed, the report is the plan's: keep it."""
+    try:
+        if any(
+            row.get("risk_check_id") == check_id
+            for row in plans_repo.list_with_instalments(db, user_id)
+        ):
+            return
+        risk_checks.delete(db, user_id, check_id)
+    except Exception:
+        logger.exception("could not tidy an unused risk check %s", check_id)

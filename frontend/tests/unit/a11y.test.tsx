@@ -11,6 +11,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { PastInstalments } from "@/components/plans/PastInstalments";
 import { RiskResult } from "@/components/risk/RiskResult";
 import { CategoriesScreen } from "@/components/screens/CategoriesScreen";
 import { DashboardScreen } from "@/components/screens/DashboardScreen";
@@ -312,9 +313,28 @@ describe("accessibility (axe)", () => {
           without_curve: curve,
           versions: { model: "m", feature_schema_hash: "h" },
           check_id: null,
+          check_type: "before_purchase",
         }}
       />,
       { wrapper },
+    );
+    expect(await violations(container)).toEqual([]);
+  });
+});
+
+describe("accessibility: instalments that already fell due", () => {
+  it("has no violations", async () => {
+    const { container } = render(
+      <PastInstalments
+        past={[
+          { seq: 1, due_date: "2020-02-01", amount_sen: 20000, paid_at_checkout: false },
+          { seq: 2, due_date: "2020-03-01", amount_sen: 20000, paid_at_checkout: false },
+        ]}
+        paid={new Set([1])}
+        onToggle={() => {}}
+        logPayments={false}
+        onLogChange={() => {}}
+      />,
     );
     expect(await violations(container)).toEqual([]);
   });

@@ -3,15 +3,18 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { PlanFields } from "@/components/plans/PlanFields";
+import { PastInstalments } from "@/components/plans/PastInstalments";
 import { PlanPreviewPanel } from "@/components/plans/PlanPreviewPanel";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
-import { useCreatePlan, usePreviewPlan, useProviders, type PlanInput } from "@/lib/api/queries";
+import { useCreatePlan, usePreviewPlan, useProviders } from "@/lib/api/queries";
 import { plural, todayIso } from "@/lib/format";
 import { formatRm } from "@/lib/money";
-import { emptyDraft, toPlanInput, type PlanDraft } from "@/lib/plans";
+import { emptyDraft, pastInstalments, toPlanInput, type PlanDraft } from "@/lib/plans";
 
 const DEBOUNCE_MS = 350;
+
+const instalmentKey = (i: { seq: number; due_date: string }) => `${i.seq}:${i.due_date}`;
 
 type Props = {
   onSaved: () => void;
@@ -25,7 +28,12 @@ export function PlanForm({ onSaved, onCancel, onSavingChange }: Props) {
   const providers = useProviders();
   const preview = usePreviewPlan();
   const create = useCreatePlan();
-  const [draft, setDraft] = useState<PlanDraft>(() => emptyDraft(todayIso()));
+  const [today] = useState(() => todayIso());
+  const [draft, setDraft] = useState<PlanDraft>(() => emptyDraft(today));
+  // Past instalments count as paid unless unticked. An untick belongs to that instalment on that
+  // day, so when the schedule moves the new instalments start out paid again.
+  const [unpaid, setUnpaid] = useState<ReadonlySet<string>>(new Set());
+  const [logPayments, setLogPayments] = useState(false);
 
   const provider = providers.data?.find((p) => p.key === draft.provider);
   const input = useMemo(() => toPlanInput(draft, provider), [draft, provider]);
@@ -54,8 +62,34 @@ export function PlanForm({ onSaved, onCancel, onSavingChange }: Props) {
     create.reset();
   }
 
-  function save(body: PlanInput) {
-    create.mutate(body, { onSuccess: onSaved });
+  // Kept on screen while the preview catches up with an edit; Save waits for a current one.
+  const past = useMemo(
+    () => (input && preview.data ? pastInstalments(preview.data.installments, today) : []),
+    [input, preview.data, today],
+  );
+  const paid = new Set(past.filter((i) => !unpaid.has(instalmentKey(i))).map((i) => i.seq));
+
+  function toggleInstalment(seq: number) {
+    const instalment = past.find((i) => i.seq === seq);
+    if (!instalment) return;
+    const key = instalmentKey(instalment);
+    setUnpaid((current) => {
+      const next = new Set(current);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
+    create.reset();
+  }
+
+  function save(body: NonNullable<typeof input>) {
+    create.mutate(
+      {
+        ...body,
+        paid_seqs: [...paid].sort((a, b) => a - b),
+        log_payments: logPayments && paid.size > 0,
+      },
+      { onSuccess: onSaved },
+    );
   }
 
   return (
@@ -63,7 +97,7 @@ export function PlanForm({ onSaved, onCancel, onSavingChange }: Props) {
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        if (input) save(input);
+        if (input && previewIsCurrent && !create.isPending) save(input);
       }}
     >
       <PlanFields draft={draft} set={set} providers={providers.data ?? []} />
@@ -86,6 +120,19 @@ export function PlanForm({ onSaved, onCancel, onSavingChange }: Props) {
       </p>
       {preview.data && input && (
         <PlanPreviewPanel preview={preview.data} stale={!previewIsCurrent} />
+      )}
+      {past.length > 0 && (
+        <PastInstalments
+          past={past}
+          paid={paid}
+          onToggle={toggleInstalment}
+          logPayments={logPayments}
+          onLogChange={(value) => {
+            setLogPayments(value);
+            create.reset();
+          }}
+          stale={!previewIsCurrent}
+        />
       )}
       {preview.error && (
         <Banner tone="warning" title="We could not work this out yet">

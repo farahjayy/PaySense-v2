@@ -20,6 +20,7 @@ export type Transaction = Schemas["TransactionOut"];
 export type TransactionInput = Schemas["TransactionIn"];
 export type Plan = Schemas["PlanOut"];
 export type PlanInput = Schemas["PlanIn"];
+export type PlanCreateInput = Schemas["PlanCreateIn"];
 export type PlanPreview = Schemas["PlanPreviewOut"];
 export type ProviderInfo = Schemas["ProviderOut"];
 export type ProviderLimit = Schemas["LimitOut"];
@@ -320,7 +321,7 @@ export function usePreviewPlan() {
 export function useCreatePlan() {
   const invalidate = useInvalidateLedger();
   return useMutation({
-    mutationFn: async (body: PlanInput) => unwrap(api.POST("/api/plans", { body })),
+    mutationFn: async (body: PlanCreateInput) => unwrap(api.POST("/api/plans", { body })),
     onSuccess: () => {
       // Refresh behind the screen: a save is done when the server says so, not when every
       // active query (the forecast simulation included) has been fetched again.
@@ -400,9 +401,10 @@ export function useConfirmRisk() {
 }
 
 /** A frozen report never changes, so it is fetched once. */
-export function useRiskReport(id: string) {
+export function useRiskReport(id: string, enabled = true) {
   return useQuery({
     queryKey: ["risk-report", id],
+    enabled,
     queryFn: async () =>
       unwrap(api.GET("/api/risk/checks/{check_id}", { params: { path: { check_id: id } } })),
     staleTime: Infinity,
