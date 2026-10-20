@@ -136,7 +136,8 @@ describe("PlansScreen", () => {
     render(<PlansScreen />, { wrapper });
     await screen.findByText("Headphones");
 
-    await userEvent.click(screen.getByRole("button", { name: /show instalments/i }));
+    expect(screen.queryByRole("button", { name: /mark all 2 as paid/i })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: /^instalments.*1 of 3 paid/i }));
     await userEvent.click(
       screen.getByRole("button", { name: /mark paid, instalment 2 of headphones/i }),
     );
@@ -211,7 +212,8 @@ describe("PlansScreen", () => {
     render(<PlansScreen />, { wrapper });
     await screen.findByText("Headphones");
 
-    await userEvent.click(screen.getByRole("button", { name: "Delete plan, Headphones" }));
+    await userEvent.click(screen.getByRole("button", { name: "More actions, Headphones" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete plan, Headphones" }));
     expect(del).not.toHaveBeenCalled();
     const dialog = await screen.findByRole("dialog");
     await userEvent.click(within(dialog).getByRole("checkbox"));
@@ -228,14 +230,30 @@ describe("PlansScreen", () => {
     render(<PlansScreen />, { wrapper });
     await screen.findByText("Headphones");
 
-    await userEvent.click(screen.getByRole("button", { name: "Delete plan, Headphones" }));
+    await userEvent.click(screen.getByRole("button", { name: "More actions, Headphones" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete plan, Headphones" }));
     let dialog = await screen.findByRole("dialog");
     await userEvent.click(within(dialog).getByRole("checkbox"));
     expect(within(dialog).getByRole("checkbox")).not.toBeChecked();
     await userEvent.click(within(dialog).getByRole("button", { name: "Keep the plan" }));
 
-    await userEvent.click(screen.getByRole("button", { name: "Delete plan, Keyboard" }));
+    await userEvent.click(screen.getByRole("button", { name: "More actions, Keyboard" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete plan, Keyboard" }));
     dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("checkbox")).toBeChecked();
+  });
+
+  it("keeps Delete plan out of sight until the card's menu is opened, and Escape closes it", async () => {
+    serve();
+    render(<PlansScreen />, { wrapper });
+    await screen.findByText("Headphones");
+
+    expect(screen.queryByRole("menuitem", { name: /delete plan/i })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "More actions, Headphones" }));
+    expect(screen.getByRole("menuitem", { name: "Delete plan, Headphones" })).toBeInTheDocument();
+
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("menuitem", { name: /delete plan/i })).toBeNull();
+    expect(screen.getByRole("button", { name: "More actions, Headphones" })).toHaveFocus();
   });
 });

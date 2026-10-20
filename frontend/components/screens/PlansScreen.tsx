@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 
+import { DisclosureRow } from "@/components/plans/DisclosureRow";
 import { PlanForm } from "@/components/plans/PlanForm";
+import { PlanMenu } from "@/components/plans/PlanMenu";
 import { PlanRisk } from "@/components/plans/PlanRisk";
 import { ProviderLimits } from "@/components/plans/ProviderLimits";
 import { Banner } from "@/components/ui/Banner";
@@ -96,10 +98,15 @@ function PlanCard({ plan, onDelete }: { plan: Plan; onDelete: () => void }) {
   const error = pay.error?.message ?? payMany.error?.message ?? null;
   // One request at a time per plan: single and bulk payments must not overlap.
   const busy = pay.isPending || payMany.isPending;
+  const instalmentsId = `instalments-${plan.id}`;
+  const facts = [
+    plan.next_due_date && `next due ${formatDate(plan.next_due_date)}`,
+    plan.upfront_sen > 0 && `${formatRm(plan.upfront_sen)} was paid at checkout`,
+  ].filter(Boolean);
 
   return (
     <Card>
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="truncate text-[15px] font-semibold text-ink">{plan.item_name}</h2>
           <p className="mt-0.5 text-[12px] text-ink-secondary">
@@ -107,73 +114,73 @@ function PlanCard({ plan, onDelete }: { plan: Plan; onDelete: () => void }) {
             {formatRm(plan.installment_amount_sen)} · bought {formatDate(plan.purchase_date)}
           </p>
         </div>
-        <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${status.cls}`}>
-          {status.label}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${status.cls}`}>
+            {status.label}
+          </span>
+          <PlanMenu planName={plan.item_name} onDelete={onDelete} />
+        </div>
       </div>
-      <p className="mt-3 text-[13px] text-ink-secondary">
-        {plan.paid_count} of {plan.num_installments} paid
-        {plan.next_due_date && ` · next due ${formatDate(plan.next_due_date)}`}
-        {plan.upfront_sen > 0 && ` · ${formatRm(plan.upfront_sen)} was paid at checkout`}
-      </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Button variant="secondary" size="sm" aria-expanded={open} onClick={() => setOpen(!open)}>
-          {open ? "Hide instalments" : "Show instalments"}
-        </Button>
-        {due.length > 1 && (
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={busy}
-            onClick={() => payMany.mutate({ planId: plan.id, seqs: due.map((i) => i.seq) })}
-          >
-            Mark all {due.length} as paid
-          </Button>
-        )}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onDelete}
-          aria-label={`Delete plan, ${plan.item_name}`}
-        >
-          Delete plan
-        </Button>
+      {facts.length > 0 && (
+        <p className="mt-3 text-[13px] text-ink-secondary">{facts.join(" · ")}</p>
+      )}
+      <div className="mt-3 space-y-2">
+        <DisclosureRow open={open} onToggle={() => setOpen(!open)} controls={instalmentsId}>
+          <span>Instalments</span>
+          <span className="font-normal text-ink-secondary">
+            · {plan.paid_count} of {plan.num_installments} paid
+          </span>
+        </DisclosureRow>
+        <div id={instalmentsId}>
+          {open && (
+            <div className="space-y-2">
+              {due.length > 1 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => payMany.mutate({ planId: plan.id, seqs: due.map((i) => i.seq) })}
+                >
+                  Mark all {due.length} as paid
+                </Button>
+              )}
+              <ol className="divide-y divide-line rounded-lg border border-line text-[13px]">
+                {plan.installments.map((i) => (
+                  <li key={i.seq} className="flex items-center justify-between gap-3 px-3 py-2">
+                    <span>
+                      {i.seq}. {formatDate(i.due_date)}
+                      {i.is_paid && i.paid_date && (
+                        <span className="ml-2 text-[12px] text-success">
+                          paid {formatDate(i.paid_date)}
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex items-center gap-3">
+                      <span className="font-semibold tabular-nums">{formatRm(i.amount_sen)}</span>
+                      {!i.is_paid && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() => pay.mutate({ planId: plan.id, seq: i.seq })}
+                          aria-label={`Mark paid, instalment ${i.seq} of ${plan.item_name}`}
+                        >
+                          Mark paid
+                        </Button>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </div>
+        <PlanRisk plan={plan} />
       </div>
-      <PlanRisk plan={plan} />
       {error && (
         <Banner tone="danger" className="mt-3" title="Not updated">
           {error}
         </Banner>
-      )}
-      {open && (
-        <ol className="mt-3 divide-y divide-line rounded-lg border border-line text-[13px]">
-          {plan.installments.map((i) => (
-            <li key={i.seq} className="flex items-center justify-between gap-3 px-3 py-2">
-              <span>
-                {i.seq}. {formatDate(i.due_date)}
-                {i.is_paid && i.paid_date && (
-                  <span className="ml-2 text-[12px] text-success">
-                    paid {formatDate(i.paid_date)}
-                  </span>
-                )}
-              </span>
-              <span className="flex items-center gap-3">
-                <span className="font-semibold tabular-nums">{formatRm(i.amount_sen)}</span>
-                {!i.is_paid && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    disabled={busy}
-                    onClick={() => pay.mutate({ planId: plan.id, seq: i.seq })}
-                    aria-label={`Mark paid, instalment ${i.seq} of ${plan.item_name}`}
-                  >
-                    Mark paid
-                  </Button>
-                )}
-              </span>
-            </li>
-          ))}
-        </ol>
       )}
     </Card>
   );

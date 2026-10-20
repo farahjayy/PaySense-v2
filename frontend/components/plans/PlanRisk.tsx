@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { DisclosureRow } from "@/components/plans/DisclosureRow";
 import { BandBadge } from "@/components/ui/BandBadge";
 import { Banner } from "@/components/ui/Banner";
-import { Button } from "@/components/ui/Button";
 import { Face } from "@/components/ui/Face";
 import { Skeleton } from "@/components/ui/States";
 import { useRiskReport, type Plan, type RiskCheck } from "@/lib/api/queries";
@@ -24,28 +24,16 @@ export function PlanRisk({ plan }: { plan: Plan }) {
   const report = useRiskReport(reportId ?? "", open && reportId !== null);
 
   if (reportId === null) {
-    return (
-      <p className="mt-3 text-[12px] text-ink-secondary">No risk check was taken for this plan.</p>
-    );
+    return <p className="text-[12px] text-ink-secondary">No risk check was taken for this plan.</p>;
   }
 
   return (
-    <div className="mt-3">
-      <Button
-        variant="secondary"
-        size="sm"
-        aria-expanded={open}
-        aria-controls={`analysis-${plan.id}`}
-        onClick={() => setOpen(!open)}
-      >
-        {plan.risk_band && (
-          <span className="mr-2 inline-flex">
-            <Face band={plan.risk_band} size={20} />
-          </span>
-        )}
-        Analysis from {formatDate(plan.added_on)}
+    <div>
+      <DisclosureRow open={open} onToggle={() => setOpen(!open)} controls={`analysis-${plan.id}`}>
+        {plan.risk_band && <Face band={plan.risk_band} size={22} />}
+        <span>Analysis from {formatDate(plan.added_on)}</span>
         {plan.risk_band && <span className="sr-only">, {plan.risk_band}</span>}
-      </Button>
+      </DisclosureRow>
       <div id={`analysis-${plan.id}`}>
         {open &&
           (report.isPending ? (
