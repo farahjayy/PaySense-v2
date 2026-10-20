@@ -10,6 +10,7 @@ import { TransactionForm } from "@/components/transactions/TransactionForm";
 import { TypeButtons } from "@/components/transactions/TypeButtons";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
+import { CatIcon } from "@/components/ui/CatIcon";
 import { Dialog } from "@/components/ui/Dialog";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/States";
@@ -36,7 +37,7 @@ type Dialogue =
 type Kind = Transaction["type"];
 
 const TYPE_LABEL = { income: "Income", expense: "Spending", savings: "Savings" } as const;
-const FIELD = "h-9 rounded-lg border border-field bg-surface px-2 text-[13px] text-ink";
+const FIELD = "h-10 rounded-lg border border-field bg-surface px-3.5 text-[14px] text-ink";
 
 /** Opens on the latest month that has anything logged, so the first thing seen is real data. */
 export function TransactionsScreen() {
@@ -65,7 +66,12 @@ function Ledger({ initialMonth, firstMonth, lastMonth }: LedgerProps) {
   const [dialogue, setDialogue] = useState<Dialogue | null>(null);
 
   const { start, end } = monthBounds(month);
-  const list = useTransactions({ start, end, ...(type && { type }), ...(category && { category }) });
+  const list = useTransactions({
+    start,
+    end,
+    ...(type && { type }),
+    ...(category && { category }),
+  });
   const spending = useCategorySummary(month);
   const plans = usePlans();
   const categories = useAssignableCategories([
@@ -138,37 +144,35 @@ function Ledger({ initialMonth, firstMonth, lastMonth }: LedgerProps) {
       />
       <form
         aria-label="Filter transactions"
-        className="flex flex-wrap items-end gap-x-4 gap-y-3 rounded-card border border-line bg-surface px-4 py-3"
+        className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-card border border-line bg-surface px-5 py-4"
         onSubmit={(event) => event.preventDefault()}
       >
         <MonthStepper month={month} min={firstMonth} max={lastMonth} onChange={setMonth} />
         <TypeButtons value={type} onChange={setType} />
-        <label className="flex flex-col gap-1 text-xs font-medium text-ink-secondary">
-          Category
-          <select
-            className={FIELD}
-            value={category ?? ""}
-            onChange={(event) => setCategory(event.target.value || undefined)}
-          >
-            <option value="">All</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-            {category && !categories.includes(category) && <option value={category}>{category}</option>}
-          </select>
-        </label>
-        <label className="flex min-w-[10rem] flex-1 flex-col gap-1 text-xs font-medium text-ink-secondary">
-          Search
-          <input
-            type="search"
-            className={`${FIELD} w-full`}
-            value={search}
-            placeholder="e.g. grab, mamak…"
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </label>
+        <select
+          aria-label="Category"
+          className={`${FIELD} min-w-[9.5rem] ${category ? "font-semibold" : "text-ink-secondary"}`}
+          value={category ?? ""}
+          onChange={(event) => setCategory(event.target.value || undefined)}
+        >
+          <option value="">Category</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+          {category && !categories.includes(category) && (
+            <option value={category}>{category}</option>
+          )}
+        </select>
+        <input
+          type="search"
+          aria-label="Search"
+          className={`${FIELD} min-w-[10rem] flex-1`}
+          value={search}
+          placeholder="Search"
+          onChange={(event) => setSearch(event.target.value)}
+        />
         {filtered && (
           <Button variant="secondary" size="sm" onClick={clearFilters}>
             Clear filters
@@ -206,8 +210,8 @@ function Ledger({ initialMonth, firstMonth, lastMonth }: LedgerProps) {
                   </Button>
                 }
               >
-                Nothing is logged for {formatMonth(month)}. Add a transaction, or import a
-                statement to bring in what you already have.
+                Nothing is logged for {formatMonth(month)}. Add a transaction, or import a statement
+                to bring in what you already have.
               </EmptyState>
             )
           ) : (
@@ -310,9 +314,10 @@ function Row({ txn, plan, onEdit, onDelete }: RowProps) {
   const sign = txn.type === "income" ? "+" : "";
   const label = txn.description ?? txn.category;
   return (
-    <li className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
+    <li className="flex flex-wrap items-center gap-x-3.5 gap-y-2 px-5 py-3.5">
+      <CatIcon category={txn.category} size={42} />
       <div className="min-w-[10rem] flex-1">
-        <p className="break-words text-[14px] font-medium text-ink">{label}</p>
+        <p className="break-words text-[14px] font-bold text-ink">{label}</p>
         <p className="text-[12px] text-ink-secondary">
           {formatDate(txn.date)} · {txn.category} · {TYPE_LABEL[txn.type]}
         </p>

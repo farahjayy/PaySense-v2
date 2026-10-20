@@ -52,10 +52,13 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Accent focus ring on everything interactive */
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* Accent focus ring on everything interactive. In the base layer so a utility such as
+   `outline-none` (the page heading and <main>, which are focused by script after navigation) wins. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

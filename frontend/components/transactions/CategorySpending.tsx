@@ -1,7 +1,9 @@
 "use client";
 
 import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
+import { CatIcon } from "@/components/ui/CatIcon";
 import { Skeleton } from "@/components/ui/States";
+import { groupSmallCategories, categoryColour, type SpendRow } from "@/lib/categoryStyle";
 import type { CategorySummary } from "@/lib/api/queries";
 import { formatMonth, formatPercent } from "@/lib/format";
 import { formatRm } from "@/lib/money";
@@ -35,35 +37,11 @@ export function CategorySpending({ month, summary, isPending, error, selected, o
         ) : summary.categories.length === 0 ? (
           <p className="text-[13px] text-ink-secondary">Nothing spent in {label}.</p>
         ) : (
-          <ul className="space-y-1">
-            {summary.categories.map((c) => (
-              <li key={c.category}>
-                <button
-                  type="button"
-                  aria-pressed={selected === c.category}
-                  onClick={() => onSelect(selected === c.category ? undefined : c.category)}
-                  className={`block w-full rounded-lg px-2 py-1.5 text-left hover:bg-surface-2 ${
-                    selected === c.category ? "bg-accent-bg" : ""
-                  }`}
-                >
-                  <span className="flex items-baseline justify-between gap-3 text-[13px]">
-                    <span className="font-medium text-ink">{c.category}</span>
-                    <span className="tabular-nums text-ink-secondary">
-                      <span className="text-ink">{formatRm(c.spend_sen)}</span>
-                      {" · "}
-                      <span>{formatPercent(c.share)}</span>
-                    </span>
-                  </span>
-                  <span aria-hidden className="mt-1 block h-1.5 rounded-full bg-line">
-                    <span
-                      className="block h-1.5 rounded-full bg-accent"
-                      style={{ width: `${Math.max(c.share * 100, 2)}%` }}
-                    />
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <SpendingBreakdown
+            rows={groupSmallCategories(summary.categories)}
+            selected={selected}
+            onSelect={onSelect}
+          />
         )}
       </div>
       {summary && (
@@ -93,5 +71,72 @@ function Total({ label, sen }: { label: string; sen: number }) {
       <dt>{label}</dt>
       <dd className="tabular-nums text-ink">{formatRm(sen)}</dd>
     </div>
+  );
+}
+
+type BreakdownProps = {
+  rows: SpendRow[];
+  selected: string | undefined;
+  onSelect: (category: string | undefined) => void;
+};
+
+/** One bar for the month, then a row per category: its icon, name, amount and share. */
+function SpendingBreakdown({ rows, selected, onSelect }: BreakdownProps) {
+  const summary = rows.map((r) => `${r.category} ${formatPercent(r.share)}`).join(", ");
+  return (
+    <>
+      <div
+        role="img"
+        aria-label={`Spending split: ${summary}`}
+        className="flex h-[22px] gap-[3px] overflow-hidden rounded-full"
+      >
+        {rows.map((r) => (
+          <span
+            key={r.category}
+            style={{ flex: `${r.spend_sen} 1 0`, background: categoryColour(r.category) }}
+          />
+        ))}
+      </div>
+      <ul className="mt-3.5 space-y-0.5">
+        {rows.map((r) => (
+          <li key={r.category}>
+            {r.grouped > 0 ? (
+              <RowBody row={r} active={false} />
+            ) : (
+              <button
+                type="button"
+                aria-pressed={selected === r.category}
+                onClick={() => onSelect(selected === r.category ? undefined : r.category)}
+                className={`block w-full rounded-[10px] text-left hover:bg-surface-2 ${
+                  selected === r.category ? "bg-accent-bg" : ""
+                }`}
+              >
+                <RowBody row={r} active={selected === r.category} />
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function RowBody({ row, active }: { row: SpendRow; active: boolean }) {
+  return (
+    <span className="flex items-center gap-2.5 px-2 py-2 text-[14px]">
+      <CatIcon category={row.category} size={28} />
+      <span className={active ? "font-extrabold" : "font-bold"}>
+        {row.category}
+        {row.grouped > 0 && (
+          <span className="ml-1.5 text-[12px] font-normal text-ink-muted">
+            {row.grouped} small ones
+          </span>
+        )}
+      </span>
+      <span className="ml-auto tabular-nums text-ink">{formatRm(row.spend_sen)}</span>
+      <span className="w-10 text-right tabular-nums text-ink-muted">
+        {formatPercent(row.share)}
+      </span>
+    </span>
   );
 }
