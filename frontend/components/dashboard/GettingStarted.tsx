@@ -5,6 +5,7 @@ import { useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
+import { Face } from "@/components/ui/Face";
 import {
   useForecast,
   usePlans,
@@ -75,11 +76,14 @@ export function GettingStarted() {
   return (
     <Card>
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <CardTitle>Getting started</CardTitle>
-          <CardCaption>
-            {done} of {steps.length} done
-          </CardCaption>
+        <div className="flex items-center gap-3">
+          <Face band="Hello" size={40} />
+          <div>
+            <CardTitle>Getting started</CardTitle>
+            <CardCaption>
+              {done} of {steps.length} done
+            </CardCaption>
+          </div>
         </div>
         <Button variant="secondary" size="sm" onClick={hide}>
           Hide this

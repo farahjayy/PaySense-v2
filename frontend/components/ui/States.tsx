@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { Face } from "@/components/ui/Face";
 import { plural } from "@/lib/format";
 
 const MONTHS_NEEDED = 4;
@@ -31,6 +32,9 @@ type EmptyProps = { title: string; children?: ReactNode; action?: ReactNode };
 export function EmptyState({ title, children, action }: EmptyProps) {
   return (
     <div className="rounded-card border border-dashed border-line bg-surface-2 px-5 py-8 text-center">
+      <div className="mb-3 flex justify-center">
+        <Face band="Hello" size={56} />
+      </div>
       <p className="text-sm font-semibold text-ink">{title}</p>
       {children && (
         <p className="mx-auto mt-1 max-w-md text-[13px] text-ink-secondary">{children}</p>
@@ -72,6 +76,9 @@ export function LockedState({ reason, monthsOfHistory }: LockedProps) {
   const needsWeeks = !noUsable && monthsOfHistory >= MONTHS_NEEDED;
   return (
     <div className="rounded-card border border-line bg-surface px-5 py-6 sm:px-7">
+      <div className="mb-3">
+        <Face band="Hello" size={48} />
+      </div>
       <p className="text-sm font-semibold text-ink">
         {noUsable
           ? "There is nothing to forecast from yet"

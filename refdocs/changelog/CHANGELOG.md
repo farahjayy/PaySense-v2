@@ -28,6 +28,14 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-20 — P7c theme: the pond look across the whole app (D-48)
+- **Reported:** "I see the system hasn't changed to the new design."
+- **Changed:** `globals.css` tokens are the login page's palette; root `layout.tsx` loads Bricolage Grotesque and Figtree once (the login layout no longer loads its own); radii are bubbly; `font-serif` became `font-display`; `AppShell` has the teal sidebar with line icons, the brand mark (`ui/BrandMark`) and a hello face with the signed-in name, and the phone's bottom bar uses the same icons; `ui/Face` gained a Hello face and is used on the health card, the risk result, the getting-started checklist, empty states and locked states. New `tests/unit/theme.test.ts` holds every colour pairing to AA (text) or 3:1 (borders, chart outline) from the tokens.
+- **Decided:** D-48. Result colours unchanged on purpose.
+- **Verified:** failing test first (3 failed: no sidebar tokens), then `cd frontend && npx vitest run` -> **336 passed** (37 files); `npx tsc --noEmit` and `npx eslint .` clean; `npm run build` passes; `npx playwright test` -> **18 passed** (one login test needed its name check pointed at the top bar, since the sidebar now shows the name too). Screenshots from the production build in the e2e environment (seeded synthetic user) at 1440 wide and 390 wide were looked at for the dashboard, transactions, plans, risk check, categories and recurring pages.
+- **Noted, not changed:** the spending-by-category bars are still one colour and have no category icons (that is the A2 overview-bar task); the Transactions filter bar is not yet the agreed single row; the login page keeps its own `--lg-*` variables and face drawings; the primary and accent buttons are now close in colour. No reviewer agent was run on this diff (styling and one navigation component); nothing was checked in Safari or on a real phone.
+- **Next:** overview bar A2 with category icons, filter bar, "Coming up", income-versus-expense bars, recurring matching, import template.
+
 ### 2026-10-20 — Plan card: two rows instead of four buttons
 - **Reported:** "the button is too crowded: show instalments, mark all 3 paid, delete plan, analysis from 20 October" (she likes that everything opens in place).
 - **Changed:** `PlansScreen` card now shows the title, status and a "⋯" menu (Delete plan lives there, danger-coloured), one facts line (next due, paid at checkout), and two full-width rows that open in place: "Instalments · 3 of 6 paid" (with "Mark all N as paid" inside it, above the list) and "Analysis from <date>" (face, via the new `DisclosureRow`). New `PlanMenu` (Escape and outside click close it; focus returns to the trigger). Chosen over a two-tab card because the analysis stays one click away and visible by name.

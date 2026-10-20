@@ -10,6 +10,7 @@ import { SuggestionCard } from "@/components/risk/SuggestionCard";
 import { BandBadge } from "@/components/ui/BandBadge";
 import { Banner } from "@/components/ui/Banner";
 import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
+import { Face } from "@/components/ui/Face";
 import { ScoreRing } from "@/components/ui/ScoreRing";
 import { LockedState, Skeleton } from "@/components/ui/States";
 import type { PlanInput, RiskCheck } from "@/lib/api/queries";
@@ -40,7 +41,10 @@ export function RiskResult({ check, onTrySuggestion, busy, stale = false, footer
       <Card className="flex flex-col items-center gap-5 sm:flex-row sm:gap-8">
         <ScoreRing score={check.score} band={check.band} caption="out of 100" />
         <div className="text-center sm:text-left">
-          <BandBadge band={check.band} large />
+          <div className="flex items-center justify-center gap-3 sm:justify-start">
+            <Face band={check.band} size={56} />
+            <BandBadge band={check.band} large />
+          </div>
           <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink">{copy.line}</p>
           <p className="mt-2 text-[13px] text-ink-secondary">
             Estimated chance of running short: {formatPercent(check.probability)}.

@@ -13,7 +13,7 @@ test("a visitor is sent to /login, signs in, and lands on the shell", async ({ p
 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: `Hi, ${DISPLAY_NAME}` })).toBeVisible();
-  await expect(page.getByText(DISPLAY_NAME, { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("banner").getByText(DISPLAY_NAME, { exact: true })).toBeVisible();
 });
 
 test("an unknown username shows an error and stays on /login", async ({ page }) => {

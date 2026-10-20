@@ -1,31 +1,44 @@
 @import "tailwindcss";
 
-/* PaySense design tokens — ported from v1 (warm editorial light theme). */
+/*
+ * PaySense design tokens: the soft "pond" theme from the login page, used everywhere (ADR D-48).
+ * Safe / Caution / At Risk keep their own colours on purpose: the colour carries meaning, and each
+ * also has a face, an icon and a word. Contrast for every pairing is enforced by
+ * tests/unit/theme.test.ts.
+ */
 @theme {
-  --color-page: #f4f3ef;
-  --color-surface: #ffffff;
-  --color-surface-2: #fafaf7;
-  --color-line: #e3e1d9;
-  --color-field: #8a887f; /* input borders: 3.5:1 on white (WCAG 1.4.11); --color-line is decorative */
-  --color-ink: #1c1c1a;
-  --color-ink-secondary: #6b6a63;
-  --color-ink-muted: #6e6c64; /* 4.7:1 on the page background, 5.3:1 on white (WCAG AA) */
-  --color-accent: #185fa5;
-  --color-accent-bg: #e6f1fb;
+  --color-page: #f7f4d5;
+  --color-surface: #fffef6;
+  --color-surface-2: #fbf9e5;
+  --color-line: #e4e0b8;
+  --color-field: #6b8a84; /* input borders: 3.7:1 on a card (WCAG 1.4.11); --color-line is decorative */
+  --color-ink: #0a3323;
+  --color-ink-secondary: #3f5a54;
+  --color-ink-muted: #4d655f;
+  --color-accent: #105666; /* the brand teal: buttons, links, focus ring */
+  --color-accent-bg: #d9ebe7;
   --color-success: #3b6d11;
   --color-success-bg: #eaf3de;
   --color-warning: #854f0b;
   --color-warning-bg: #faeeda;
   --color-danger: #a32d2d;
   --color-danger-bg: #fcebeb;
-  --color-chart-blue: #85b7eb;
-  --color-chart-edge: #3b82c4; /* outline of the chart band: 4.1:1 on white */
+  --color-sidebar: #105666;
+  --color-sidebar-ink: #f7f4d5;
+  --color-sidebar-muted: #d3e3de;
+  --color-rosy: #d3968c; /* decoration only (2.2:1): never for words */
+  --color-chart-blue: #8fc3cc;
+  --color-chart-edge: #1b6b7d; /* outline of the chart band */
   --color-chart-red: #e24b4a;
 
-  --font-serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: var(--font-bricolage), "Segoe UI", system-ui, sans-serif;
+  --font-sans: var(--font-figtree), "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial,
+    sans-serif;
 
-  --radius-card: 12px;
+  /* bubbly corners: controls 16px, cards 24px (the login page's) */
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-card: 24px;
 }
 
 html {

@@ -5,38 +5,107 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 
+import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
+import { Face } from "@/components/ui/Face";
 import { isActive } from "@/lib/nav";
 import { clearSession, type Session } from "@/lib/session";
 
 type NavItem = { href: string; label: string; icon: string; mobile: boolean };
 
 // `mobile` marks the five items that fit a phone's bottom bar; the rest are in the sidebar and, on
-// a phone, in the "More pages" row under the header.
+// a phone, in the "More pages" row under the header. `icon` is an SVG path (24x24, stroked).
 const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/", label: "Dashboard", icon: "◫", mobile: true },
-  { href: "/transactions", label: "Transactions", icon: "≡", mobile: true },
-  { href: "/categories", label: "Categories", icon: "#", mobile: false },
-  { href: "/recurring", label: "Recurring", icon: "↻", mobile: false },
-  { href: "/plans", label: "Plans", icon: "▤", mobile: true },
-  { href: "/risk", label: "Risk check", icon: "◔", mobile: true },
-  { href: "/import", label: "Import", icon: "⇪", mobile: true },
-  { href: "/model", label: "About the model", icon: "ⓘ", mobile: false },
+  {
+    href: "/",
+    label: "Dashboard",
+    icon: "M4 13h6V4H4zM14 20h6v-9h-6zM14 4h6v4h-6zM4 20h6v-3H4z",
+    mobile: true,
+  },
+  { href: "/transactions", label: "Transactions", icon: "M4 7h16M4 12h16M4 17h10", mobile: true },
+  {
+    href: "/categories",
+    label: "Categories",
+    icon: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM16.5 13a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z",
+    mobile: false,
+  },
+  {
+    href: "/recurring",
+    label: "Recurring",
+    icon: "M17 3l3 3-3 3M4 11V9a3 3 0 0 1 3-3h13M7 21l-3-3 3-3M20 13v2a3 3 0 0 1-3 3H4",
+    mobile: false,
+  },
+  { href: "/plans", label: "Plans", icon: "M5 4h14v16H5zM9 9h6M9 13h6M9 17h3", mobile: true },
+  {
+    href: "/risk",
+    label: "Risk check",
+    icon: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
+    mobile: true,
+  },
+  {
+    href: "/import",
+    label: "Import",
+    icon: "M12 15V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4",
+    mobile: true,
+  },
+  {
+    href: "/model",
+    label: "About the model",
+    icon: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v6M12 7.5v.01",
+    mobile: false,
+  },
 ];
+
+function NavIcon({ d, size = 20 }: { d: string; size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="shrink-0"
+    >
+      <path d={d} />
+    </svg>
+  );
+}
 
 function navLinkClass(active: boolean): string {
   return active
-    ? "bg-accent-bg font-semibold text-accent"
-    : "text-ink-secondary hover:bg-surface-2 hover:text-ink";
+    ? "bg-page font-bold text-accent"
+    : "font-semibold text-sidebar-ink/90 hover:bg-white/10";
 }
 
-function Sidebar({ pathname }: { pathname: string }) {
+function Wordmark({ onDark = false }: { onDark?: boolean }) {
   return (
-    <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-line bg-surface px-4 py-6 md:flex">
-      <Link href="/" className="mb-8 block px-2 text-lg font-bold tracking-tight text-ink">
-        Pay<span className="text-accent">Sense</span>
+    <span className="font-display text-[23px] font-extrabold tracking-tight">
+      Pay<span className={onDark ? "text-rosy" : "text-accent"}>Sense</span>
+    </span>
+  );
+}
+
+function Sidebar({ pathname, name }: { pathname: string; name: string }) {
+  return (
+    <aside className="sticky top-0 hidden h-screen w-62 shrink-0 flex-col gap-8 overflow-hidden bg-sidebar px-4 pb-6 pt-7 text-sidebar-ink md:flex">
+      {/* soft rings and a tile, as on the login page: decoration only */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-32 -right-32 h-70 w-70 rounded-full border-[1.5px] border-sidebar-ink/15"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-52 -right-52 h-105 w-105 rounded-full border-[1.5px] border-sidebar-ink/10"
+      />
+      <Link href="/" className="relative flex items-center gap-3 px-1.5">
+        <BrandMark />
+        <Wordmark onDark />
       </Link>
-      <nav aria-label="Main navigation" className="flex flex-col gap-1">
+      <nav aria-label="Main navigation" className="relative flex flex-col gap-1">
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.href);
           return (
@@ -44,19 +113,26 @@ function Sidebar({ pathname }: { pathname: string }) {
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${navLinkClass(active)}`}
+              className={`flex h-11.5 items-center gap-3 rounded-2xl px-3.5 text-[15px] transition-colors ${navLinkClass(active)}`}
             >
-              <span aria-hidden className="text-sm">
-                {item.icon}
-              </span>
+              <NavIcon d={item.icon} />
               {item.label}
             </Link>
           );
         })}
       </nav>
-      <p className="mt-auto px-2 text-[10px] leading-relaxed text-ink-muted">
-        Financial health forecasting and BNPL risk classification for students.
-      </p>
+      <div className="relative mt-auto flex flex-col gap-3.5">
+        <div className="flex items-center gap-3 px-1.5">
+          <Face band="Hello" size={40} />
+          <div className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate text-[15px] font-bold">{name}</span>
+            <span className="text-[13px] text-sidebar-muted">Signed in</span>
+          </div>
+        </div>
+        <p className="px-1.5 text-[12px] leading-relaxed text-sidebar-muted">
+          Financial health forecasting and BNPL risk classification for students.
+        </p>
+      </div>
     </aside>
   );
 }
@@ -74,13 +150,11 @@ function MobileNav({ pathname }: { pathname: string }) {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium ${
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-semibold ${
               active ? "text-accent" : "text-ink-muted"
             }`}
           >
-            <span aria-hidden className="text-base leading-none">
-              {item.icon}
-            </span>
+            <NavIcon d={item.icon} size={22} />
             {item.label}
           </Link>
         );
@@ -123,11 +197,12 @@ export function AppShell({ user, children }: Props) {
       >
         Skip to content
       </a>
-      <Sidebar pathname={pathname} />
+      <Sidebar pathname={pathname} name={user.display_name} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center justify-between gap-3 border-b border-line bg-surface px-4 sm:px-6">
-          <Link href="/" className="text-base font-bold tracking-tight text-ink md:hidden">
-            Pay<span className="text-accent">Sense</span>
+          <Link href="/" className="flex items-center gap-2 text-ink md:hidden">
+            <BrandMark size={28} />
+            <Wordmark />
           </Link>
           <div className="ml-auto flex items-center gap-3">
             <span className="max-w-[10rem] truncate text-[13px] font-medium text-ink">

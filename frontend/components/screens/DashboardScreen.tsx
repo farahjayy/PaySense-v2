@@ -8,6 +8,7 @@ import { Notices } from "@/components/forecast/Notices";
 import { RecentMonths } from "@/components/forecast/RecentMonths";
 import { BandBadge } from "@/components/ui/BandBadge";
 import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
+import { Face } from "@/components/ui/Face";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScoreRing } from "@/components/ui/ScoreRing";
 import { ErrorState, LockedState, Skeleton } from "@/components/ui/States";
@@ -64,7 +65,10 @@ function Outlook() {
           <h2 id="outlook-heading" className="sr-only">
             Your financial health forecast
           </h2>
-          <BandBadge band={data.band} large />
+          <div className="flex items-center justify-center gap-3 sm:justify-start">
+            <Face band={data.band} size={56} />
+            <BandBadge band={data.band} large />
+          </div>
           <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink">
             {OUTLOOK_LINE[data.band]}
           </p>

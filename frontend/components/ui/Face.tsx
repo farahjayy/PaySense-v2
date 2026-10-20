@@ -4,19 +4,36 @@ import type { Band } from "@/lib/format";
 
 /** The three result faces from the login page, drawn in the app's own band colours. */
 
+export type FaceKind = Band | "Hello";
+
 const TONE = {
+  Hello: "text-ink",
   Safe: "text-success",
   Caution: "text-warning",
   "At Risk": "text-danger",
 } as const;
 
 const TILE = {
+  Hello: "fill-rosy",
   Safe: "fill-success-bg",
   Caution: "fill-warning-bg",
   "At Risk": "fill-danger-bg",
 } as const;
 
-const SHAPES: Record<Band, ReactNode> = {
+const SHAPES: Record<FaceKind, ReactNode> = {
+  Hello: (
+    <>
+      <circle cx="35" cy="42" r="5.5" fill="currentColor" />
+      <circle cx="65" cy="42" r="5.5" fill="currentColor" />
+      <path
+        d="M32 59q18 18 36 0"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="5.5"
+        strokeLinecap="round"
+      />
+    </>
+  ),
   Safe: (
     <>
       <circle cx="35" cy="43" r="5" fill="currentColor" />
@@ -70,7 +87,7 @@ const SHAPES: Record<Band, ReactNode> = {
 };
 
 /** Decorative: the band's name is always written next to it. */
-export function Face({ band, size = 48 }: { band: Band; size?: number }) {
+export function Face({ band, size = 48 }: { band: FaceKind; size?: number }) {
   return (
     <svg
       width={size}

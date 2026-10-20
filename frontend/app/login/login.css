@@ -23,8 +23,8 @@
   --lg-risk: var(--color-danger);
   --lg-risk-bg: var(--color-danger-bg);
 
-  --lg-font-display: var(--font-login-display), "Segoe UI", system-ui, sans-serif;
-  --lg-font-body: var(--font-login-body), "Segoe UI", system-ui, sans-serif;
+  --lg-font-display: var(--font-display);
+  --lg-font-body: var(--font-sans);
 
   min-height: 100dvh;
   padding: 16px;
