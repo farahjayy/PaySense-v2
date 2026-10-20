@@ -278,7 +278,7 @@ function ItemRow({ item, busy, onEdit, onToggle, onDelete }: RowProps) {
           {item.active ? "Pause" : "Resume"}
         </Button>
         <Button
-          variant="secondary"
+          variant="dangerSoft"
           size="sm"
           disabled={busy}
           onClick={onDelete}

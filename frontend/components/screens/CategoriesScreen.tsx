@@ -113,7 +113,7 @@ export function CategoriesScreen() {
                         Rename
                       </Button>
                       <Button
-                        variant="secondary"
+                        variant="dangerSoft"
                         size="sm"
                         aria-label={`Delete ${c.name}`}
                         onClick={() => setDialogue({ kind: "delete", category: c })}

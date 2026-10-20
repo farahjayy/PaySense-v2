@@ -28,6 +28,12 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-20 — Button colours that mean something (Delete looked like Edit)
+- **Reported:** "change the delete button to red, I accidentally clicked it because it looks like the edit button; use colour psychology elsewhere too."
+- **Changed:** `ui/Button` has two new variants: `dangerSoft` (red text and border, red tint on hover) for a row's Delete (transactions, recurring items, categories; the plan's Delete was already red in its menu), and `positive` (green) for actions that complete something ("Mark paid", "Mark all as paid"). The main action stays brand teal (`primary` now has the same colour as `accent`, so a screen no longer mixes two near-identical dark buttons); everything else stays neutral outline; confirmation buttons for deleting stay solid red. Edit and Delete in a transaction row are further apart (8px).
+- **Verified:** `cd frontend && npx vitest run` -> **376 passed** (new `Button.test.tsx`); `npx tsc --noEmit`, `npx eslint .` clean; `npx playwright test` -> 18 passed. Red on the card is 4.5:1 or better (held by `theme.test.ts`); the 60% red border is decoration, since the word and colour of the label carry the meaning.
+- **Noted, not changed:** "Pause" and "Resume" on recurring items are still neutral.
+
 ### 2026-10-20 — Getting started: a way to bring it back after "Hide this"
 - **Reported:** "I click 'hide this' but nowhere is a button to make it on view again."
 - **Changed:** when the checklist is hidden (and unfinished) the dashboard shows one quiet line, "The getting started checklist is hidden. Show getting started", which clears the stored choice and brings the checklist back. A finished checklist still shows nothing. `GettingStarted.tsx`.

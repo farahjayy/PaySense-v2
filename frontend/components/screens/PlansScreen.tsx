@@ -136,7 +136,7 @@ function PlanCard({ plan, onDelete }: { plan: Plan; onDelete: () => void }) {
             <div className="space-y-2">
               {due.length > 1 && (
                 <Button
-                  variant="secondary"
+                  variant="positive"
                   size="sm"
                   disabled={busy}
                   onClick={() => payMany.mutate({ planId: plan.id, seqs: due.map((i) => i.seq) })}
@@ -160,7 +160,7 @@ function PlanCard({ plan, onDelete }: { plan: Plan; onDelete: () => void }) {
                       {!i.is_paid && (
                         <Button
                           size="sm"
-                          variant="secondary"
+                          variant="positive"
                           disabled={busy}
                           onClick={() => pay.mutate({ planId: plan.id, seq: i.seq })}
                           aria-label={`Mark paid, instalment ${i.seq} of ${plan.item_name}`}

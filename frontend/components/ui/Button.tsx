@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "secondary" | "danger" | "accent";
+type Variant = "primary" | "secondary" | "danger" | "dangerSoft" | "positive" | "accent";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant;
@@ -8,9 +8,14 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: "bg-ink text-white border-transparent hover:bg-ink/85",
+  // The main action of a screen: the brand teal. `primary` is the same colour, kept for older call sites.
+  primary: "bg-accent text-white border-transparent hover:bg-accent/90",
   secondary: "bg-surface text-ink border-line hover:bg-surface-2",
   danger: "bg-danger text-white border-transparent hover:bg-danger/85",
+  // A destructive action beside others (a row's Delete): red, so it never looks like Edit.
+  dangerSoft: "bg-surface text-danger border-danger/60 hover:border-danger hover:bg-danger-bg",
+  // An action that completes something (Mark paid): green.
+  positive: "bg-surface text-success border-success/60 hover:border-success hover:bg-success-bg",
   accent: "bg-accent text-white border-transparent hover:bg-accent/90",
 };
 

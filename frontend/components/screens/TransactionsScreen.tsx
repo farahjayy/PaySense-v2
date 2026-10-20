@@ -333,11 +333,11 @@ function Row({ txn, plan, onEdit, onDelete }: RowProps) {
       {txn.bnpl_plan_id ? (
         <BnplBox plan={plan} />
       ) : (
-        <div className="flex w-full justify-end gap-1 sm:w-[11.5rem]">
+        <div className="flex w-full justify-end gap-2 sm:w-[11.5rem]">
           <Button variant="secondary" size="sm" onClick={onEdit} aria-label={`Edit ${label}`}>
             Edit
           </Button>
-          <Button variant="secondary" size="sm" onClick={onDelete} aria-label={`Delete ${label}`}>
+          <Button variant="dangerSoft" size="sm" onClick={onDelete} aria-label={`Delete ${label}`}>
             Delete
           </Button>
         </div>
