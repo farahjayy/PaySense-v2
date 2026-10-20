@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-20 — Sidebar: only the pages used every day (D-49)
+- **Reported:** Categories "should not be in the sidebar because it is a one-time view", and the same for Import (the author's earlier point, which I had wrongly settled as "keep both").
+- **Changed:** `AppShell` nav lists Dashboard, Transactions, Plans, Risk check, a divider, then Recurring and About the model; the phone bar shows the four everyday pages. The Transactions header has Categories and Import buttons; `/import` and `/categories` get a "Back to transactions" link (`ui/BackLink`) and keep Transactions highlighted (`lib/nav`). Browser journeys reach Import through Transactions. `uat/task-script.md` T2 notes that Import is found through Transactions.
+- **Decided:** D-49. Routes unchanged, so the checklist, bookmarks and the UAT script still work.
+- **Verified:** failing tests first (5 failed), then `cd frontend && npx vitest run` -> **371 passed**; `npx tsc --noEmit`, `npx eslint .` clean; `npx playwright test` -> **18 passed**, twice (one journey raced the dashboard's own Import link and now waits for the Transactions page first).
+- **Noted, not changed:** the first-time path to Import is one step longer; the UAT will show whether testers find it. Not looked at in a real browser at phone width.
+
 ### 2026-10-20 — Transactions: option A2 (category bar and icons, one-row filter)
 - **Reported:** "I asked for option 2a?" The A2 board she chose (overview bar with category icons; filter labels inside the fields, her "option 1") had been agreed and planned but not built; the theme pass had only recoloured the page.
 - **Changed:** `lib/categoryStyle.ts` (one fixed colour and glyph per category, the person's own categories take a colour by name, categories under 3% fold into "Others" when there are two or more), `ui/CatIcon`; the Spending-by-category panel is now one coloured bar (`role="img"` with every share in its label) over rows with icon, name, amount and share (a real category still filters; "Others" is a plain row, since a group cannot filter); each transaction row starts with its category icon; the filter bar is one centred row, the Category select reads "Category" until one is chosen and the search reads "Search" (both keep accessible names). The page heading's stray focus box is gone: the global focus ring moved into `@layer base`, so `outline-none` on the heading and `<main>` wins.

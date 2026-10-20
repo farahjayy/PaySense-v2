@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, type ReactNode } from "react";
 
 import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
@@ -11,48 +11,38 @@ import { Face } from "@/components/ui/Face";
 import { isActive } from "@/lib/nav";
 import { clearSession, type Session } from "@/lib/session";
 
-type NavItem = { href: string; label: string; icon: string; mobile: boolean };
+type NavItem = { href: string; label: string; icon: string; daily: boolean };
 
-// `mobile` marks the five items that fit a phone's bottom bar; the rest are in the sidebar and, on
-// a phone, in the "More pages" row under the header. `icon` is an SVG path (24x24, stroked).
+// `daily` marks the pages used every day: they fill the phone's bottom bar and sit above the
+// divider in the sidebar. The rest sit below the divider and, on a phone, in the "More pages" row
+// under the header. Import and Categories have no entry of their own: they are one-off jobs, so
+// they are buttons on Transactions (ADR D-49). `icon` is an SVG path (24x24, stroked).
 const NAV_ITEMS: readonly NavItem[] = [
   {
     href: "/",
     label: "Dashboard",
     icon: "M4 13h6V4H4zM14 20h6v-9h-6zM14 4h6v4h-6zM4 20h6v-3H4z",
-    mobile: true,
+    daily: true,
   },
-  { href: "/transactions", label: "Transactions", icon: "M4 7h16M4 12h16M4 17h10", mobile: true },
+  { href: "/transactions", label: "Transactions", icon: "M4 7h16M4 12h16M4 17h10", daily: true },
+  { href: "/plans", label: "Plans", icon: "M5 4h14v16H5zM9 9h6M9 13h6M9 17h3", daily: true },
   {
-    href: "/categories",
-    label: "Categories",
-    icon: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM16.5 13a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z",
-    mobile: false,
+    href: "/risk",
+    label: "Risk check",
+    icon: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
+    daily: true,
   },
   {
     href: "/recurring",
     label: "Recurring",
     icon: "M17 3l3 3-3 3M4 11V9a3 3 0 0 1 3-3h13M7 21l-3-3 3-3M20 13v2a3 3 0 0 1-3 3H4",
-    mobile: false,
-  },
-  { href: "/plans", label: "Plans", icon: "M5 4h14v16H5zM9 9h6M9 13h6M9 17h3", mobile: true },
-  {
-    href: "/risk",
-    label: "Risk check",
-    icon: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
-    mobile: true,
-  },
-  {
-    href: "/import",
-    label: "Import",
-    icon: "M12 15V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4",
-    mobile: true,
+    daily: false,
   },
   {
     href: "/model",
     label: "About the model",
     icon: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v6M12 7.5v.01",
-    mobile: false,
+    daily: false,
   },
 ];
 
@@ -106,18 +96,23 @@ function Sidebar({ pathname, name }: { pathname: string; name: string }) {
         <Wordmark onDark />
       </Link>
       <nav aria-label="Main navigation" className="relative flex flex-col gap-1">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.map((item, index) => {
           const active = isActive(pathname, item.href);
+          const startsSecondGroup = !item.daily && NAV_ITEMS[index - 1]?.daily;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={active ? "page" : undefined}
-              className={`flex h-11.5 items-center gap-3 rounded-2xl px-3.5 text-[15px] transition-colors ${navLinkClass(active)}`}
-            >
-              <NavIcon d={item.icon} />
-              {item.label}
-            </Link>
+            <Fragment key={item.href}>
+              {startsSecondGroup && (
+                <div aria-hidden className="mx-3.5 my-2 border-t border-sidebar-ink/20" />
+              )}
+              <Link
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={`flex h-11.5 items-center gap-3 rounded-2xl px-3.5 text-[15px] transition-colors ${navLinkClass(active)}`}
+              >
+                <NavIcon d={item.icon} />
+                {item.label}
+              </Link>
+            </Fragment>
           );
         })}
       </nav>
@@ -143,7 +138,7 @@ function MobileNav({ pathname }: { pathname: string }) {
       aria-label="Quick navigation"
       className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-surface md:hidden"
     >
-      {NAV_ITEMS.filter((item) => item.mobile).map((item) => {
+      {NAV_ITEMS.filter((item) => item.daily).map((item) => {
         const active = isActive(pathname, item.href);
         return (
           <Link
@@ -217,7 +212,7 @@ export function AppShell({ user, children }: Props) {
           aria-label="More pages"
           className="flex gap-5 border-b border-line bg-surface px-4 py-2 text-[13px] font-medium md:hidden"
         >
-          {NAV_ITEMS.filter((item) => !item.mobile).map((item) => (
+          {NAV_ITEMS.filter((item) => !item.daily).map((item) => (
             <Link
               key={item.href}
               href={item.href}

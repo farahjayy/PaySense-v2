@@ -181,6 +181,17 @@ describe("TransactionsScreen", () => {
     expect(within(box).getByText("1 of 3 paid")).toBeInTheDocument();
   });
 
+  it("reaches Import and Categories from buttons at the top, since neither is in the sidebar", async () => {
+    render(<TransactionsScreen />, { wrapper });
+    await screen.findByText("Lunch");
+
+    expect(screen.getByRole("link", { name: "Import" })).toHaveAttribute("href", "/import");
+    expect(screen.getByRole("link", { name: "Categories" })).toHaveAttribute(
+      "href",
+      "/categories",
+    );
+  });
+
   it("opens on the latest month that has data and asks the server for just that month", async () => {
     render(<TransactionsScreen />, { wrapper });
     await screen.findByText("Lunch");

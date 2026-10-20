@@ -306,6 +306,14 @@ An ADR is worth writing when the decision (a) is expensive to reverse, (b) will 
 **Rejected.** Tight corners (kept as a possible one-line change: `--radius-*`); recolouring the result bands to the brand teal (teal and Safe green are close in darkness, so teal would blur "brand" with "good"); a dark mode (out of scope, the app is light only); hand-picking colours per screen (the tokens drive every screen, so there is one place to change).
 **Trade-off.** Rosy fails contrast as text (2.2:1) and is used only for decoration. The login page still has its own CSS variables (`--lg-*`) and its own copies of the face drawings; folding them into the shared tokens and `Face` is left for a later tidy. The first load downloads two font families (about the same weight as before on the login page, now on every page).
 
+## D-49 — The sidebar holds the pages used every day; Import and Categories are buttons on Transactions
+*2026-10-20 · the author's decision (raised in the P7b walk-through, re-stated after the first answer kept them)*
+
+**Decision.** The sidebar lists Dashboard, Transactions, Plans and Risk check, then a divider, then Recurring and About the model. Import and Categories have no sidebar entry: each is a button in the Transactions header, and each page has a "Back to transactions" link. While on either page the Transactions entry stays highlighted. The routes `/import` and `/categories` are unchanged, so the Getting started checklist, the UAT task script and bookmarks still reach them. The phone's bottom bar shows the four everyday pages; Recurring and About the model sit in the "More pages" row under the header.
+**Why.** Both are one-off jobs (a student imports about once a month and tidies categories rarely), so they should not take a permanent slot beside the pages used daily. The first answer to this argued for keeping them as pages, which stays true: both are multi-step or list-and-dialog screens that do not fit inside Transactions. The author's point is only about the menu.
+**Rejected.** Folding Import into a pop-up on Transactions (the review table needs the room); putting Categories under a settings page (there is no settings page, and a single-purpose one would be a new top-level destination anyway); hiding Recurring (it drives the forecast and is on the checklist, so it stays, below the divider).
+**Trade-off.** A first-time tester must find Import through Transactions or the checklist; the UAT script's task T2 now observes whether they do. The Transactions header holds three buttons (Categories, Import, Add transaction).
+
 ---
 
 ## Working assumptions (`ASSUMED:`)

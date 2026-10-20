@@ -14,6 +14,13 @@ describe("isActive", () => {
     expect(isActive("/plans/", "/plans")).toBe(true);
   });
 
+  it("keeps Transactions lit on the pages reached from it, which have no sidebar entry of their own", () => {
+    expect(isActive("/import", "/transactions")).toBe(true);
+    expect(isActive("/categories", "/transactions")).toBe(true);
+    expect(isActive("/categories/abc", "/transactions")).toBe(true);
+    expect(isActive("/plans", "/transactions")).toBe(false);
+  });
+
   it("does not match a different route that merely shares a prefix", () => {
     expect(isActive("/plans-old", "/plans")).toBe(false);
     expect(isActive("/planning", "/plan")).toBe(false);

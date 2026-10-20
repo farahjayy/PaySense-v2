@@ -37,6 +37,8 @@ type Dialogue =
 type Kind = Transaction["type"];
 
 const TYPE_LABEL = { income: "Income", expense: "Spending", savings: "Savings" } as const;
+const LINK_BUTTON =
+  "inline-flex h-10 items-center rounded-lg border border-line bg-surface px-4 text-[13px] font-semibold text-ink hover:bg-surface-2";
 const FIELD = "h-10 rounded-lg border border-field bg-surface px-3.5 text-[14px] text-ink";
 
 /** Opens on the latest month that has anything logged, so the first thing seen is real data. */
@@ -130,10 +132,10 @@ function Ledger({ initialMonth, firstMonth, lastMonth }: LedgerProps) {
         intro="Everything you have logged or imported, newest first, one month at a time."
         actions={
           <>
-            <Link
-              href="/import"
-              className="inline-flex h-10 items-center rounded-lg border border-line bg-surface px-4 text-[13px] font-semibold text-ink hover:bg-surface-2"
-            >
+            <Link href="/categories" className={LINK_BUTTON}>
+              Categories
+            </Link>
+            <Link href="/import" className={LINK_BUTTON}>
               Import
             </Link>
             <Button variant="accent" onClick={() => setDialogue({ kind: "add" })}>

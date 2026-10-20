@@ -24,6 +24,15 @@ async function signIn(page: Page, journey: string) {
   await expect(page.getByRole("heading", { level: 1, name: /hi, e2e tester/i })).toBeVisible();
 }
 
+/** Import has no sidebar entry: it is a button on Transactions. */
+async function openImport(page: Page) {
+  await page.getByRole("link", { name: "Transactions" }).first().click();
+  // wait for the page to change: the dashboard checklist has an Import link of its own
+  await expect(page.getByRole("heading", { level: 1, name: "Transactions" })).toBeVisible();
+  await page.getByRole("link", { name: "Import", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Import" })).toBeVisible();
+}
+
 test("a new tester signs in, imports a persona statement and sees a forecast", async ({ page }) => {
   const violations = watchForCspViolations(page);
   await signIn(page, "import");
@@ -31,7 +40,7 @@ test("a new tester signs in, imports a persona statement and sees a forecast", a
   // Nothing imported yet: the forecast is locked and says why.
   await expect(page.getByText(/unlocks with four months/i)).toBeVisible();
 
-  await page.getByRole("link", { name: "Import" }).first().click();
+  await openImport(page);
   await expect(page).toHaveURL(/\/import/);
   await page.getByLabel("Choose a statement file").setInputFiles(PERSONA_CSV);
 
@@ -81,7 +90,7 @@ test("a tester checks a purchase, tries the suggestion, adds the plan and reads 
   await signIn(page, "risk");
 
   // history first: the check refuses to give a number without it
-  await page.getByRole("link", { name: "Import" }).first().click();
+  await openImport(page);
   await page.getByLabel("Choose a statement file").setInputFiles(PERSONA_CSV);
   await page.getByRole("button", { name: /^add \d+ transactions?$/i }).click();
   await expect(page.getByText(/transactions added/i)).toBeVisible();
@@ -123,7 +132,7 @@ test("a plan that has already started keeps a check of what is left, and the rep
   const violations = watchForCspViolations(page);
   await signIn(page, "existing");
 
-  await page.getByRole("link", { name: "Import" }).first().click();
+  await openImport(page);
   await page.getByLabel("Choose a statement file").setInputFiles(PERSONA_CSV);
   await page.getByRole("button", { name: /^add \d+ transactions?$/i }).click();
   await expect(page.getByText(/transactions added/i)).toBeVisible();
@@ -162,7 +171,7 @@ test("the transactions page shows where the month went, and picking a category f
 }) => {
   const violations = watchForCspViolations(page);
   await signIn(page, "spending");
-  await page.getByRole("link", { name: "Import" }).first().click();
+  await openImport(page);
   await page.getByLabel("Choose a statement file").setInputFiles(PERSONA_CSV);
   await page.getByRole("button", { name: /^add \d+ transactions?$/i }).click();
   await expect(page.getByText(/transactions added/i)).toBeVisible();

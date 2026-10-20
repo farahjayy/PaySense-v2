@@ -83,7 +83,7 @@ describe("AppShell", () => {
     expect(dashboardLinks.some((l) => l.getAttribute("aria-current") === "page")).toBe(true);
   });
 
-  it("links every screen from the sidebar and keeps five on the phone bar", () => {
+  it("lists only the pages used every day in the sidebar; Import and Categories are reached from Transactions", () => {
     render(
       <AppShell user={USER}>
         <p>page body</p>
@@ -94,19 +94,20 @@ describe("AppShell", () => {
     for (const name of [
       "Dashboard",
       "Transactions",
-      "Categories",
       "Recurring",
       "Plans",
       "Risk check",
-      "Import",
       "About the model",
     ]) {
       expect(screen.getAllByRole("link", { name: new RegExp(name, "i") }).length).toBeGreaterThan(
         0,
       );
     }
+    for (const name of ["Categories", "Import"]) {
+      expect(screen.queryByRole("link", { name })).toBeNull();
+    }
     const phoneBar = screen.getAllByRole("navigation").find((n) => n.className.includes("fixed"));
-    expect(phoneBar && phoneBar.querySelectorAll("a").length).toBe(5);
+    expect(phoneBar && phoneBar.querySelectorAll("a").length).toBe(4);
   });
 
   it("keeps Recurring and About the model reachable on a phone in a 'More pages' row", () => {
@@ -125,10 +126,6 @@ describe("AppShell", () => {
     expect(within(more).getByRole("link", { name: "About the model" })).toHaveAttribute(
       "href",
       "/model",
-    );
-    expect(within(more).getByRole("link", { name: "Categories" })).toHaveAttribute(
-      "href",
-      "/categories",
     );
   });
 

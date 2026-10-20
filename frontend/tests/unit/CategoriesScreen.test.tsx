@@ -61,6 +61,15 @@ describe("CategoriesScreen", () => {
     get.mockResolvedValue(ok(LIST));
   });
 
+  it("has a way back to Transactions, where it is reached from", async () => {
+    render(<CategoriesScreen />, { wrapper });
+
+    expect(await screen.findByRole("link", { name: /back to transactions/i })).toHaveAttribute(
+      "href",
+      "/transactions",
+    );
+  });
+
   it("lists the person's own categories with how many transactions use each", async () => {
     render(<CategoriesScreen />, { wrapper });
 

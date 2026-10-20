@@ -7,6 +7,7 @@ import { DropZone } from "@/components/import/DropZone";
 import { ReviewList } from "@/components/import/ReviewList";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
+import { BackLink } from "@/components/ui/BackLink";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatTile } from "@/components/ui/StatTile";
 import { ApiError, useImportConfirm, useImportPreview } from "@/lib/api/queries";
@@ -83,6 +84,7 @@ export function ImportScreen() {
 
   return (
     <div className="mx-auto max-w-4xl">
+      <BackLink href="/transactions">Back to transactions</BackLink>
       <PageHeader
         title="Import"
         intro="Bring in a bank or e-wallet statement, or your own spreadsheet. You review everything before it is saved."

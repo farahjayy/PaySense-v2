@@ -86,6 +86,15 @@ function ok(data: unknown) {
 describe("ImportScreen", () => {
   beforeEach(() => post.mockReset());
 
+  it("has a way back to Transactions, where it is reached from", () => {
+    render(<ImportScreen />, { wrapper });
+
+    expect(screen.getByRole("link", { name: /back to transactions/i })).toHaveAttribute(
+      "href",
+      "/transactions",
+    );
+  });
+
   it("rejects a file that is neither CSV nor Excel without calling the server", async () => {
     render(<ImportScreen />, { wrapper });
     await userEvent.upload(screen.getByLabelText("Choose a statement file"), csv("notes.pdf"), {

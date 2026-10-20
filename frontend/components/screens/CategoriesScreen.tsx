@@ -6,6 +6,7 @@ import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { TextField } from "@/components/ui/fields";
+import { BackLink } from "@/components/ui/BackLink";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ErrorState, Skeleton } from "@/components/ui/States";
 import {
@@ -57,6 +58,7 @@ export function CategoriesScreen() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <BackLink href="/transactions">Back to transactions</BackLink>
       <PageHeader
         title="Categories"
         intro="The labels on your transactions. The built-in ones are fixed, because the forecast depends on a few of them (refunds, transfers, BNPL). The ones you add are yours to rename or delete."
@@ -93,7 +95,10 @@ export function CategoriesScreen() {
                 className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface"
               >
                 {own.map((c) => (
-                  <li key={c.name} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
+                  <li
+                    key={c.name}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3"
+                  >
                     <div className="min-w-[10rem] flex-1">
                       <p className="break-words text-[14px] font-medium text-ink">{c.name}</p>
                       <p className="text-[12px] text-ink-secondary">{usage(c.transaction_count)}</p>
@@ -204,11 +209,9 @@ export function CategoriesScreen() {
         {dialogue?.kind === "delete" && (
           <DeleteForm
             category={dialogue.category}
-targets={categories.filter(
+            targets={categories.filter(
               (c) =>
-                c.assignable &&
-                c.name !== dialogue.category.name &&
-                !MOVE_NOT_ALLOWED.has(c.name),
+                c.assignable && c.name !== dialogue.category.name && !MOVE_NOT_ALLOWED.has(c.name),
             )}
             pending={remove.isPending}
             error={remove.error?.message ?? null}
