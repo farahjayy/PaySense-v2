@@ -48,18 +48,19 @@ const REPAYMENT_SUMMARY = {
 function sections(check: RiskCheck): Section[] {
   const out: Section[] = [];
   const opinion = check.second_opinion;
+  const started = check.check_type === "current_state";
   if (opinion) {
     out.push({
       id: "month",
       title: "Month by month",
       summary: stackSummary(opinion),
-      body: <StackTable opinion={opinion} />,
+      body: <StackTable opinion={opinion} started={started} />,
     });
     out.push({
       id: "exposure",
       title: "Your BNPL exposure",
       summary: exposureSummary(opinion),
-      body: <ExposureDetails opinion={opinion} />,
+      body: <ExposureDetails opinion={opinion} started={started} />,
     });
   }
   out.push({
@@ -153,7 +154,12 @@ export function RiskResult({ check, onTrySuggestion, busy, stale = false, footer
         </Banner>
       )}
       <Notices items={riskNotices(check)} />
-      {check.second_opinion && <AddsCard opinion={check.second_opinion} />}
+      {check.second_opinion && (
+        <AddsCard
+          opinion={check.second_opinion}
+          started={check.check_type === "current_state"}
+        />
+      )}
       <Card>
         <CardTitle>Why</CardTitle>
         {check.factors.length > 0 ? (
@@ -176,6 +182,7 @@ export function RiskResult({ check, onTrySuggestion, busy, stale = false, footer
         <h2 className="text-sm font-semibold text-ink">The working</h2>
         <button
           type="button"
+          aria-pressed={allOpen}
           onClick={() => setOpen(allOpen ? new Set() : new Set(folds.map((f) => f.id)))}
           className="rounded-md px-2 py-1 text-[13px] font-semibold text-accent underline-offset-2 hover:underline"
         >

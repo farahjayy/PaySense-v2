@@ -12,9 +12,8 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Any, Literal
 
-from app.domain.flows import as_date
 from app.domain.money import format_rm
-from app.domain.plans import used_limit_sen
+from app.domain.plans import unpaid_instalments, used_limit_sen
 
 Severity = Literal["high", "medium"]
 
@@ -44,16 +43,6 @@ def _day(day: date) -> str:
     return f"{day.day} {day:%B}"
 
 
-def _unpaid(plans: Iterable[Mapping[str, Any]]) -> list[tuple[str, date, int]]:
-    out = []
-    for plan in plans:
-        label = plan.get("provider_label") or plan["provider"]
-        for instalment in plan["installments"]:
-            if not instalment["is_paid"]:
-                out.append((label, as_date(instalment["due_date"]), int(instalment["amount_sen"])))
-    return out
-
-
 def _overdue(unpaid: Sequence[tuple[str, date, int]], today: date) -> Alert | None:
     late = [(label, due, sen) for label, due, sen in unpaid if due < today]
     if not late:
@@ -74,8 +63,9 @@ def _overdue(unpaid: Sequence[tuple[str, date, int]], today: date) -> Alert | No
 def _collision(
     unpaid: Sequence[tuple[str, date, int]], bills: Iterable[Payment], today: date
 ) -> Alert | None:
-    """The first run of two or more payments, each less than a week after the one before, among
-    those due in the next two weeks (an overdue one is its own alert)."""
+    """The first payment, in date order, that has at least one more within the next week (fewer than
+    `COLLISION_DAYS` days after it), among payments due in the next two weeks. An overdue one is
+    its own alert. The count and total are those of that first week."""
     horizon = today + timedelta(days=LOOKAHEAD_DAYS)
     payments = sorted(
         [(due, sen) for _, due, sen in unpaid if today <= due <= horizon]
@@ -130,7 +120,7 @@ def build_alerts(
 ) -> list[Alert]:
     """Most serious first; at most one overdue and one collision alert, and one limit alert per
     provider."""
-    unpaid = _unpaid(plans)
+    unpaid = unpaid_instalments(plans)
     found = [_overdue(unpaid, today), _collision(unpaid, bills, today)]
     alerts = [a for a in found if a is not None] + _limits(plans, provider_limits)
     return sorted(alerts, key=lambda a: a.severity != "high")

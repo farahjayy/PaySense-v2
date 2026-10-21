@@ -43,7 +43,7 @@ export function AlertLine() {
   );
   if (items.length === 1) {
     return (
-      <div role={worst === "high" ? "alert" : "status"} className={`flex items-start gap-3 ${shell}`}>
+      <div role="status" className={`flex items-start gap-3 ${shell}`}>
         {glyph}
         <div className="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <Detail alert={first} />
@@ -55,7 +55,7 @@ export function AlertLine() {
     );
   }
   return (
-    <div role={worst === "high" ? "alert" : "status"} className={shell}>
+    <div role="status" className={shell}>
       <button
         type="button"
         aria-expanded={open}

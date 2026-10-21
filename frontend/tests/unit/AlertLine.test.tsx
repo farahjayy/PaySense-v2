@@ -82,10 +82,12 @@ describe("AlertLine", () => {
     expect(screen.getByText("2 payments fall within a week")).toBeInTheDocument();
   });
 
-  it("marks a serious alert with a glyph and words, not colour alone", async () => {
+  it("marks a serious alert with a glyph and words, not colour alone, without shouting on every visit", async () => {
     reply([OVERDUE]);
     render(<AlertLine />, { wrapper });
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("▲");
+    const line = await screen.findByRole("status");
+    expect(line).toHaveTextContent("▲");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

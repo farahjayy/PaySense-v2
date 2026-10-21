@@ -93,6 +93,7 @@ const SECOND_OPINION = {
     { month: "2026-12", by_provider: [], new_plan_sen: 20000, total_sen: 20000, known_income_sen: 0 },
   ],
   peak: { month: "2026-11", total_sen: 25000 },
+  beyond_sen: 0,
   exposure: {
     unpaid_before_sen: 5000,
     unpaid_after_sen: 65000,
@@ -525,6 +526,23 @@ describe("RiskResult layers (ADR D-52)", () => {
     await user.click(screen.getByRole("button", { name: /month by month/i }));
 
     expect(screen.getByRole("table", { name: /what you owe each month/i })).toBeVisible();
+  });
+
+  it("talks about the plan, not a purchase, for a check of what is left on a plan that had started", async () => {
+    await show({ check_type: "current_state" });
+
+    expect(screen.getByRole("heading", { name: /what this plan adds/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /what this purchase adds/i })).not.toBeInTheDocument();
+  });
+
+  it("says whether every fold is open", async () => {
+    const user = await show();
+    const toggle = screen.getByRole("button", { name: /open all/i });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(toggle);
+
+    expect(screen.getByRole("button", { name: /close all/i })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("opens and closes every fold at once", async () => {

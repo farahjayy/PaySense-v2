@@ -30,6 +30,45 @@ function renderGate(userId = "u1") {
   );
 }
 
+describe("OnboardingGate and the page behind it", () => {
+  function renderWithPage() {
+    return render(
+      <OnboardingGate userId="u1">
+        <main id="main" tabIndex={-1}>
+          <button type="button">Log out</button>
+          <a href="#x" data-tour="risk">
+            Risk check
+          </a>
+        </main>
+      </OnboardingGate>,
+    );
+  }
+
+  it("keeps keyboard and pointer out of the app while the slides are showing", () => {
+    const { container } = renderWithPage();
+
+    expect(container.querySelector("[inert]")).toContainElement(screen.getByText("Log out"));
+  });
+
+  it("gives the app back, and focus, when the person is done", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithPage();
+
+    await user.click(screen.getByRole("button", { name: "Skip" }));
+
+    expect(container.querySelector("[inert]")).toBeNull();
+    expect(screen.getByRole("main")).toHaveFocus();
+  });
+
+  it("never makes the app inert for someone who has nothing to see", () => {
+    markIntroSeen("u1");
+    markTourSeen("u1");
+    const { container } = renderWithPage();
+
+    expect(container.querySelector("[inert]")).toBeNull();
+  });
+});
+
 describe("OnboardingGate", () => {
   it("shows the welcome slides to someone who has not seen them", () => {
     renderGate();

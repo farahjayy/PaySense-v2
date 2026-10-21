@@ -40,6 +40,7 @@ function opinion(patch: Partial<SecondOpinion> = {}): SecondOpinion {
       },
     ],
     peak: { month: "2026-11", total_sen: 31633 },
+    beyond_sen: 0,
     exposure: {
       unpaid_before_sen: 10000,
       unpaid_after_sen: 89900,

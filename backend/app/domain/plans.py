@@ -41,6 +41,17 @@ def enrich_plan(
     }
 
 
+def unpaid_instalments(plans: Iterable[Mapping[str, Any]]) -> list[tuple[str, date, int]]:
+    """(provider label, due date, sen) for every instalment not yet paid."""
+    out = []
+    for plan in plans:
+        label = plan.get("provider_label") or plan["provider"]
+        for instalment in plan["installments"]:
+            if not instalment["is_paid"]:
+                out.append((label, as_date(instalment["due_date"]), int(instalment["amount_sen"])))
+    return out
+
+
 def used_limit_sen(instalments: Iterable[Mapping[str, Any]]) -> int:
     """How much of a provider's limit is in use: the sum of its still-unpaid instalments.
 

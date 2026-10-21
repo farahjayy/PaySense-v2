@@ -5,7 +5,7 @@ from typing import Literal
 
 from fastapi import APIRouter
 
-from app.api.deps import CurrentUser, DbDep, TodayDep
+from app.api.deps import CurrentUser, DbDep, TodayDep, rate_limited
 from app.api.schemas import PROTECTED_RESPONSES, ApiModel
 from app.db import plans as plans_repo
 from app.db import provider_limits, recurring_items
@@ -20,7 +20,7 @@ class AlertOut(ApiModel):
     severity: Literal["high", "medium"]
     title: str
     detail: str
-    href: str
+    href: Literal["/plans"]
 
 
 class AlertsOut(ApiModel):
@@ -38,7 +38,7 @@ def _upcoming_bills(items: list[dict], today: dt.date) -> list[Payment]:
     ]
 
 
-@router.get("", response_model=AlertsOut)
+@router.get("", response_model=AlertsOut, dependencies=[rate_limited("alerts", 60, 60)])
 def alerts(user: CurrentUser, db: DbDep, today: TodayDep) -> AlertsOut:
     found = build_alerts(
         plans_repo.list_with_instalments(db, user.id),

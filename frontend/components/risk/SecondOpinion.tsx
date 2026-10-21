@@ -24,13 +24,20 @@ function Tile({ label, value, strong = false }: { label: string; value: string; 
  * the points between. All three come from one simulation with one seed, so they can differ a few
  * points from the headline estimate. Every figure is the server's.
  */
-export function AddsCard({ opinion }: { opinion: SecondOpinion }) {
+export function AddsCard({
+  opinion,
+  started = false,
+}: {
+  opinion: SecondOpinion;
+  started?: boolean;
+}) {
   return (
     <Card>
-      <CardTitle>What this purchase adds</CardTitle>
+      <CardTitle>{started ? "What this plan adds" : "What this purchase adds"}</CardTitle>
       <CardCaption>
-        From a direct simulation of your coming months, run without and with this purchase. It can
-        differ a few points from the estimate above.
+        From a direct simulation of your coming months, run without and with{" "}
+        {started ? "what is still owed on this plan" : "this purchase"}. It can differ a few points
+        from the estimate above.
       </CardCaption>
       <div className="mt-3 grid grid-cols-3 gap-2">
         <Tile label="Without it" value={formatPercent(opinion.without_probability)} />
@@ -42,9 +49,14 @@ export function AddsCard({ opinion }: { opinion: SecondOpinion }) {
         simulated futures.
       </p>
       {opinion.already_at_risk && (
-        <Banner tone="warning" title="You are already At Risk without this purchase" className="mt-3">
-          Your chance of running short is {formatPercent(opinion.without_probability)} before you buy
-          anything, so the purchase is not the only thing to look at.
+        <Banner
+          tone="warning"
+          title={`You are already At Risk without this ${started ? "plan" : "purchase"}`}
+          className="mt-3"
+        >
+          Your chance of running short is {formatPercent(opinion.without_probability)} before you{" "}
+          {started ? "add it" : "buy anything"}, so {started ? "the plan" : "the purchase"} is not
+          the only thing to look at.
         </Banner>
       )}
     </Card>
@@ -52,15 +64,25 @@ export function AddsCard({ opinion }: { opinion: SecondOpinion }) {
 }
 
 /** Every unpaid instalment across providers, by month, with this purchase added. */
-export function StackTable({ opinion }: { opinion: SecondOpinion }) {
+export function StackTable({
+  opinion,
+  started = false,
+}: {
+  opinion: SecondOpinion;
+  started?: boolean;
+}) {
   const { months, hidden } = visibleMonths(opinion);
+  const lastShown = opinion.stack.at(-1)?.month;
   return (
     <div>
       <p className="text-[12px] leading-relaxed text-ink-secondary">
-        Every unpaid instalment across your providers, with this purchase added. Anything overdue
-        counts in this month.
+        Every unpaid instalment across your providers, with this {started ? "plan" : "purchase"}{" "}
+        added. Anything overdue counts in this month.
         {hidden > 0 &&
           ` ${plural(hidden, "month")} with nothing due and no confirmed income ${hidden === 1 ? "is" : "are"} left out.`}
+        {opinion.beyond_sen > 0 &&
+          lastShown &&
+          ` ${formatRm(opinion.beyond_sen)} more falls due after ${formatMonth(lastShown)}.`}
       </p>
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[30rem] text-left text-[13px]">
@@ -74,7 +96,7 @@ export function StackTable({ opinion }: { opinion: SecondOpinion }) {
                 Already owed
               </th>
               <th scope="col" className="py-1.5 pr-3 text-right font-medium">
-                This purchase
+                {started ? "This plan" : "This purchase"}
               </th>
               <th scope="col" className="py-1.5 pr-3 text-right font-medium">
                 Total
@@ -119,13 +141,19 @@ export function StackTable({ opinion }: { opinion: SecondOpinion }) {
 
 /** What is owed across all providers before and after, and the recorded limits beside the Bank
  * Negara line, shown as information about the person's own limits and never as a judgement. */
-export function ExposureDetails({ opinion }: { opinion: SecondOpinion }) {
+export function ExposureDetails({
+  opinion,
+  started = false,
+}: {
+  opinion: SecondOpinion;
+  started?: boolean;
+}) {
   const { exposure } = opinion;
   return (
     <div className="space-y-1.5 text-[14px] leading-relaxed text-ink">
       <p>
         Unpaid across all providers: {formatRm(exposure.unpaid_before_sen)} to{" "}
-        {formatRm(exposure.unpaid_after_sen)} with this purchase.
+        {formatRm(exposure.unpaid_after_sen)} with this {started ? "plan" : "purchase"}.
       </p>
       <p>
         {plural(exposure.providers_before.length, "provider")} to {exposure.providers_after.length},{" "}

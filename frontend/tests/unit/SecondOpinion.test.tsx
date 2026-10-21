@@ -29,6 +29,7 @@ function opinion(patch: Partial<SecondOpinion> = {}): SecondOpinion {
       },
     ],
     peak: { month: "2026-11", total_sen: 31633 },
+    beyond_sen: 0,
     exposure: {
       unpaid_before_sen: 10000,
       unpaid_after_sen: 89900,
@@ -43,6 +44,37 @@ function opinion(patch: Partial<SecondOpinion> = {}): SecondOpinion {
     ...patch,
   };
 }
+
+describe("a plan that had already started", () => {
+  it("talks about the plan and what is still owed, not about a purchase", () => {
+    render(<AddsCard opinion={opinion()} started />);
+
+    expect(screen.getByRole("heading", { name: /what this plan adds/i })).toBeInTheDocument();
+    expect(screen.getByText(/what is still owed on this plan/i)).toBeInTheDocument();
+    expect(screen.getByText(/before you add it/i)).toBeInTheDocument();
+    expect(screen.queryByText(/this purchase/i)).not.toBeInTheDocument();
+  });
+
+  it("labels the table's own column the same way", () => {
+    render(<StackTable opinion={opinion()} started />);
+
+    expect(screen.getByRole("columnheader", { name: "This plan" })).toBeInTheDocument();
+  });
+});
+
+describe("StackTable beyond the window", () => {
+  it("says what falls due after the last month shown", () => {
+    render(<StackTable opinion={opinion({ beyond_sen: 70000 })} />);
+
+    expect(screen.getByText(/RM 700\.00 more falls due after December 2026/i)).toBeInTheDocument();
+  });
+
+  it("says nothing about it when nothing does", () => {
+    render(<StackTable opinion={opinion()} />);
+
+    expect(screen.queryByText(/more falls due/i)).not.toBeInTheDocument();
+  });
+});
 
 describe("AddsCard", () => {
   it("shows the chance without the purchase, with it, and the points it adds", () => {

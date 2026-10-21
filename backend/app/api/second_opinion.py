@@ -60,6 +60,8 @@ class SecondOpinionOut(ApiModel):
     already_at_risk: bool
     stack: list[StackMonthOut]
     peak: PeakOut | None
+    # what falls due after the last month the stack shows (it stops after five years)
+    beyond_sen: int
     exposure: ExposureOut
 
 
@@ -81,13 +83,13 @@ def build(
     if result.status != "ok" or result.p_without is None or result.p_simulated is None:
         return None
     proposal = result.proposal
-    new = [(i.due_date, i.amount_sen) for i in proposal.instalments]
+    # an instalment taken at checkout is paid the day it is bought, as it is on a saved plan
+    new = [(i.due_date, i.amount_sen) for i in proposal.instalments if not i.paid_at_checkout]
+    new_owed_sen = sum(sen for _, sen in new)
     income = _income_by_month(items, today, so.last_month_owed(plans, new, today))
     months = so.stack_dues(plans, new, income, today)
     top = so.peak(months)
-    exposure = so.exposure(
-        plans, proposal.total_payable_sen, proposal.provider_label, provider_limits
-    )
+    exposure = so.exposure(plans, new_owed_sen, proposal.provider_label, provider_limits)
     without = round(result.p_without, PROBABILITY_DIGITS)
     with_purchase = round(result.p_simulated, PROBABILITY_DIGITS)
     added = so.added_probability(with_purchase, without)
@@ -112,6 +114,7 @@ def build(
             for m in months
         ],
         peak=None if top is None else PeakOut(month=top.month, total_sen=top.total_sen),
+        beyond_sen=so.owed_after_window(plans, new, today),
         exposure=ExposureOut(
             unpaid_before_sen=exposure.unpaid_before_sen,
             unpaid_after_sen=exposure.unpaid_after_sen,

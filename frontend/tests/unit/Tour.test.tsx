@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -100,6 +100,40 @@ describe("Tour", () => {
     setup(ALL);
 
     expect(screen.getByTestId("tour-spotlight")).toBeInTheDocument();
+  });
+
+  it("is a modal dialog", () => {
+    setup(ALL);
+
+    expect(screen.getByRole("dialog", { name: /tour of paysense/i })).toHaveAttribute("aria-modal", "true");
+  });
+
+  it("follows its target when the page moves under it, with no scroll or resize", () => {
+    let notify: () => void = () => {};
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(callback: () => void) {
+          notify = callback;
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    setup(ALL);
+    const before = screen.getByTestId("tour-spotlight").style.top;
+
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.hasAttribute("data-tour")
+        ? ({ top: 340, left: 10, width: 180, height: 40, right: 190, bottom: 380 } as DOMRect)
+        : ({ top: 0, left: 0, width: 0, height: 0, right: 0, bottom: 0 } as DOMRect);
+    });
+    act(() => notify());
+
+    expect(screen.getByTestId("tour-spotlight").style.top).not.toBe(before);
+    vi.unstubAllGlobals();
   });
 
   it("has no accessibility violations", async () => {

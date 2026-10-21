@@ -11,10 +11,9 @@ function AuthedShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
   if (auth.status !== "authenticated") return null; // AuthGate is redirecting or still loading
   return (
-    <>
+    <OnboardingGate userId={auth.session.user.id}>
       <AppShell user={auth.session.user}>{children}</AppShell>
-      <OnboardingGate userId={auth.session.user.id} />
-    </>
+    </OnboardingGate>
   );
 }
 

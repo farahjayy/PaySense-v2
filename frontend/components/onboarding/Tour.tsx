@@ -99,9 +99,13 @@ function useTargetBox(target: string | undefined): Box | null {
   const subscribe = useCallback((notify: () => void) => {
     window.addEventListener("resize", notify);
     window.addEventListener("scroll", notify, true);
+    // the page can move under the tour with no resize or scroll (a banner appears above the card)
+    const watcher = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(notify);
+    watcher?.observe(document.body);
     return () => {
       window.removeEventListener("resize", notify);
       window.removeEventListener("scroll", notify, true);
+      watcher?.disconnect();
     };
   }, []);
   const read = (): Box | null => {
@@ -195,6 +199,7 @@ export function Tour({ onDone }: { onDone: () => void }) {
       <div
         ref={bubble}
         role="dialog"
+        aria-modal="true"
         aria-label="Tour of PaySense"
         aria-describedby="tour-text"
         className="absolute rounded-card border border-line bg-surface p-4 shadow-xl"

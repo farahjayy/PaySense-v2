@@ -638,8 +638,11 @@ export interface components {
             title: string;
             /** Detail */
             detail: string;
-            /** Href */
-            href: string;
+            /**
+             * Href
+             * @constant
+             */
+            href: "/plans";
         };
         /** AlertsOut */
         AlertsOut: {
@@ -1546,6 +1549,8 @@ export interface components {
             /** Stack */
             stack: components["schemas"]["StackMonthOut"][];
             peak: components["schemas"]["PeakOut"] | null;
+            /** Beyond Sen */
+            beyond_sen: number;
             exposure: components["schemas"]["ExposureOut"];
         };
         /** SimulationOut */

@@ -4,12 +4,13 @@ purchase adds to the chance of running short. No I/O; every amount is integer se
 the plan rules or the confirmed recurring items.
 """
 
+import calendar
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
-from app.domain.flows import as_date
+from app.domain.plans import unpaid_instalments
 
 # Bank Negara Malaysia's policy document on personal financing (30 Sep 2025) asks banks that offer
 # BNPL for a full affordability assessment once a consumer's BNPL limits add up to RM1,500. Shown
@@ -17,6 +18,9 @@ from app.domain.flows import as_date
 BNM_LIMIT_LINE_SEN = 150_000
 
 MONTHS_PER_YEAR = 12
+# The stack shows at most this many months from this one. A plan dated far ahead (the API accepts
+# any date to 2100) must not stretch every check; what falls due later is counted, not hidden.
+STACK_MAX_MONTHS = 60
 
 
 @dataclass(frozen=True)
@@ -44,17 +48,6 @@ def _month(day: date) -> str:
     return day.strftime("%Y-%m")
 
 
-def _unpaid(plans: Iterable[Mapping[str, Any]]) -> list[tuple[str, date, int]]:
-    """(provider label, due date, sen) for every instalment not yet paid."""
-    out = []
-    for plan in plans:
-        label = plan.get("provider_label") or plan["provider"]
-        for instalment in plan["installments"]:
-            if not instalment["is_paid"]:
-                out.append((label, as_date(instalment["due_date"]), int(instalment["amount_sen"])))
-    return out
-
-
 def _months_between(first: str, last: str) -> list[str]:
     year, month = int(first[:4]), int(first[5:])
     out = []
@@ -76,7 +69,7 @@ def stack_dues(
     purchase date is in the past) is still owed, so it sits in the current month."""
     current = _month(today)
     owed: dict[str, dict[str, int]] = {}
-    for label, due, sen in _unpaid(plans):
+    for label, due, sen in unpaid_instalments(plans):
         by_label = owed.setdefault(max(_month(due), current), {})
         by_label[label] = by_label.get(label, 0) + sen
     new: dict[str, int] = {}
@@ -85,7 +78,7 @@ def stack_dues(
         new[key] = new.get(key, 0) + sen
     last = max([current, *owed, *new])
     months = []
-    for month in _months_between(current, last):
+    for month in _months_between(current, last)[:STACK_MAX_MONTHS]:
         by_provider = tuple(sorted(owed.get(month, {}).items()))
         existing = sum(sen for _, sen in by_provider)
         months.append(
@@ -100,19 +93,39 @@ def stack_dues(
     return months
 
 
+def _window_end(today: date) -> str:
+    """The last month the stack shows, as "YYYY-MM"."""
+    index = today.year * MONTHS_PER_YEAR + (today.month - 1) + STACK_MAX_MONTHS - 1
+    return f"{index // MONTHS_PER_YEAR:04d}-{index % MONTHS_PER_YEAR + 1:02d}"
+
+
 def last_month_owed(
     plans: Iterable[Mapping[str, Any]], new_instalments: Sequence[tuple[date, int]], today: date
 ) -> date:
-    """The latest due date among what is owed and the new plan (today if nothing is), so the
-    caller knows how far ahead to look for the confirmed income of each month."""
-    dates = [due for _, due, _ in _unpaid(plans)] + [due for due, _ in new_instalments]
-    return max([today, *dates])
+    """The last day of the latest month in which anything is owed (this month if nothing is), and
+    never past the stack's window. It is the end of the range the caller looks over for confirmed
+    income, so income falling later in the final month is still found."""
+    dates = [due for _, due, _ in unpaid_instalments(plans)] + [due for due, _ in new_instalments]
+    latest = _month(max([today, *dates]))
+    month = min(latest, _window_end(today))
+    year, number = int(month[:4]), int(month[5:])
+    return date(year, number, calendar.monthrange(year, number)[1])
+
+
+def owed_after_window(
+    plans: Iterable[Mapping[str, Any]], new_instalments: Sequence[tuple[date, int]], today: date
+) -> int:
+    """What falls due after the last month the stack shows: counted in the exposure, so it is
+    stated beside the table instead of being left out of it."""
+    cut = _window_end(today)
+    owed = sum(sen for _, due, sen in unpaid_instalments(plans) if _month(due) > cut)
+    return owed + sum(sen for due, sen in new_instalments if _month(due) > cut)
 
 
 def peak(months: Sequence[StackMonth]) -> StackMonth | None:
     """The month with the most owed, the earliest on a tie; None when nothing is owed at all."""
     owing = [m for m in months if m.total_sen > 0]
-    return max(owing, key=lambda m: (m.total_sen, -owing.index(m)), default=None)
+    return max(reversed(owing), key=lambda m: m.total_sen, default=None)
 
 
 def exposure(
@@ -122,7 +135,7 @@ def exposure(
     provider_limits: Mapping[str, int | None],
 ) -> Exposure:
     plans = list(plans)
-    unpaid = _unpaid(plans)
+    unpaid = unpaid_instalments(plans)
     owing = [p for p in plans if any(not i["is_paid"] for i in p["installments"])]
     before = tuple(sorted({label for label, _, _ in unpaid}))
     after = tuple(sorted({*before, new_label}))

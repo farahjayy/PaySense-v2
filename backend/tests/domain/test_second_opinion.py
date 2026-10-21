@@ -151,3 +151,30 @@ def test_added_probability_is_never_negative_and_needs_both_sides(with_purchase,
     got = added_probability(with_purchase, without)
 
     assert got == pytest.approx(expected) if expected is not None else got is None
+
+
+def test_the_horizon_ends_on_the_last_day_of_the_latest_month_owed():
+    from app.domain.second_opinion import last_month_owed
+
+    assert last_month_owed([SPAY], NEW, TODAY) == date(2027, 1, 31)
+    assert last_month_owed([], [], TODAY) == date(2026, 10, 31)  # nothing owed: this month
+
+
+def test_the_stack_stops_after_five_years_and_counts_what_falls_due_later():
+    from app.domain.second_opinion import STACK_MAX_MONTHS, owed_after_window
+
+    far = plan("atome", "Atome", [(date(2100, 1, 1), 70_000, False)])
+    rows = stack_dues([far], NEW, {}, TODAY)
+
+    assert len(rows) == STACK_MAX_MONTHS == 60
+    assert rows[-1].month == "2031-09"
+    assert owed_after_window([far], NEW, TODAY) == 70_000
+    assert owed_after_window([SPAY], NEW, TODAY) == 0
+
+
+def test_the_latest_due_date_is_capped_so_income_is_never_worked_out_for_a_century():
+    from app.domain.second_opinion import last_month_owed
+
+    far = plan("atome", "Atome", [(date(2100, 1, 1), 70_000, False)])
+
+    assert last_month_owed([far], [], TODAY) == date(2031, 9, 30)

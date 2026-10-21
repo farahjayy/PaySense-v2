@@ -660,3 +660,53 @@ def test_a_report_saved_before_the_second_opinion_existed_still_reads_back_witho
     read = api.get(f"/api/risk/checks/{confirmed['check_id']}", headers=amir)
 
     assert read.status_code == 200 and read.json()["second_opinion"] is None
+
+
+# ------------------------------------------------------------- review fixes to the Second Opinion
+def test_income_after_the_last_due_day_still_counts_in_that_month(api, amir, fake_db):
+    from app.db import recurring_items
+
+    fill(fake_db, "amir")
+    # instalments fall on the 12th; the allowance lands on the 20th, after the last one is due
+    recurring_items.create(
+        fake_db, user_id(fake_db, "amir"), kind="income", name="Allowance",
+        amount_sen=200000, cadence="monthly", anchor_date=date(2025, 5, 20),
+    )  # fmt: skip
+
+    stack = api.post("/api/risk/check", json=body(), headers=amir).json()["second_opinion"]["stack"]
+
+    last = stack[-1]
+    assert last["new_plan_sen"] > 0 and last["known_income_sen"] == 200000
+
+
+def test_an_instalment_taken_at_checkout_is_not_counted_as_unpaid(api, amir, fake_db):
+    fill(fake_db, "amir")
+    out = api.post(
+        "/api/risk/check", json=body(provider="atome", total_price_sen=60000), headers=amir
+    ).json()
+
+    installments = out["plan"]["installments"]
+    assert any(i["paid_at_checkout"] for i in installments)  # Atome takes the first at checkout
+    still_owed = sum(i["amount_sen"] for i in installments if not i["paid_at_checkout"])
+    so = out["second_opinion"]
+    assert sum(m["new_plan_sen"] for m in so["stack"]) == still_owed
+    assert so["exposure"]["unpaid_after_sen"] == so["exposure"]["unpaid_before_sen"] + still_owed
+
+
+def test_a_plan_due_far_in_the_future_cannot_stretch_the_stack(api, amir, fake_db):
+    fill(fake_db, "amir")
+    an_atome_plan(fake_db, "amir", unpaid=((date(2100, 1, 1), 70000),))
+
+    so = api.post("/api/risk/check", json=body(), headers=amir).json()["second_opinion"]
+
+    assert len(so["stack"]) <= 60
+    assert so["beyond_sen"] == 70000  # what falls due later is counted, not silently dropped
+    assert so["exposure"]["unpaid_before_sen"] == 70000
+
+
+def test_nothing_falls_beyond_the_window_for_an_ordinary_purchase(api, amir, fake_db):
+    fill(fake_db, "amir")
+
+    so = api.post("/api/risk/check", json=body(), headers=amir).json()["second_opinion"]
+
+    assert so["beyond_sen"] == 0

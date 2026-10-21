@@ -328,6 +328,7 @@ describe("accessibility (axe)", () => {
               },
             ],
             peak: { month: "2026-11", total_sen: 25000 },
+            beyond_sen: 0,
             exposure: {
               unpaid_before_sen: 5000,
               unpaid_after_sen: 65000,
