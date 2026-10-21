@@ -36,6 +36,8 @@ from app.api.schemas import (
     ApiModel,
     ErrorEnvelope,
 )
+from app.api.second_opinion import SecondOpinionOut
+from app.api.second_opinion import build as build_second_opinion
 from app.core.errors import api_error, not_found, unprocessable
 from app.db import plans as plans_repo
 from app.db import provider_limits as limits_repo
@@ -205,6 +207,9 @@ class RiskCheckOut(ApiModel):
     with_plan_curve: CurveOut | None = None
     without_curve: CurveOut | None = None
     versions: VersionsOut | None = None
+    # what this purchase adds and everything already owed, by month (ADR D-51); None when locked
+    # and on a report saved before it existed
+    second_opinion: SecondOpinionOut | None = None
     check_id: str | None = None
     # "before_purchase": the whole plan, as proposed. "current_state": only what is still owed on a
     # plan that had already started when it was added (ADR D-47).
@@ -284,6 +289,7 @@ def _out(
     repayment: RepaymentFlag,
     predictor: Predictor,
     kind: CheckType = "before_purchase",
+    second_opinion: SecondOpinionOut | None = None,
 ) -> RiskCheckOut:
     ok = result.status == "ok"
     return RiskCheckOut(
@@ -314,6 +320,7 @@ def _out(
         )
         if ok
         else None,
+        second_opinion=second_opinion,
     )
 
 
@@ -340,7 +347,13 @@ def _evaluate(
     except ProposalError as err:
         raise unprocessable(err.code, err.message) from err
     out = _out(
-        found.result, found.factors, found.suggestion, _repayment(plans, today), predictor, kind
+        found.result,
+        found.factors,
+        found.suggestion,
+        _repayment(plans, today),
+        predictor,
+        kind,
+        build_second_opinion(found.result, plans, items, limits, today),
     )
     return out, found.result
 
@@ -371,6 +384,9 @@ def _frozen_row(
                 "suspect_months": [s.model_dump(mode="json") for s in out.suspect_months],
             },
             "p_without": out.probability_without_purchase,
+            "second_opinion": out.second_opinion.model_dump(mode="json")
+            if out.second_opinion
+            else None,
         },
         "features": features,
         "feature_schema_hash": out.versions.feature_schema_hash,
@@ -430,6 +446,7 @@ def _from_row(row: dict[str, Any]) -> RiskCheckOut:
         versions=VersionsOut(
             model=row["model_version"], feature_schema_hash=row["feature_schema_hash"]
         ),
+        second_opinion=stored.get("second_opinion"),
         check_id=row["id"],
     )
 

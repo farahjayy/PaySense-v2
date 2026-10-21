@@ -529,3 +529,134 @@ def test_a_different_price_is_not_a_duplicate_even_with_the_same_item_and_date(a
     assert api.post("/api/risk/confirm", json=body(), headers=amir).status_code == 201
     other = api.post("/api/risk/confirm", json=body(total_price_sen=90000), headers=amir)
     assert other.status_code == 201
+
+
+# ------------------------------------------------------------------ the Second-Opinion Check (D-51)
+def an_atome_plan(fake_db, username, unpaid=((date(2025, 6, 1), 5000), (date(2025, 7, 1), 5000))):
+    from app.domain.schedule import Instalment
+
+    instalments = [Instalment(n, due, sen, False) for n, (due, sen) in enumerate(unpaid, start=1)]
+    return plans_repo.create_plan(
+        fake_db,
+        user_id(fake_db, username),
+        {
+            "item_name": "Earbuds",
+            "provider": "atome",
+            "provider_label": "Atome",
+            "schedule_source": "provider_rule",
+            "total_price_sen": sum(sen for _, sen in unpaid),
+            "financed_sen": sum(sen for _, sen in unpaid),
+            "upfront_sen": 0,
+            "monthly_fee_rate_pct": 0,
+            "num_installments": len(unpaid),
+            "purchase_date": date(2025, 5, 1),
+            "first_payment_date": unpaid[0][0],
+        },
+        instalments,
+    )
+
+
+def test_the_second_opinion_comes_from_the_same_simulation_as_the_headline_numbers(
+    api, amir, fake_db
+):
+    fill(fake_db, "amir")
+    out = api.post("/api/risk/check", json=body(), headers=amir).json()
+
+    so = out["second_opinion"]
+    assert so["with_probability"] == out["simulated_probability"]
+    assert so["without_probability"] == out["probability_without_purchase"]
+    assert so["added_probability"] == pytest.approx(
+        max(so["with_probability"] - so["without_probability"], 0.0), abs=1e-6
+    )
+    assert so["without_band"] in ("Safe", "Caution", "At Risk")
+    assert sum(m["new_plan_sen"] for m in so["stack"]) == 60000  # three instalments, exact sen
+    assert so["exposure"]["unpaid_before_sen"] == 0
+    assert so["exposure"]["unpaid_after_sen"] == 60000
+    assert so["exposure"]["recorded_limits_sen"] is None
+    assert so["exposure"]["bnm_line_sen"] == 150000
+    assert so["peak"]["total_sen"] == max(m["total_sen"] for m in so["stack"])
+
+
+def test_what_is_already_owed_to_other_providers_is_stacked_with_the_new_plan(api, amir, fake_db):
+    fill(fake_db, "amir")
+    an_atome_plan(fake_db, "amir")
+    out = api.post("/api/risk/check", json=body(), headers=amir).json()
+
+    so = out["second_opinion"]
+    june = next(m for m in so["stack"] if m["month"] == "2025-06")
+    assert june["by_provider"] == [{"provider_label": "Atome", "amount_sen": 5000}]
+    assert june["new_plan_sen"] > 0 and june["total_sen"] == 5000 + june["new_plan_sen"]
+    assert so["exposure"]["unpaid_before_sen"] == 10000
+    assert so["exposure"]["plans_before"] == 1 and so["exposure"]["plans_after"] == 2
+    assert so["exposure"]["providers_after"] == ["Atome", "SPayLater"]
+
+
+def test_another_users_plans_never_appear_in_my_stack(api, amir, siti, fake_db):
+    fill(fake_db, "amir")
+    an_atome_plan(fake_db, "siti")
+
+    so = api.post("/api/risk/check", json=body(), headers=amir).json()["second_opinion"]
+
+    assert so["exposure"]["unpaid_before_sen"] == 0 and so["exposure"]["plans_before"] == 0
+    assert all(m["by_provider"] == [] for m in so["stack"])
+
+
+def test_the_confirmed_income_of_each_month_sits_beside_what_is_owed(api, amir, fake_db):
+    from app.db import recurring_items
+
+    fill(fake_db, "amir")
+    recurring_items.create(
+        fake_db, user_id(fake_db, "amir"), kind="income", name="Allowance",
+        amount_sen=200000, cadence="monthly", anchor_date=date(2025, 5, 20),
+    )  # fmt: skip
+
+    so = api.post("/api/risk/check", json=body(), headers=amir).json()["second_opinion"]
+
+    june = next(m for m in so["stack"] if m["month"] == "2025-06")
+    assert june["known_income_sen"] == 200000
+
+
+def test_recorded_limits_are_added_up_against_the_bank_negara_line(api, amir, fake_db):
+    from app.db import provider_limits
+
+    fill(fake_db, "amir")
+    uid = user_id(fake_db, "amir")
+    provider_limits.upsert_limit(fake_db, uid, "spaylater", 100000)
+    provider_limits.upsert_limit(fake_db, uid, "atome", 60000)
+
+    exposure = api.post("/api/risk/check", json=body(), headers=amir).json()["second_opinion"][
+        "exposure"
+    ]
+
+    assert exposure["recorded_limits_sen"] == 160000 and exposure["reaches_bnm_line"] is True
+
+
+def test_a_locked_ledger_gets_no_second_opinion(api, amir):
+    out = api.post("/api/risk/check", json=body(), headers=amir).json()
+
+    assert out["status"] == "locked" and out["second_opinion"] is None
+
+
+def test_the_saved_report_keeps_the_second_opinion_it_was_decided_on(api, amir, fake_db):
+    fill(fake_db, "amir")
+    an_atome_plan(fake_db, "amir")
+    confirmed = api.post("/api/risk/confirm", json=body(), headers=amir).json()
+    # later the ledger changes: the saved report must not
+    an_atome_plan(fake_db, "amir", unpaid=((date(2025, 8, 1), 99999),))
+
+    read = api.get(f"/api/risk/checks/{confirmed['check_id']}", headers=amir).json()
+
+    assert read["second_opinion"] == confirmed["check"]["second_opinion"]
+    assert read["second_opinion"]["exposure"]["unpaid_before_sen"] == 10000
+
+
+def test_a_report_saved_before_the_second_opinion_existed_still_reads_back_without_it(
+    api, amir, fake_db
+):
+    fill(fake_db, "amir")
+    confirmed = api.post("/api/risk/confirm", json=body(), headers=amir).json()
+    fake_db.rows("risk_checks")[0]["input"].pop("second_opinion")
+
+    read = api.get(f"/api/risk/checks/{confirmed['check_id']}", headers=amir)
+
+    assert read.status_code == 200 and read.json()["second_opinion"] is None
