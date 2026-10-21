@@ -117,13 +117,17 @@ function Sidebar({ pathname, name }: { pathname: string; name: string }) {
         })}
       </nav>
       <div className="relative mt-auto flex flex-col gap-3.5">
-        <div className="flex items-center gap-3 px-1.5">
+        <Link
+          href="/settings"
+          aria-current={isActive(pathname, "/settings") ? "page" : undefined}
+          className="flex items-center gap-3 rounded-2xl px-1.5 py-1 hover:bg-white/10"
+        >
           <Face band="Hello" size={40} />
-          <div className="flex min-w-0 flex-col leading-tight">
+          <span className="flex min-w-0 flex-col leading-tight">
             <span className="truncate text-[15px] font-bold">{name}</span>
-            <span className="text-[13px] text-sidebar-muted">Signed in</span>
-          </div>
-        </div>
+            <span className="text-[13px] text-sidebar-muted">Settings</span>
+          </span>
+        </Link>
         <p className="px-1.5 text-[12px] leading-relaxed text-sidebar-muted">
           Financial health forecasting and BNPL risk classification for students.
         </p>
@@ -203,6 +207,13 @@ export function AppShell({ user, children }: Props) {
             <span className="max-w-[10rem] truncate text-[13px] font-medium text-ink">
               {user.display_name}
             </span>
+            <Link
+              href="/settings"
+              aria-current={isActive(pathname, "/settings") ? "page" : undefined}
+              className="inline-flex min-h-6 items-center px-1 text-[13px] font-semibold text-accent underline-offset-2 hover:underline md:hidden"
+            >
+              Settings
+            </Link>
             <Button variant="secondary" size="sm" onClick={handleLogout}>
               Log out
             </Button>

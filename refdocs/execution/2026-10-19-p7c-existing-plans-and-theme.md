@@ -56,5 +56,5 @@ Reality differs from the first draft of this phase: after the author walked thro
 ## Wrap-up
 
 - [ ] CHANGELOG entry, STATUS rows and verification ledger
-- [ ] ADRs: D-47 (existing plans: record-only past instalments, current-state check, an approximation), D-48 (pond theme, written), D-49 (sidebar, written), D-50 (recurring matching), D-51 (template and date order); PRD §7 one-liners
+- [ ] ADRs: D-47 (existing plans: record-only past instalments, current-state check, an approximation), D-48 (pond theme, written), D-49 (sidebar, written), D-51 (recurring matching), D-52 (template and date order); D-50 is Settings, written; PRD §7 one-liners
 - [ ] Reviews: security, python/fastapi, react (user-scoped routes, a check that excludes a plan, a new form)

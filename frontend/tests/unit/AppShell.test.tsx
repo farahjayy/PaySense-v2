@@ -110,6 +110,21 @@ describe("AppShell", () => {
     expect(phoneBar && phoneBar.querySelectorAll("a").length).toBe(4);
   });
 
+  it("links Settings from beside the name, on the sidebar and the phone's top bar, not as a menu item", () => {
+    render(
+      <AppShell user={USER}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    const links = screen.getAllByRole("link", { name: /settings/i });
+    expect(links.length).toBe(2);
+    for (const link of links) expect(link).toHaveAttribute("href", "/settings");
+    const mainNav = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(mainNav).queryByRole("link", { name: /settings/i })).toBeNull();
+  });
+
   it("keeps Recurring and About the model reachable on a phone in a 'More pages' row", () => {
     render(
       <AppShell user={USER}>

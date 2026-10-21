@@ -166,6 +166,50 @@ test("a plan that has already started keeps a check of what is left, and the rep
   expect(violations).toEqual([]);
 });
 
+test("Settings: clear the transactions, then factory reset, after saving a copy", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const violations = watchForCspViolations(page);
+  await signIn(page, "settings");
+  await openImport(page);
+  await page.getByLabel("Choose a statement file").setInputFiles(PERSONA_CSV);
+  await page.getByRole("button", { name: /^add \d+ transactions?$/i }).click();
+  await expect(page.getByText(/transactions added/i)).toBeVisible();
+
+  // Settings is a link by the name, not a menu item
+  await page.getByRole("link", { name: /settings/i }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
+
+  // a copy first: the CSV downloads
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download transactions (CSV)" }).first().click();
+  expect((await download).suggestedFilename()).toMatch(/^paysense-transactions-.*\.csv$/);
+
+  // clear only the transactions
+  await page.getByRole("checkbox", { name: /transactions/i }).check();
+  await page.getByRole("button", { name: /clear selected data/i }).click();
+  const dialog = page.getByRole("dialog");
+  const confirm = dialog.getByRole("button", { name: "Clear data" });
+  await expect(confirm).toBeDisabled();
+  await dialog.getByLabel(/type reset/i).fill("RESET");
+  await confirm.click();
+  await expect(page.getByText(/^Cleared \d+ transactions/)).toBeVisible();
+
+  // the dashboard goes back to a new account's locked forecast
+  await page.getByRole("link", { name: "Dashboard" }).first().click();
+  await expect(page.getByText(/nothing to forecast|unlocks with four months/i)).toBeVisible();
+
+  // a factory reset after that has nothing left to remove
+  await page.getByRole("link", { name: /settings/i }).click();
+  await page.getByRole("button", { name: /reset everything/i }).click();
+  const factory = page.getByRole("dialog");
+  await factory.getByLabel(/type reset/i).fill("RESET");
+  await factory.getByRole("button", { name: "Reset everything" }).click();
+  await expect(page.getByText("There was nothing to clear.")).toBeVisible();
+  expect(violations).toEqual([]);
+});
+
 test("the transactions page shows where the month went, and picking a category filters the list", async ({
   page,
 }) => {

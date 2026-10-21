@@ -468,6 +468,15 @@ def _cell(fields: Sequence[str], index: int | None) -> str:
     return fields[index] if index is not None and index < len(fields) else ""
 
 
+_DEFUSED_STARTS = ("=", "+", "-", "@", "	")
+
+
+def _undefused(text: str) -> str:
+    """Our own export puts an apostrophe before an item a spreadsheet would run as a formula
+    (app/domain/export.py). Take exactly that back off, so an exported file imports as it was."""
+    return text[1:] if text.startswith("'") and text[1:].startswith(_DEFUSED_STARTS) else text
+
+
 def _read_row(
     number: int, fields: Sequence[str], columns: _Columns, directional: bool
 ) -> ImportRow:
@@ -476,10 +485,14 @@ def _read_row(
     day = _parse_date(fields[columns.date])
     if day is None:
         raise _RowProblem("unparseable date")
-    description = " ".join(_cell(fields, columns.description).split())[:DESCRIPTION_LIMIT] or None
+    description = (
+        " ".join(_undefused(_cell(fields, columns.description)).split())[:DESCRIPTION_LIMIT] or None
+    )
     sign, sen = _read_amount(fields, columns)
     kind, kind_issues = _direction(_cell(fields, columns.type), description, sign, directional)
-    category, category_issues = _category(_cell(fields, columns.category), description, kind)
+    category, category_issues = _category(
+        _undefused(_cell(fields, columns.category)), description, kind
+    )
     return ImportRow(
         row=number,
         date=day,

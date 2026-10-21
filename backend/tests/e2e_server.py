@@ -6,6 +6,7 @@ It seeds one tester ("e2e") so the browser journey runs with no Supabase credent
 sessions with a random per-start key. Test tooling only — never deployed.
 """
 
+import os
 import secrets
 from datetime import date
 
@@ -16,7 +17,7 @@ from app.main import create_app
 from app.seed import seed_user
 from tests.fakes import FakeSupabase
 
-E2E_ORIGIN = "http://localhost:3100"
+E2E_ORIGIN = os.environ.get("E2E_FRONTEND_ORIGIN", "http://localhost:3100")
 E2E_USERNAME = "e2e"
 E2E_DISPLAY_NAME = "E2E Tester"
 # The persona CSVs end on 28 December 2025; the browser tests run "the next day" so the imported
@@ -56,7 +57,7 @@ def build_e2e_app():
     usernames = [E2E_USERNAME] + [
         f"{E2E_USERNAME}-{project}-{journey}"
         for project in ("desktop", "phone")
-        for journey in ("import", "screens", "risk", "spending", "existing")
+        for journey in ("import", "screens", "risk", "spending", "existing", "settings")
     ]
     for username in usernames:
         seed_user(db, username=username, display_name=E2E_DISPLAY_NAME, persona="frequent_bnpl")

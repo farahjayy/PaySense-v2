@@ -203,6 +203,14 @@ class ScopedTable:
         )
         return bool(deleted)
 
+    def delete_all(self, user_id: str, /, **equals: Any) -> int:
+        """Delete every one of the caller's rows (matching `equals`, if given) and return how many.
+        It reads the caller's ids first, then deletes them in batches, so it is bounded by the
+        caller's own rows and can never reach another user's. A second call finds nothing."""
+        uid = require_user_id(user_id)
+        ids = [row[ID_COLUMN] for row in self.list_rows(uid, columns=ID_COLUMN, **equals)]
+        return self.delete_many(uid, ids)
+
     def insert_many(self, user_id: str, rows: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
         """Insert rows in one request; every row is stamped with the caller's id. All rows are
         checked before anything is written."""

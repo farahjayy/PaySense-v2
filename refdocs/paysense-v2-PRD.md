@@ -260,6 +260,7 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-47 | A plan keeps the risk check taken the day it was added (check before save, never counted against itself); instalments already due are a record the person ticks as paid, logged as transactions only on request; the check of a started plan covers the remaining schedule | Statistics used to vanish once a purchase became a plan, and a half-paid plan still takes money out of the future |
 | D-48 | The pond theme (cream, brand teal, Bricolage Grotesque + Figtree, bubbly corners, teal sidebar, faces) is the whole app's look; Safe / Caution / At Risk keep their colours; contrast is a test | One product from sign-in onwards, with meaning never carried by colour alone |
 | D-49 | The sidebar holds only the pages used every day (Dashboard, Transactions, Plans, Risk check; Recurring and About the model below a divider); Import and Categories are buttons on Transactions | They are one-off jobs and should not take a permanent slot |
+| D-50 | Settings (a link beside the name): download your data (CSV in the import format, JSON of everything), clear data by kind, and a factory reset, all behind the typed word RESET and scoped to the caller | A tester can start fresh without deleting rows one by one, and keep a copy first |
 
 ---
 

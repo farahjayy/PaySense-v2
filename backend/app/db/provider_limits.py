@@ -50,3 +50,9 @@ def delete_limit(db: Database, user_id: str, provider: str) -> bool:
     key = _check_provider(provider)
     deleted = db.table(TABLE).delete().eq("user_id", uid).eq("provider", key).execute().data
     return bool(deleted)
+
+
+def delete_all(db: Database, user_id: str) -> int:
+    """Remove every limit the caller has recorded; how many were removed."""
+    uid = require_user_id(user_id)
+    return len(db.table(TABLE).delete().eq("user_id", uid).execute().data)

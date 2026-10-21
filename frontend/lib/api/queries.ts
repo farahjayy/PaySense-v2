@@ -3,6 +3,7 @@
  * loading, error and refetch behaviour is the same everywhere and the types come only from the
  * backend's OpenAPI document. No money is computed here: amounts are integer sen as received.
  */
+import { restoreGettingStarted } from "@/lib/checklistStore";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "./client";
@@ -30,6 +31,9 @@ export type RiskCheck = Schemas["RiskCheckOut"];
 export type RiskConfirm = Schemas["RiskConfirmOut"];
 export type ModelInfo = Schemas["ModelInfoOut"];
 export type Category = Schemas["CategoryOut"];
+export type AccountSummary = Schemas["AccountSummaryOut"];
+export type AccountScope = keyof AccountSummary;
+export type AccountReset = Schemas["AccountResetOut"];
 export type CategorySummary = Schemas["CategorySummaryOut"];
 
 /** A failed API call, with the server's own sentence when it sent one. */
@@ -487,5 +491,35 @@ export function useDeleteCategory() {
     onSuccess: () => {
       void invalidate();
     },
+  });
+}
+
+export function useAccountSummary() {
+  return useQuery({
+    queryKey: ["account", "summary"],
+    queryFn: async () => unwrap(api.GET("/api/account/summary")),
+  });
+}
+
+/** Clearing data changes almost every screen, so everything is refetched afterwards. */
+export function useResetAccount() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (scopes: AccountScope[]) =>
+      unwrap(api.POST("/api/account/reset", { body: { scopes, confirm: "RESET" } })),
+    onSuccess: (result) => {
+      if (result.factory_reset) restoreGettingStarted(); // a fresh start includes the checklist
+      void client.invalidateQueries();
+    },
+  });
+}
+
+/** A copy of the person's data as a file: the CSV is the transactions, the JSON is everything. */
+export function useExportData() {
+  return useMutation({
+    mutationFn: async (format: "csv" | "json") =>
+      unwrap<Blob>(
+        api.GET("/api/account/export", { params: { query: { format } }, parseAs: "blob" }),
+      ),
   });
 }

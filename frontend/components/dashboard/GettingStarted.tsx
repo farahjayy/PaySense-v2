@@ -7,9 +7,13 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
 import { Face } from "@/components/ui/Face";
 import { useForecast, usePlans, useProviderLimits, useRecurringItems } from "@/lib/api/queries";
+import {
+  checklistHidden,
+  hideGettingStarted,
+  restoreGettingStarted,
+  subscribeToChecklist,
+} from "@/lib/checklistStore";
 import { gettingStartedSteps } from "@/lib/onboarding";
-
-const HIDDEN_KEY = "paysense.gettingStarted.hidden";
 
 /**
  * The route from an empty app to a first risk check, ticking itself off from what the person has
@@ -18,46 +22,17 @@ const HIDDEN_KEY = "paysense.gettingStarted.hidden";
  * will never do every step (no BNPL, so no limits and no plans) can hide it; the choice is kept in
  * this browser only.
  */
-const subscribers = new Set<() => void>();
-
-function subscribe(notify: () => void): () => void {
-  subscribers.add(notify);
-  window.addEventListener("storage", notify);
-  return () => {
-    subscribers.delete(notify);
-    window.removeEventListener("storage", notify);
-  };
-}
-
-function storedHidden(): boolean {
-  try {
-    return window.localStorage.getItem(HIDDEN_KEY) === "1";
-  } catch {
-    return false; // storage can be blocked (private window): the checklist simply stays
-  }
-}
-
 export function GettingStarted() {
-  const stored = useSyncExternalStore(subscribe, storedHidden, () => false);
+  const stored = useSyncExternalStore(subscribeToChecklist, checklistHidden, () => false);
   const [hiddenNow, setHiddenNow] = useState(false); // covers a browser that will not store it
   const hidden = stored || hiddenNow;
   function hide() {
-    setHiddenNow(true);
-    try {
-      window.localStorage.setItem(HIDDEN_KEY, "1");
-      subscribers.forEach((notify) => notify());
-    } catch {
-      // not kept, but hidden for this visit
-    }
+    setHiddenNow(true); // hidden for this visit even if the browser will not keep the choice
+    hideGettingStarted();
   }
   function show() {
-    setHiddenNow(false);
-    try {
-      window.localStorage.removeItem(HIDDEN_KEY);
-      subscribers.forEach((notify) => notify());
-    } catch {
-      // the choice could not be cleared, but the checklist is back for this visit
-    }
+    setHiddenNow(false); // also covers a browser that would not keep the choice
+    restoreGettingStarted();
   }
   const forecast = useForecast();
   const recurring = useRecurringItems();
