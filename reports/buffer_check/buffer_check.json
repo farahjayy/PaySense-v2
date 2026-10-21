@@ -1,0 +1,623 @@
+[
+  {
+    "persona": "budget_conscious",
+    "buffer_sen": 0,
+    "baseline_p": 0.208,
+    "baseline_band": "Caution",
+    "safe_cells": 0,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.226,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.208,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.24,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.208,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.254,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.234,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.305,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.234,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.449,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.281,
+        "band": "Caution"
+      }
+    ]
+  },
+  {
+    "persona": "budget_conscious",
+    "buffer_sen": 100000,
+    "baseline_p": 0.0,
+    "baseline_band": "Safe",
+    "safe_cells": 10,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.02,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      }
+    ]
+  },
+  {
+    "persona": "budget_conscious",
+    "buffer_sen": 300000,
+    "baseline_p": 0.0,
+    "baseline_band": "Safe",
+    "safe_cells": 10,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      }
+    ]
+  },
+  {
+    "persona": "frequent_bnpl",
+    "buffer_sen": 0,
+    "baseline_p": 0.9,
+    "baseline_band": "At Risk",
+    "safe_cells": 0,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.897,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.901,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.897,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.902,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.92,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.911,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.934,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.937,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.996,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.955,
+        "band": "At Risk"
+      }
+    ]
+  },
+  {
+    "persona": "frequent_bnpl",
+    "buffer_sen": 100000,
+    "baseline_p": 0.027,
+    "baseline_band": "Safe",
+    "safe_cells": 5,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.022,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.031,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.053,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.06,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.098,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.136,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.255,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.231,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.58,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.384,
+        "band": "At Risk"
+      }
+    ]
+  },
+  {
+    "persona": "frequent_bnpl",
+    "buffer_sen": 300000,
+    "baseline_p": 0.0,
+    "baseline_band": "Safe",
+    "safe_cells": 10,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      }
+    ]
+  },
+  {
+    "persona": "irregular_income",
+    "buffer_sen": 0,
+    "baseline_p": 0.901,
+    "baseline_band": "At Risk",
+    "safe_cells": 0,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.898,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.901,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.898,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.901,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.898,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.901,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.898,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.901,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.898,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.901,
+        "band": "At Risk"
+      }
+    ]
+  },
+  {
+    "persona": "irregular_income",
+    "buffer_sen": 100000,
+    "baseline_p": 0.0,
+    "baseline_band": "Safe",
+    "safe_cells": 9,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.08,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.003,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.303,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.041,
+        "band": "Safe"
+      }
+    ]
+  },
+  {
+    "persona": "irregular_income",
+    "buffer_sen": 300000,
+    "baseline_p": 0.0,
+    "baseline_band": "Safe",
+    "safe_cells": 10,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      }
+    ]
+  }
+]

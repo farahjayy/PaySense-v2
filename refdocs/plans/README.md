@@ -40,3 +40,5 @@ Status vocabulary: `Draft` · `In progress` · `Done` · `Blocked` · `Supersede
 | [2026-10-19-p7c-existing-plans-and-theme.md](2026-10-19-p7c-existing-plans-and-theme.md) | P7c Existing BNPL plans (record-only past instalments, a current-state check that stays with the plan), the pond theme, recurring matching, import template | Draft |
 | [2026-10-15-p7b-ledger-polish.md](2026-10-15-p7b-ledger-polish.md) | P7b Ledger polish: spending by category, categories, plainer wording, Excel guard, month names | Done (migration 0002 applied; Categories page verified on the real database) |
 | [2026-10-13-import-spreadsheets.md](2026-10-13-import-spreadsheets.md) | Import: Excel workbooks, and a file's own Type and Category columns taken as written | Done (not yet tried with a real .xlsx in a browser) |
+
+| [2026-10-21-p7d-second-opinion-and-guided-start.md](2026-10-21-p7d-second-opinion-and-guided-start.md) | P7d The Second-Opinion Check, a layered result, intro and tour | Built and green on the in-memory database (not run against the real project) |

@@ -261,6 +261,10 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-48 | The pond theme (cream, brand teal, Bricolage Grotesque + Figtree, bubbly corners, teal sidebar, faces) is the whole app's look; Safe / Caution / At Risk keep their colours; contrast is a test | One product from sign-in onwards, with meaning never carried by colour alone |
 | D-49 | The sidebar holds only the pages used every day (Dashboard, Transactions, Plans, Risk check; Recurring and About the model below a divider); Import and Categories are buttons on Transactions | They are one-off jobs and should not take a permanent slot |
 | D-50 | Settings (a link beside the name): download your data (CSV in the import format, JSON of everything), clear data by kind, and a factory reset, all behind the typed word RESET and scoped to the caller | A tester can start fresh without deleting rows one by one, and keep a copy first |
+| D-51 | The Second-Opinion Check: the chance of running short without, with and the points added from one simulation; every unpaid instalment stacked by month; exposure before and after | Shows what several plans add up to, which no single provider shows; fills the PRD's "BNPL stack" with no model change |
+| D-52 | The risk result is layered (answer and evidence visible, working in one-line-summarised folds); the dashboard gets one alert line (overdue, colliding payments, a limit nearly used), no new cards | Depth makes it credible, folding makes it calm |
+| D-53 | Three intro slides and a six-stop spotlight tour on first sign-in, replayable from Settings | Testers arrive without a briefing |
+| D-54 | The UAT runs on seeded username-only accounts with synthetic data; no Google sign-in, self sign-up or passphrase | Testers are real people on synthetic data; login strength is not one of the FYP's objectives |
 
 ---
 
