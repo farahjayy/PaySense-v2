@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 
+import { AlertLine } from "@/components/dashboard/AlertLine";
 import { GettingStarted } from "@/components/dashboard/GettingStarted";
 import { BillsDue } from "@/components/forecast/BillsDue";
 import { Notices } from "@/components/forecast/Notices";
@@ -32,6 +33,7 @@ export function DashboardScreen() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader title={`Hi, ${name}`} intro="Where your money is heading, and what you owe." />
+      <AlertLine />
       <GettingStarted />
       <Outlook />
       <div className="grid gap-6 lg:grid-cols-5">
@@ -59,7 +61,7 @@ function Outlook() {
   const sim = data.simulation;
   return (
     <section aria-labelledby="outlook-heading" className="space-y-4">
-      <Card className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:gap-8">
+      <Card data-tour="forecast" className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:gap-8">
         <ScoreRing score={data.health_score} band={data.band} caption="financial health" />
         <div className="text-center sm:text-left">
           <h2 id="outlook-heading" className="sr-only">

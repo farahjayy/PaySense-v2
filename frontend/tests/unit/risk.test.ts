@@ -32,6 +32,7 @@ function check(patch: Partial<RiskCheck> = {}): RiskCheck {
     with_plan_curve: null,
     without_curve: null,
     versions: null,
+    second_opinion: null,
     check_id: null,
     check_type: "before_purchase",
     ...patch,

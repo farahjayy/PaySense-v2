@@ -34,6 +34,9 @@ test("the session survives a reload and ends on log out", async ({ page }) => {
   await page.getByLabel("Username").fill(USERNAME);
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.getByRole("heading", { name: `Hi, ${DISPLAY_NAME}` })).toBeVisible();
+  // a first sign-in plays the welcome slides (ADR D-53); skipping them is remembered for this person
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 
   await page.reload();
   await expect(page.getByRole("heading", { name: `Hi, ${DISPLAY_NAME}` })).toBeVisible();

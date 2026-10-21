@@ -14,6 +14,7 @@ type Schemas = components["schemas"];
 export type Forecast = Schemas["ForecastOut"];
 export type MonthSummary = Schemas["MonthSummaryOut"];
 export type Bills = Schemas["BillsOut"];
+export type Alerts = Schemas["AlertsOut"];
 export type Suggestion = Schemas["SuggestionOut"];
 export type RecurringItem = Schemas["RecurringOut"];
 export type RecurringInput = Schemas["RecurringIn"];
@@ -78,6 +79,7 @@ export const queryKeys = {
   forecast: ["forecast"] as const,
   summary: ["summary"] as const,
   bills: ["bills"] as const,
+  alerts: ["alerts"] as const,
   suggestions: ["suggestions"] as const,
   recurring: ["recurring"] as const,
   transactions: (filters: object) => ["transactions", filters] as const,
@@ -106,6 +108,14 @@ export function useBills() {
   return useQuery({
     queryKey: queryKeys.bills,
     queryFn: async () => unwrap(api.GET("/api/bills")),
+  });
+}
+
+/** What needs attention beyond the forecast: overdue instalments, close payments, a nearly used limit. */
+export function useAlerts() {
+  return useQuery({
+    queryKey: queryKeys.alerts,
+    queryFn: async () => unwrap(api.GET("/api/alerts")),
   });
 }
 
@@ -188,6 +198,7 @@ function useInvalidateLedger() {
         "forecast",
         "summary",
         "bills",
+        "alerts",
         "suggestions",
         "recurring",
         "transactions",
@@ -442,7 +453,11 @@ export function useSetProviderLimit() {
           body: { limit_sen: limitSen },
         }),
       ),
-    onSuccess: () => client.invalidateQueries({ queryKey: queryKeys.limits }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: queryKeys.limits }),
+        client.invalidateQueries({ queryKey: queryKeys.alerts }),
+      ]),
   });
 }
 

@@ -91,4 +91,25 @@ describe("ModelScreen", () => {
     expect(screen.getByRole("heading", { level: 1, name: /about the model/i })).toBeInTheDocument();
     await screen.findByRole("heading", { name: /where it is weak/i });
   });
+
+  it("says what the score never looks at, and that repayment history is shown but never scored", async () => {
+    render(<ModelScreen />, { wrapper });
+
+    const section = (await screen.findByRole("heading", { name: /what it never looks at/i }))
+      .closest("section") as HTMLElement;
+    for (const word of ["age", "gender", "ethnicity", "nationality", "employment"]) {
+      expect(section).toHaveTextContent(new RegExp(word, "i"));
+    }
+    expect(section).toHaveTextContent(/repayment history/i);
+    expect(section).toHaveTextContent(/never scored/i);
+  });
+
+  it("admits it learned from simulated students and that most risk is decided before the purchase", async () => {
+    render(<ModelScreen />, { wrapper });
+
+    const weak = (await screen.findByRole("heading", { name: /where it is weak/i }))
+      .closest("section") as HTMLElement;
+    expect(weak).toHaveTextContent(/simulated students, not on real repayments/i);
+    expect(weak).toHaveTextContent(/already stand before you buy/i);
+  });
 });

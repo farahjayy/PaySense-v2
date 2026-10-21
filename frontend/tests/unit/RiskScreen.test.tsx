@@ -76,6 +76,36 @@ const REPAYMENT = {
   reason: "No late or overdue instalments in the last six months.",
 };
 
+const SECOND_OPINION = {
+  without_probability: 0.1,
+  with_probability: 0.45,
+  added_probability: 0.35,
+  without_band: "Caution",
+  already_at_risk: false,
+  stack: [
+    {
+      month: "2026-11",
+      by_provider: [{ provider_label: "Atome", amount_sen: 5000 }],
+      new_plan_sen: 20000,
+      total_sen: 25000,
+      known_income_sen: 200000,
+    },
+    { month: "2026-12", by_provider: [], new_plan_sen: 20000, total_sen: 20000, known_income_sen: 0 },
+  ],
+  peak: { month: "2026-11", total_sen: 25000 },
+  exposure: {
+    unpaid_before_sen: 5000,
+    unpaid_after_sen: 65000,
+    providers_before: ["Atome"],
+    providers_after: ["Atome", "SPayLater"],
+    plans_before: 1,
+    plans_after: 2,
+    recorded_limits_sen: null,
+    reaches_bnm_line: null,
+    bnm_line_sen: 150000,
+  },
+};
+
 function result(patch: Record<string, unknown> = {}) {
   return {
     status: "ok",
@@ -123,6 +153,7 @@ function result(patch: Record<string, unknown> = {}) {
     with_plan_curve: CURVE,
     without_curve: { ...CURVE, cumulative_p50_sen: [30000, 60000] },
     versions: { model: "m1", feature_schema_hash: "abc" },
+    second_opinion: SECOND_OPINION,
     check_id: null,
     ...patch,
   };
@@ -166,8 +197,12 @@ describe("RiskScreen", () => {
     expect(screen.getByText(/estimated chance of running short: 42%/i)).toBeInTheDocument();
     expect(screen.getByText(/a direct simulation of this purchase gives 45%/i)).toBeInTheDocument();
     expect(screen.getByText("Spread it over 6 instalments")).toBeInTheDocument();
+    // the chart and the repayment note are one tap away, each closed with its figure showing
+    expect(screen.queryByTestId("with-without-chart")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /margin with and without/i }));
     expect(screen.getByTestId("with-without-chart")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /your repayment history/i })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /repayment history/i }));
+    expect(screen.getByText(/no late or overdue instalments/i)).toBeInTheDocument();
     expect(post.mock.calls[0][0]).toBe("/api/risk/check");
     expect(post.mock.calls[0][1].body).toMatchObject({
       provider: "spaylater",
@@ -371,6 +406,7 @@ describe("RiskResult explanation of the two numbers", () => {
 
   it("explains what the second number is and which one decides the band", async () => {
     await show({});
+    await userEvent.click(screen.getByRole("button", { name: /how the two numbers differ/i }));
     expect(screen.getByText(/the estimate decides the band/i)).toBeInTheDocument();
     expect(screen.getByText(/slower, direct calculation/i)).toBeInTheDocument();
   });
@@ -426,5 +462,91 @@ describe("RiskReportScreen by report type", () => {
     render(<RiskReportScreen id="abc" />, { wrapper });
 
     expect(await screen.findByRole("heading", { name: "Saved risk check" })).toBeInTheDocument();
+  });
+});
+
+
+describe("RiskResult layers (ADR D-52)", () => {
+  beforeEach(() => {
+    get.mockReset();
+    post.mockReset();
+    get.mockImplementation(async () => ok(PROVIDERS));
+  });
+
+  async function show(patch: Record<string, unknown> = {}) {
+    post.mockResolvedValue(ok(result(patch)));
+    const user = userEvent.setup();
+    render(<RiskScreen />, { wrapper });
+    await fillForm(user);
+    await user.click(screen.getByRole("button", { name: "Check this purchase" }));
+    await screen.findByRole("img", { name: /out of 100/i });
+    return user;
+  }
+
+  it("shows what the purchase adds up front, and the working in six closed folds", async () => {
+    await show();
+
+    expect(screen.getByRole("heading", { name: /what this purchase adds/i })).toBeInTheDocument();
+    expect(screen.getByText("Adds").nextSibling).toHaveTextContent("+35 points");
+    const folds = screen
+      .getAllByRole("button", { expanded: false })
+      .filter((b) => b.getAttribute("aria-controls")?.endsWith("-body"));
+    expect(folds.map((b) => b.textContent)).toEqual([
+      expect.stringMatching(/^Month by month/),
+      expect.stringMatching(/^Your BNPL exposure/),
+      expect.stringMatching(/^Instalment schedule and cost/),
+      expect.stringMatching(/^Margin with and without/),
+      expect.stringMatching(/^Repayment history/),
+      expect.stringMatching(/^How the two numbers differ/),
+    ]);
+  });
+
+  it("states each fold's key figure while it is closed", async () => {
+    await show();
+
+    expect(screen.getByRole("button", { name: /month by month/i })).toHaveTextContent(
+      "Most owed: RM 250.00 in November 2026",
+    );
+    expect(screen.getByRole("button", { name: /your bnpl exposure/i })).toHaveTextContent(
+      "RM 50.00 to RM 650.00, 2 providers, 2 plans",
+    );
+    expect(screen.getByRole("button", { name: /instalment schedule and cost/i })).toHaveTextContent(
+      "3 instalments, total cost RM 600.00",
+    );
+    expect(screen.getByRole("button", { name: /how the two numbers differ/i })).toHaveTextContent(
+      "Estimate 42%, direct simulation 45%",
+    );
+  });
+
+  it("opens the month-by-month working when asked", async () => {
+    const user = await show();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /month by month/i }));
+
+    expect(screen.getByRole("table", { name: /what you owe each month/i })).toBeVisible();
+  });
+
+  it("opens and closes every fold at once", async () => {
+    const user = await show();
+
+    await user.click(screen.getByRole("button", { name: /open all/i }));
+    expect(screen.getByTestId("with-without-chart")).toBeVisible();
+    expect(screen.getByRole("table", { name: /what you owe each month/i })).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: /close all/i }));
+    expect(screen.getByRole("button", { name: /month by month/i })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+  });
+
+  it("leaves out the second opinion and its two folds on a report saved before it existed", async () => {
+    await show({ second_opinion: null });
+
+    expect(screen.queryByRole("heading", { name: /what this purchase adds/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /month by month/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /your bnpl exposure/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /how the two numbers differ/i })).toBeInTheDocument();
   });
 });

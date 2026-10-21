@@ -125,6 +125,21 @@ describe("AppShell", () => {
     expect(within(mainNav).queryByRole("link", { name: /settings/i })).toBeNull();
   });
 
+  it("marks the controls the tour points at, on both the sidebar and the phone's bars", () => {
+    const { container } = render(
+      <AppShell user={USER}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    for (const target of ["transactions", "risk", "plans", "model", "settings"]) {
+      const marked = container.querySelectorAll(`[data-tour="${target}"]`);
+      expect(marked.length, target).toBeGreaterThanOrEqual(2);
+    }
+    expect(container.querySelector('[data-tour="plans"]')).toHaveAttribute("href", "/plans");
+  });
+
   it("keeps Recurring and About the model reachable on a phone in a 'More pages' row", () => {
     render(
       <AppShell user={USER}>

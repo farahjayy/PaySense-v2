@@ -481,6 +481,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alerts */
+        get: operations["alerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/forecast": {
         parameters: {
             query?: never;
@@ -604,6 +621,30 @@ export interface components {
             limits: number;
             /** Categories */
             categories: number;
+        };
+        /** AlertOut */
+        AlertOut: {
+            /**
+             * Rule
+             * @enum {string}
+             */
+            rule: "overdue" | "collision" | "limit_near";
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "high" | "medium";
+            /** Title */
+            title: string;
+            /** Detail */
+            detail: string;
+            /** Href */
+            href: string;
+        };
+        /** AlertsOut */
+        AlertsOut: {
+            /** Items */
+            items: components["schemas"]["AlertOut"][];
         };
         /** BillItemOut */
         BillItemOut: {
@@ -834,6 +875,27 @@ export interface components {
         ErrorEnvelope: {
             detail: components["schemas"]["ErrorDetail"];
         };
+        /** ExposureOut */
+        ExposureOut: {
+            /** Unpaid Before Sen */
+            unpaid_before_sen: number;
+            /** Unpaid After Sen */
+            unpaid_after_sen: number;
+            /** Providers Before */
+            providers_before: string[];
+            /** Providers After */
+            providers_after: string[];
+            /** Plans Before */
+            plans_before: number;
+            /** Plans After */
+            plans_after: number;
+            /** Recorded Limits Sen */
+            recorded_limits_sen: number | null;
+            /** Reaches Bnm Line */
+            reaches_bnm_line: boolean | null;
+            /** Bnm Line Sen */
+            bnm_line_sen: number;
+        };
         /** FactorOut */
         FactorOut: {
             /** Feature */
@@ -1040,6 +1102,13 @@ export interface components {
              * @description Defaults to today
              */
             paid_date?: string | null;
+        };
+        /** PeakOut */
+        PeakOut: {
+            /** Month */
+            month: string;
+            /** Total Sen */
+            total_sen: number;
         };
         /**
          * PlanCreateIn
@@ -1428,6 +1497,7 @@ export interface components {
             with_plan_curve: components["schemas"]["CurveOut"] | null;
             without_curve: components["schemas"]["CurveOut"] | null;
             versions: components["schemas"]["VersionsOut"] | null;
+            second_opinion: components["schemas"]["SecondOpinionOut"] | null;
             /** Check Id */
             check_id: string | null;
             /**
@@ -1460,6 +1530,23 @@ export interface components {
             constant_brier: number | null;
             /** Feature Schema Hash */
             feature_schema_hash: string | null;
+        };
+        /** SecondOpinionOut */
+        SecondOpinionOut: {
+            /** Without Probability */
+            without_probability: number;
+            /** With Probability */
+            with_probability: number;
+            /** Added Probability */
+            added_probability: number;
+            /** Without Band */
+            without_band: string;
+            /** Already At Risk */
+            already_at_risk: boolean;
+            /** Stack */
+            stack: components["schemas"]["StackMonthOut"][];
+            peak: components["schemas"]["PeakOut"] | null;
+            exposure: components["schemas"]["ExposureOut"];
         };
         /** SimulationOut */
         SimulationOut: {
@@ -1497,6 +1584,26 @@ export interface components {
             row: number;
             /** Reason */
             reason: string;
+        };
+        /** StackMonthOut */
+        StackMonthOut: {
+            /** Month */
+            month: string;
+            /** By Provider */
+            by_provider: components["schemas"]["StackProviderOut"][];
+            /** New Plan Sen */
+            new_plan_sen: number;
+            /** Total Sen */
+            total_sen: number;
+            /** Known Income Sen */
+            known_income_sen: number;
+        };
+        /** StackProviderOut */
+        StackProviderOut: {
+            /** Provider Label */
+            provider_label: string;
+            /** Amount Sen */
+            amount_sen: number;
         };
         /** SuggestionOut */
         SuggestionOut: {
@@ -3255,6 +3362,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BillsOut"];
+                };
+            };
+            /** @description Not logged in, or the session is invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description The request body or parameters are invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    alerts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertsOut"];
                 };
             };
             /** @description Not logged in, or the session is invalid */

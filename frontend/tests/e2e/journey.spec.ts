@@ -15,12 +15,18 @@ function watchForCspViolations(page: Page): string[] {
   return violations;
 }
 
-/** Each browser project signs in as its own seeded tester, so parallel runs keep separate ledgers. */
-async function signIn(page: Page, journey: string) {
+/** Each browser project signs in as its own seeded tester, so parallel runs keep separate ledgers.
+ * A first sign-in plays the welcome slides (ADR D-53); most journeys skip them, one walks through. */
+async function signIn(page: Page, journey: string, { skipIntro = true } = {}) {
   await page.goto("/");
   await expect(page).toHaveURL(/\/login/);
   await page.getByLabel("Username").fill(`e2e-${test.info().project.name}-${journey}`);
   await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByRole("dialog", { name: /welcome to paysense/i })).toBeVisible();
+  if (skipIntro) {
+    await page.getByRole("button", { name: "Skip", exact: true }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  }
   await expect(page.getByRole("heading", { level: 1, name: /hi, e2e tester/i })).toBeVisible();
 }
 
@@ -102,7 +108,16 @@ test("a tester checks a purchase, tries the suggestion, adds the plan and reads 
   await page.getByRole("button", { name: "Check this purchase" }).click();
 
   await expect(page.getByRole("img", { name: /score \d+ out of 100/i })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Your repayment history" })).toBeVisible();
+  // what the purchase adds is up front; the working is folded, each fold stating its figure
+  await expect(page.getByRole("heading", { name: "What this purchase adds" })).toBeVisible();
+  const monthByMonth = page.getByRole("button", { name: /month by month/i });
+  await expect(monthByMonth).toHaveAttribute("aria-expanded", "false");
+  await expect(monthByMonth).toContainText(/most owed: rm/i);
+  await monthByMonth.click();
+  await expect(page.getByRole("table", { name: "What you owe each month" })).toBeVisible();
+  await page.getByRole("button", { name: /repayment history/i }).click();
+  await expect(page.getByText(/shown beside the result, never part of it/i)).toBeVisible();
+  await page.getByRole("button", { name: /margin with and without/i }).click();
   await expect(page.getByText("Show the numbers")).toBeVisible();
 
   // an unaffordable purchase comes with a change that works; trying it re-runs the check
@@ -228,5 +243,47 @@ test("the transactions page shows where the month went, and picking a category f
   await expect(first).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Clear filters" }).first()).toBeVisible();
 
+  expect(violations).toEqual([]);
+});
+
+test("a first sign-in plays the welcome slides and the tour, and Settings can play them again", async ({
+  page,
+}) => {
+  const violations = watchForCspViolations(page);
+  await signIn(page, "welcome", { skipIntro: false });
+
+  const welcome = page.getByRole("dialog", { name: /welcome to paysense/i });
+  await expect(welcome).toContainText("Step 1 of 3");
+  await welcome.getByRole("button", { name: "Next" }).click();
+  await welcome.getByRole("button", { name: "Next" }).click();
+  await expect(welcome.getByRole("heading", { name: /you stay in control/i })).toBeVisible();
+  await welcome.getByRole("button", { name: /take a quick tour/i }).click();
+
+  // the tour lights real controls; step through it to the end
+  const tour = page.getByRole("dialog", { name: "Tour of PaySense" });
+  await expect(tour).toBeVisible();
+  for (let stop = 0; stop < 8; stop++) {
+    if ((await tour.count()) === 0) break;
+    const last = tour.getByRole("button", { name: "Done" });
+    if (await last.count()) {
+      await last.click();
+      break;
+    }
+    await tour.getByRole("button", { name: "Next" }).click();
+  }
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // neither comes back on a reload: it is remembered for this person
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1, name: /hi, e2e tester/i })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // ...until they ask for it again
+  await page.goto("/settings");
+  await page.getByRole("button", { name: "Show the intro again" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("dialog", { name: /welcome to paysense/i })).toBeVisible();
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(violations).toEqual([]);
 });

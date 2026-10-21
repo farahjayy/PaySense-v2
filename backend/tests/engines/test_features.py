@@ -179,7 +179,18 @@ def test_the_summary_builder_reads_its_window_constants_from_the_feature_module(
     assert FEATURE_CONSTANTS["commitment_months"] == summary.COMMITMENT_MONTHS
 
 
-FORBIDDEN = ("age", "employ", "persona", "repayment", "overdue", "late_pay", "gender", "race")
+FORBIDDEN = (
+    "age",
+    "employ",
+    "persona",
+    "repayment",
+    "overdue",
+    "late_pay",
+    "gender",
+    "race",
+    "ethnic",
+    "national",
+)
 
 
 def test_no_forbidden_attribute_is_a_feature_or_an_input():

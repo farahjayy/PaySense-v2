@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 
 import { ResetDialog } from "@/components/settings/ResetDialog";
@@ -17,6 +18,8 @@ import {
 import { restoreGettingStarted } from "@/lib/checklistStore";
 import { saveBlob } from "@/lib/download";
 import { todayIso } from "@/lib/format";
+import { replayIntro } from "@/lib/introTour";
+import { useAuth } from "@/lib/session";
 import { clearedSentence, SCOPE_LABEL, SCOPE_NOTE, SCOPES } from "@/lib/settings";
 
 const TEMPLATE_HREF = "/paysense-import-template.csv";
@@ -27,6 +30,9 @@ type Dialogue = "clear" | "factory" | null;
 
 /** Your own data and a few small preferences. Nothing here is a daily page. */
 export function SettingsScreen() {
+  const router = useRouter();
+  const auth = useAuth();
+  const userId = auth.status === "authenticated" ? auth.session.user.id : null;
   const summary = useAccountSummary();
   const reset = useResetAccount();
   const exportData = useExportData();
@@ -207,6 +213,17 @@ export function SettingsScreen() {
           <Button variant="secondary" onClick={restoreGettingStarted}>
             Show the getting started checklist again
           </Button>
+          {userId && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                replayIntro(userId);
+                router.push("/");
+              }}
+            >
+              Show the intro again
+            </Button>
+          )}
           <Link href="/categories" className={LINK_BUTTON}>
             Manage categories
           </Link>

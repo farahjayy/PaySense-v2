@@ -72,6 +72,14 @@ export function ModelScreen() {
           Caution is a prompt to look closer, not a verdict.
         </p>
       </Section>
+      <Section id="never" title="What it never looks at">
+        <p>
+          The score is worked out from money only: your income and spending pattern, your bills and
+          instalments, the purchase and the provider&apos;s terms, your limits and any savings
+          you enter. It never uses your age, gender, ethnicity, nationality or employment, and your
+          repayment history is shown beside the result but never scored.
+        </p>
+      </Section>
       <Section id="built" title="What it was built from">
         <p>
           The forecast was compared against simple alternatives (repeating last week, a moving
@@ -87,6 +95,16 @@ export function ModelScreen() {
       </Section>
       <Section id="limits" title="Where it is weak">
         <ul className="list-disc space-y-2 pl-5">
+          <li>
+            The risk check learned from simulated students, not on real repayments, so its accuracy
+            is accuracy at copying the forecast&apos;s own simulation, not at predicting who
+            repays.
+          </li>
+          <li>
+            Most of the risk usually comes from where you already stand before you buy. When a
+            purchase is not Safe, often no small change makes it Safe, and the page says so rather
+            than inventing one.
+          </li>
           <li>
             The range around the forecast is a little too narrow: real outcomes land inside it less
             often than the stated 8 in 10.

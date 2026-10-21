@@ -11,7 +11,7 @@ import { Face } from "@/components/ui/Face";
 import { isActive } from "@/lib/nav";
 import { clearSession, type Session } from "@/lib/session";
 
-type NavItem = { href: string; label: string; icon: string; daily: boolean };
+type NavItem = { href: string; label: string; icon: string; daily: boolean; tour?: string };
 
 // `daily` marks the pages used every day: they fill the phone's bottom bar and sit above the
 // divider in the sidebar. The rest sit below the divider and, on a phone, in the "More pages" row
@@ -24,13 +24,26 @@ const NAV_ITEMS: readonly NavItem[] = [
     icon: "M4 13h6V4H4zM14 20h6v-9h-6zM14 4h6v4h-6zM4 20h6v-3H4z",
     daily: true,
   },
-  { href: "/transactions", label: "Transactions", icon: "M4 7h16M4 12h16M4 17h10", daily: true },
-  { href: "/plans", label: "Plans", icon: "M5 4h14v16H5zM9 9h6M9 13h6M9 17h3", daily: true },
+  {
+    href: "/transactions",
+    label: "Transactions",
+    icon: "M4 7h16M4 12h16M4 17h10",
+    daily: true,
+    tour: "transactions",
+  },
+  {
+    href: "/plans",
+    label: "Plans",
+    icon: "M5 4h14v16H5zM9 9h6M9 13h6M9 17h3",
+    daily: true,
+    tour: "plans",
+  },
   {
     href: "/risk",
     label: "Risk check",
     icon: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
     daily: true,
+    tour: "risk",
   },
   {
     href: "/recurring",
@@ -43,6 +56,7 @@ const NAV_ITEMS: readonly NavItem[] = [
     label: "About the model",
     icon: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v6M12 7.5v.01",
     daily: false,
+    tour: "model",
   },
 ];
 
@@ -106,6 +120,7 @@ function Sidebar({ pathname, name }: { pathname: string; name: string }) {
               )}
               <Link
                 href={item.href}
+                data-tour={item.tour}
                 aria-current={active ? "page" : undefined}
                 className={`flex h-11.5 items-center gap-3 rounded-2xl px-3.5 text-[15px] transition-colors ${navLinkClass(active)}`}
               >
@@ -119,6 +134,7 @@ function Sidebar({ pathname, name }: { pathname: string; name: string }) {
       <div className="relative mt-auto flex flex-col gap-3.5">
         <Link
           href="/settings"
+          data-tour="settings"
           aria-current={isActive(pathname, "/settings") ? "page" : undefined}
           className="flex items-center gap-3 rounded-2xl px-1.5 py-1 hover:bg-white/10"
         >
@@ -148,6 +164,7 @@ function MobileNav({ pathname }: { pathname: string }) {
           <Link
             key={item.href}
             href={item.href}
+            data-tour={item.tour}
             aria-current={active ? "page" : undefined}
             className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-semibold ${
               active ? "text-accent" : "text-ink-muted"
@@ -209,6 +226,7 @@ export function AppShell({ user, children }: Props) {
             </span>
             <Link
               href="/settings"
+              data-tour="settings"
               aria-current={isActive(pathname, "/settings") ? "page" : undefined}
               className="inline-flex min-h-6 items-center px-1 text-[13px] font-semibold text-accent underline-offset-2 hover:underline md:hidden"
             >
@@ -227,6 +245,7 @@ export function AppShell({ user, children }: Props) {
             <Link
               key={item.href}
               href={item.href}
+              data-tour={item.tour}
               aria-current={isActive(pathname, item.href) ? "page" : undefined}
               className="py-1 text-accent underline-offset-2 hover:underline"
             >
