@@ -43,3 +43,5 @@ Status vocabulary: `Draft` · `In progress` · `Done` · `Blocked` · `Supersede
 
 | [2026-10-21-p7d-second-opinion-and-guided-start.md](2026-10-21-p7d-second-opinion-and-guided-start.md) | P7d The Second-Opinion Check, a layered result, intro and tour | Built and green on the in-memory database (not run against the real project) |
 | [2026-10-22-welcome-page.md](2026-10-22-welcome-page.md) | A public welcome page and the routing to it | Built and green |
+| [2026-10-22-admin-role.md](2026-10-22-admin-role.md) | A simple admin role and the intro replay as an admin tool | Built and green on the in-memory database; migration 0003 not yet applied to the real project |
+| [2026-10-22-admin-role.md](2026-10-22-admin-role.md) | A simple admin role and the intro replay as an admin tool | In progress |
