@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { Intro } from "@/components/onboarding/Intro";
@@ -50,6 +52,35 @@ describe("Intro", () => {
     expect(screen.getByText(/nothing is saved until you add it/i)).toBeInTheDocument();
     expect(screen.getByText(/from your data, any time/i)).toBeInTheDocument();
     expect(screen.queryByText(/not financial advice/i)).not.toBeInTheDocument();
+  });
+
+  it("draws the forecast line, opens its range and drops in the marker, on a white card", () => {
+    const { container } = setup();
+
+    const picture = container.querySelector("[data-intro-card]") as HTMLElement;
+    expect(picture).toBeInTheDocument();
+    expect(picture.querySelector("path.intro-draw")).not.toBeNull();
+    expect(picture.querySelector(".intro-rise")).not.toBeNull();
+    expect(picture.querySelector(".intro-pop")).not.toBeNull();
+  });
+
+  it("has the keyframes that animation needs, and reduced motion drops the delays as well as the durations", () => {
+    const css = readFileSync(path.resolve(__dirname, "../../app/globals.css"), "utf-8");
+
+    for (const name of ["intro-draw", "intro-rise", "intro-pop"]) {
+      expect(css).toContain(`@keyframes ${name}`);
+    }
+    expect(css).toMatch(/prefers-reduced-motion: reduce\)[^@]*animation-delay: 0s !important/);
+  });
+
+  it("shows a purchase and the three answers on the second slide: the phone card, then the faces", async () => {
+    const { user, container } = setup();
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    const picture = container.querySelector("[data-intro-card]") as HTMLElement;
+    expect(picture).toHaveTextContent("New phone");
+    expect(picture).toHaveTextContent("Pay later, in instalments");
+    for (const band of ["Safe", "Caution", "At Risk"]) expect(picture).toHaveTextContent(band);
   });
 
   it("goes forward and back one slide at a time", async () => {

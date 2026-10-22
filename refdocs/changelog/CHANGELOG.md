@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-22 — Intro pictures: v3's animated forecast graph and the "New phone" card
+- **Reported:** v2's forecast graph on the first intro slide is still while v3's draws itself; the second slide should also show the "New phone, pay later, in instalments" card.
+- **Changed:** `components/onboarding/Intro.tsx`: the forecast picture is v3's (the line draws, the range rises, the marker pops), the second picture is the phone card above the three faces, and all three pictures now sit on a white card on the teal panel (so slide 3 matches, which the author did not ask for); `app/globals.css` gains the `intro-draw`, `intro-rise` and `intro-pop` keyframes, and the reduced-motion block now also zeroes `animation-delay` so a delayed entrance cannot leave a picture blank for people who turn motion off (applies app-wide, harmless elsewhere).
+- **Verified:** three new tests in `tests/unit/Intro.test.tsx` (red first); `npm run lint` and `npx tsc --noEmit` clean; `npm run test` 61 files, 657 passed. Screenshots of the three slides on desktop and slide 2 on a phone were read after the animations had finished. The motion itself, and reduced-motion in a real browser, were not watched or tested.
+- **Noted, not changed:** the welcome page's own forecast picture, the tour stop title and the welcome page's "likely range" sentence (see the previous entry).
+
+
 ### 2026-10-22 — Intro slide wording
 - **Reported:** the forecast slide should not say "as a likely range rather than one guess" (it worries the student); the risk slide should name buy now, pay later and merge its two descriptions; the last slide should drop "not financial advice" (the author compared v2's three slides with v3's five).
 - **Changed:** `components/onboarding/Intro.tsx` copy only (slide 2 is now "Check a buy-now-pay-later plan before you commit"; slide 3 points to "Your data" instead of Settings); three tests in `tests/unit/Intro.test.tsx`.

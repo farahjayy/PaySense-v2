@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 
 import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
@@ -8,37 +15,51 @@ import { Face } from "@/components/ui/Face";
 
 type Slide = { title: string; text: string; picture: ReactNode };
 
-/** A forecast line drawing forward into a range, as on the welcome page. */
+// One entrance per element, started by a delay; reduced motion shows the finished picture.
+const after = (seconds: number): CSSProperties => ({ animationDelay: `${seconds}s` });
+
+/** A forecast line draws in and the likely range opens out where the future starts. */
 function ForecastPicture() {
   return (
-    <svg viewBox="0 0 320 180" className="w-full max-w-72" aria-hidden>
-      <line x1="10" y1="160" x2="310" y2="160" stroke="var(--color-line)" strokeWidth="3" />
-      <path d="M170 98 L310 50 L310 146 Z" fill="var(--color-chart-blue)" opacity=".45" />
+    <svg viewBox="0 0 240 150" className="h-full w-full" aria-hidden>
+      <line x1="10" y1="130" x2="230" y2="130" className="stroke-line" strokeWidth="2" />
+      <path d="M130 78 L230 36 L230 116 Z" className="intro-rise fill-accent-bg" style={after(1)} />
       <path
-        d="M10 124 L45 112 L80 120 L115 96 L150 103 L170 98 L230 86 L310 98"
-        fill="none"
-        stroke="var(--color-accent)"
-        strokeWidth="5"
+        d="M10 100 L40 88 L70 95 L100 72 L130 78 L180 66 L230 76"
+        pathLength={1}
+        className="intro-draw fill-none stroke-accent"
+        strokeWidth="4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <line x1="170" y1="24" x2="170" y2="160" stroke="var(--color-ink-muted)" strokeDasharray="4 5" />
-      <circle cx="170" cy="98" r="8" fill="var(--color-rosy)" />
+      <line x1="130" y1="20" x2="130" y2="130" className="stroke-field" strokeDasharray="4 4" />
+      <circle cx="130" cy="78" r="6" className="intro-pop fill-rosy" style={after(0.9)} />
     </svg>
   );
 }
 
-function FacesPicture() {
+/** A purchase, then the three answers the check can give. */
+function RiskPicture() {
   return (
-    <div className="flex items-end gap-3" aria-hidden>
-      {(["Safe", "Caution", "At Risk"] as const).map((band, i) => (
-        <div key={band} className={`flex flex-col items-center gap-2 ${i === 1 ? "mb-3" : ""}`}>
-          <Face band={band} size={72} />
-          <span className="rounded-full bg-surface px-2.5 py-0.5 text-[12px] font-semibold text-ink">
-            {band}
+    <div className="flex h-full flex-col items-center justify-center gap-4" aria-hidden>
+      <div className="intro-rise w-48 rounded-2xl border border-line bg-surface p-3.5 text-left shadow-sm">
+        <p className="text-[14px] font-semibold text-ink">New phone</p>
+        <p className="text-[13px] text-ink-muted">Pay later, in instalments</p>
+      </div>
+      <div className="flex items-end gap-3">
+        {(["Safe", "Caution", "At Risk"] as const).map((band, i) => (
+          <span
+            key={band}
+            className={`intro-pop flex flex-col items-center gap-1.5 ${i === 1 ? "mb-2" : ""}`}
+            style={after(0.5 + 0.2 * i)}
+          >
+            <Face band={band} size={52} />
+            <span className="rounded-full bg-page px-2.5 py-0.5 text-[11px] font-semibold text-ink">
+              {band}
+            </span>
           </span>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -77,7 +98,7 @@ const SLIDES: readonly Slide[] = [
   {
     title: "Check a buy-now-pay-later plan before you commit",
     text: "Describe the purchase and get Safe, Caution or At Risk, the reasons from your own figures, and the smallest change that would make it safe.",
-    picture: <FacesPicture />,
+    picture: <RiskPicture />,
   },
   {
     title: "You stay in control",
@@ -149,7 +170,12 @@ export function Intro({ onTour, onSkip }: Props) {
               Pay<span className="text-rosy">Sense</span>
             </span>
           </div>
-          <div className="mt-8 flex w-full justify-center sm:mt-6">{slide.picture}</div>
+          <div
+            data-intro-card
+            className="mt-8 flex aspect-[4/3] w-full max-w-80 items-center justify-center rounded-2xl bg-surface p-4 shadow-lg sm:mt-6"
+          >
+            {slide.picture}
+          </div>
         </div>
         <div className="flex flex-col justify-center gap-5 p-6 sm:p-9">
           <div className="flex items-center gap-3">
