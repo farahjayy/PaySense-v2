@@ -189,3 +189,67 @@ def test_a_role_in_the_wrong_case_or_with_spaces_confers_nothing(db):
 
     for odd in ("Admin", "ADMIN", " admin", "admin ", ""):
         assert role_of({"role": odd}) == "user", repr(odd)
+
+
+# --------------------------------------------------------------- renaming (the author's tool)
+def test_a_user_can_be_given_a_new_username_and_the_old_one_stops_working(db):
+    from app.db.users import update_user
+
+    user = create(db, username="amir-k7q2xm", display_name="Amir")
+
+    renamed = update_user(db, "amir-k7q2xm", new_username="admin")
+
+    assert renamed["username"] == "admin" and renamed["id"] == user["id"]
+    assert get_by_username(db, "admin")["id"] == user["id"]
+    assert get_by_username(db, "amir-k7q2xm") is None
+
+
+def test_a_rename_can_be_combined_with_a_role_and_a_display_name(db):
+    from app.db.users import role_of, update_user
+
+    create(db, username="amir-k7q2xm", display_name="Amir")
+
+    done = update_user(db, "amir-k7q2xm", new_username="admin", role="admin", display_name="Farah")
+
+    assert (done["username"], done["display_name"], role_of(done)) == ("admin", "Farah", "admin")
+
+
+def test_a_username_that_is_taken_cannot_be_used_even_in_another_case(db):
+    from app.db.users import update_user
+
+    create(db, username="amir", display_name="Amir")
+    create(db, username="Siti", display_name="Siti")
+
+    with pytest.raises(UsernameTakenError):
+        update_user(db, "amir", new_username="siti")
+    assert get_by_username(db, "amir") is not None  # nothing changed
+
+
+def test_changing_only_the_case_of_ones_own_username_is_allowed(db):
+    from app.db.users import update_user
+
+    create(db, username="admin", display_name="Farah")
+
+    assert update_user(db, "admin", new_username="Admin")["username"] == "Admin"
+
+
+def test_a_new_username_must_be_well_formed(db):
+    from app.db.users import update_user
+
+    create(db, username="amir", display_name="Amir")
+
+    for bad in ("", "  ", "has space", "a" * 65, "semi;colon"):
+        with pytest.raises(ValueError, match="username"):
+            update_user(db, "amir", new_username=bad)
+    assert get_by_username(db, "amir") is not None
+
+
+def test_renaming_one_user_leaves_everyone_else_alone(db):
+    from app.db.users import update_user
+
+    create(db, username="amir", display_name="Amir")
+    siti = create(db, username="siti", display_name="Siti")
+
+    update_user(db, "amir", new_username="admin")
+
+    assert get_by_username(db, "siti")["id"] == siti["id"]

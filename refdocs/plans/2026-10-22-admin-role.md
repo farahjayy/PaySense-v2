@@ -18,11 +18,11 @@ The intro and tour (D-53) now replay for everyone from Settings. For the UAT tha
 1. **Migration `0003_user_roles.sql`**: `users.role text not null default 'user' check (role in ('user','admin'))`, applied by the author in the Supabase SQL editor like 0001 and 0002.
 2. **Backend:** `role` on `UserOut` (so on sign-in and `/api/auth/me`), read from the row with a default of `"user"` so the app keeps working before the migration is applied; a `require_admin` dependency that answers 403 `forbidden` to anyone else (the one place future admin-only routes are gated); `users.set_role` / `users.set_display_name`; `scripts/set_role.py` (`--username`, `--role`, optional `--display`) and `--role` on `seed_users.py`.
 3. **Frontend:** the session keeps `role` (an older stored session without it counts as `"user"`); Settings gets an **Admin** card, shown only to an admin, holding **Show the intro again** (moved out of "Other", so a tester no longer sees it); the card says it is for testing.
-4. **The author's account:** after the migration, `uv run python scripts/set_role.py --username <your-username> --role admin --display Farah`. The username she types to sign in does not change.
+4. **The author's account:** after the migration, `uv run python scripts/set_role.py --username <your-username> --role admin --display Farah`. Her sign-in username changes only if she passes `--new-username` (she chose `admin`); the old one then stops working. A session already open keeps working, because it names the person's id, not the username.
 
 **Out**
 - Any screen for managing roles, more than two roles, per-feature permissions, or hiding data from an admin. An admin sees only their own data, like everyone (D-03).
-- Changing a username (it is the credential testers were given).
+- Changing a *tester's* username (it is the credential they were given). The author's own is changed by her, with `--new-username`, below.
 - Running anything against the real database from here: the author applies the migration and runs the script.
 
 ## 4. Design

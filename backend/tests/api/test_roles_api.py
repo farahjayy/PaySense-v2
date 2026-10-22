@@ -83,3 +83,24 @@ def test_giving_admin_to_one_person_does_not_give_it_to_another(api, fake_db, pr
 def test_require_admin_is_the_gate_and_returns_the_user(api):
     # the dependency is importable by any future route, and typed to hand back the user
     assert callable(require_admin) and Annotated[object, Depends(require_admin)]
+
+
+def test_after_a_rename_only_the_new_username_signs_in_and_the_same_person_arrives(api, fake_db):
+    old = login(api, "amir").json()["user"]["id"]
+
+    users.update_user(fake_db, "amir", new_username="admin", role="admin")
+
+    assert api.post("/api/auth/login", json={"username": "amir"}).status_code == 401
+    again = login(api, "admin").json()["user"]
+    assert again["id"] == old and again["username"] == "admin" and again["role"] == "admin"
+
+
+def test_a_session_from_before_a_rename_still_works_because_it_names_the_person_not_the_username(
+    api, fake_db
+):
+    headers = bearer(login(api, "amir"))
+
+    users.update_user(fake_db, "amir", new_username="admin")
+
+    me = api.get("/api/auth/me", headers=headers)
+    assert me.status_code == 200 and me.json()["username"] == "admin"

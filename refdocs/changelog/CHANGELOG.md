@@ -28,6 +28,12 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-22 — Renaming the author's account to `admin`
+- **Reported:** "amir-k7q2xm - i want to change to 'admin' username".
+- **Changed:** `users.update_user(new_username=...)`: validates the username with the login's own pattern, refuses a name taken by anyone else in any letter case (`UsernameTakenError`, with the unique index on `lower(username)` as the last guard), and changes nothing on refusal; `scripts/set_role.py --new-username`. Plan and ADR D-56 updated (they had said usernames do not change).
+- **Verified:** failing tests first (8 failed). Role and rename tests: 44 passed; ruff clean. Full backend suite: 2272 passed, 20 integration deselected. The script was **not** run against any real database from here.
+- **Noted, not changed:** `admin` is guessable (D-56 trade-off f): anyone can sign in as it, because login is username-only. It grants only the browser-only replay and that account's own data today. The browser keeps the old username in its stored session until the next sign-in. The old username `amir-k7q2xm` remains in older notes and git history.
+
 ### 2026-10-22 — A simple admin role; the intro replay is an admin tool (D-56)
 - **Reported:** the onboarding (intro slides and tour) should be replayable by an admin from Settings, for testing; "maybe make a simple admin access system (role based access)"; give it to her own account; show the name Farah instead of Amir.
 - **Diagnosed:** every request already loads the user from the database (`current_user`), so a role column there is read fresh each time and is not baked into the token: taking admin away works on the person's next call.

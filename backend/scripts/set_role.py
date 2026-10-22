@@ -1,11 +1,12 @@
-"""Give an account a role, and/or change its display name. Idempotent.
+"""Give an account a role, and/or change its display name or username. Idempotent.
 
     cd backend
-    uv run python scripts/set_role.py --username <your-username> --role admin --display Farah
+    uv run python scripts/set_role.py --username <old-username> --role admin --display Farah
+    uv run python scripts/set_role.py --username <old-username> --new-username <new-username>
 
 Run it from the backend/ directory so backend/.env is found. The username (what the person types
-to sign in) never changes. Apply migrations/0003_user_roles.sql first, or the database will say
-there is no `role` column.
+to sign in) changes only when you pass --new-username; the old one then stops working.
+Apply migrations/0003_user_roles.sql first, or the database will say there is no `role` column.
 """
 
 import argparse
@@ -15,7 +16,7 @@ from postgrest import APIError
 
 from app.core.settings import MissingSettingsError, load_settings
 from app.db.client import build_client
-from app.db.users import ROLES, update_user
+from app.db.users import ROLES, UsernameTakenError, update_user
 
 
 def main() -> int:
@@ -23,6 +24,11 @@ def main() -> int:
     parser.add_argument("--username", required=True)
     parser.add_argument("--role", choices=sorted(ROLES), default=None)
     parser.add_argument("--display", default=None, help="New display name shown in the app")
+    parser.add_argument(
+        "--new-username",
+        default=None,
+        help="New username to sign in with (the old one stops working)",
+    )
     args = parser.parse_args()
     try:
         settings = load_settings()
@@ -31,11 +37,18 @@ def main() -> int:
         return 2
     try:
         user = update_user(
-            build_client(settings), args.username, role=args.role, display_name=args.display
+            build_client(settings),
+            args.username,
+            role=args.role,
+            display_name=args.display,
+            new_username=args.new_username,
         )
     except ValueError as err:
         print(f"Invalid input: {err}", file=sys.stderr)
         return 2
+    except UsernameTakenError:
+        print(f"The username {args.new_username!r} is already taken.", file=sys.stderr)
+        return 1
     except APIError as err:
         hint = (
             " (apply migrations/0003_user_roles.sql first)" if "role" in (err.message or "") else ""

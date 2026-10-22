@@ -90,12 +90,20 @@ def create(
 
 
 def update_user(
-    db: Database, username: str, *, role: str | None = None, display_name: str | None = None
+    db: Database,
+    username: str,
+    *,
+    role: str | None = None,
+    display_name: str | None = None,
+    new_username: str | None = None,
 ) -> dict[str, Any] | None:
-    """Change a user's role and/or display name, found by username. None if there is no such user.
+    """Change a user's role, display name and/or username, found by username. None if there is no
+    such user. A username already taken by someone else (in any letter case) raises
+    `UsernameTakenError`; nothing is changed then.
 
     Like `get_by_username` this is deliberately unscoped: it is the author's own tool
-    (`scripts/set_role.py`), never reachable from a route."""
+    (`scripts/set_role.py`), never reachable from a route. A login session names the person's id,
+    not their username, so a rename does not end anyone's session."""
     changes: dict[str, Any] = {}
     if role is not None:
         if role not in ROLES:
@@ -105,10 +113,24 @@ def update_user(
         if not display_name.strip():
             raise ValueError("display_name is required")
         changes["display_name"] = display_name.strip()
+    if new_username is not None:
+        wanted = normalise_username(new_username)
+        if wanted is None:
+            raise ValueError("username must be 1-64 characters: letters, digits, '.', '_' or '-'")
+        changes["username"] = wanted
     if not changes:
-        raise ValueError("nothing to change: give a role or a display name")
+        raise ValueError("nothing to change: give a role, a display name or a new username")
     user = get_by_username(db, username)
     if user is None:
         return None
-    updated = db.table("users").update(changes).eq("id", user["id"]).execute().data
+    if "username" in changes:
+        holder = get_by_username(db, changes["username"])
+        if holder is not None and holder["id"] != user["id"]:
+            raise UsernameTakenError(changes["username"])
+    try:
+        updated = db.table("users").update(changes).eq("id", user["id"]).execute().data
+    except APIError as err:
+        if err.code == UNIQUE_VIOLATION:  # the unique index on lower(username) is the last guard
+            raise UsernameTakenError(changes.get("username", username)) from err
+        raise
     return updated[0] if updated else None
