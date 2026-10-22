@@ -265,6 +265,7 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-52 | The risk result is layered (answer and evidence visible, working in one-line-summarised folds); the dashboard gets one alert line (overdue, colliding payments, a limit nearly used), no new cards | Depth makes it credible, folding makes it calm |
 | D-53 | Three intro slides and a six-stop spotlight tour on first sign-in, replayable from Settings | Testers arrive without a briefing |
 | D-54 | The UAT runs on seeded username-only accounts with synthetic data; no Google sign-in, self sign-up or passphrase | Testers are real people on synthetic data; login strength is not one of the FYP's objectives |
+| D-55 | A public welcome page (`/welcome`) explains the product before sign-in; a signed-out visitor to `/` lands on it, deep links and log-out still go to `/login`; every button leads to the login (no sign-up) | The first screen should say what PaySense is; costs one static page on the existing theme |
 
 ---
 

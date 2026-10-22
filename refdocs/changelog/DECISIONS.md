@@ -354,6 +354,14 @@ An ADR is worth writing when the decision (a) is expensive to reverse, (b) will 
 **Rejected.** Google sign-in; email and password sign-up (and reset by email); a passphrase per seeded tester (ported from v3, about 70 lines and a migration, dropped by the author); a session mode that discards changes on logout (new code, and a tester would lose work if a session dropped).
 **Trade-off.** `ASSUMED:` no tester enters their own real financial data; a tester who did would need the consent and handling the PRD's privacy row describes, and this decision would have to be reopened. Anyone who knew a username could use that account; accepted for a small seeded UAT.
 
+## D-55 — A public welcome page, and a signed-out visitor to the root lands on it
+*2026-10-22 · the author's request (v3 has one; v2 sent every visitor straight to a username box)*
+
+**Decision.** `/welcome` is a public page that explains PaySense before anyone signs in: a hero ("Think before you split"), why small instalments add up, how it works in three steps (bring in your money, see the months ahead, know before you split), the three answers (Safe, Caution, At Risk), the providers it knows, what the person stays in control of, and a closing way in. Every button leads to the login page, because there is no sign-up (D-54). A signed-out visitor who opens `/` is sent to `/welcome`; any other signed-in page still sends a signed-out visitor to `/login`, and logging out still ends on `/login`. It reuses the login page's theme and the band faces, so no new style system, and its copy says only what v2 does.
+**Why.** The first screen a tester, supervisor or examiner sees should say what the product is. It supports "professionally presented" and costs one static page. Sending only `/` there keeps deep links and log-out behaviour as they were.
+**Rejected.** Making the login page itself carry the explanation (it is a form, and a long page above a username box buries it); v3's create-account buttons and email wording (no sign-up here); v3's "New to BNPL in Malaysia?" box (written for readers outside Malaysia); sending every signed-out visit, including deep links, to the welcome page (a tester following a link to a plan would lose their place).
+**Trade-off.** One more public route, and the tests that expected `/` to open the login now expect the welcome page. The copy has to be kept true as the app changes; a test pins that nothing on it refers to an account or sign-up.
+
 ---
 
 ## Working assumptions (`ASSUMED:`)
