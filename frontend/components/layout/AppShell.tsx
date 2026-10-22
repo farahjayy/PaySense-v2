@@ -7,6 +7,7 @@ import { Fragment, useEffect, useRef, type ReactNode } from "react";
 
 import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Face } from "@/components/ui/Face";
 import { isActive } from "@/lib/nav";
 import { clearSession, type Session } from "@/lib/session";
@@ -233,7 +234,7 @@ export function AppShell({ user, children }: Props) {
     <div className="flex min-h-screen">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-page"
       >
         Skip to content
       </a>
@@ -245,6 +246,7 @@ export function AppShell({ user, children }: Props) {
             <Wordmark />
           </Link>
           <div className="ml-auto flex items-center gap-3">
+            <ThemeToggle />
             <span className="max-w-[10rem] truncate text-[13px] font-medium text-ink">
               {user.display_name}
             </span>

@@ -116,7 +116,7 @@ export function LockedState({ reason, monthsOfHistory }: LockedProps) {
       )}
       <Link
         href="/import"
-        className="mt-5 inline-flex h-10 items-center rounded-lg bg-accent px-4 text-[13px] font-semibold text-white hover:bg-accent/90"
+        className="mt-5 inline-flex h-10 items-center rounded-lg bg-accent px-4 text-[13px] font-semibold text-on-accent hover:bg-accent/90"
       >
         Import a statement
       </Link>

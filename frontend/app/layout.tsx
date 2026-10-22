@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import { connection } from "next/server";
 import type { ReactNode } from "react";
+
+import { themeInitScript } from "@/lib/theme";
 
 import { Providers } from "./providers";
 import "./globals.css";
@@ -27,8 +30,19 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 // script nonce, and Next can only stamp a nonce on a page that is rendered after the request.
 export default async function RootLayout({ children }: { children: ReactNode }) {
   await connection();
+  // The script below runs under that policy, so it carries this request's nonce.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
-    <html lang="en" className={`h-full antialiased ${display.variable} ${body.variable}`}>
+    // suppressHydrationWarning: the script sets data-theme on <html> before React hydrates
+    <html
+      lang="en"
+      className={`h-full antialiased ${display.variable} ${body.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        {/* Light or dark before first paint, so there is no flash of the wrong one (ADR D-58). */}
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeInitScript() }} />
+      </head>
       <body className="min-h-full">
         <Providers>{children}</Providers>
       </body>

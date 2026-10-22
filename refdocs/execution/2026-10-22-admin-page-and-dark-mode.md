@@ -1,6 +1,6 @@
 # Execution — An Admin page in the sidebar, and a dark mode
 
-> Plan: `refdocs/plans/2026-10-22-admin-page-and-dark-mode.md`. Tasks run top to bottom; each has a **Verify**. Failing test first for every task. Edit this doc if reality diverges (CLAUDE.md rule 4).
+> Plan: `refdocs/plans/2026-10-22-admin-page-and-dark-mode.md`. **Status: built and verified (see CHANGELOG 2026-10-22).** Tasks run top to bottom; each has a **Verify**. Failing test first for every task. Edit this doc if reality diverges (CLAUDE.md rule 4).
 
 ## Part A — the Admin page
 ### A1. The sidebar item and the page

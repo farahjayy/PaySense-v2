@@ -17,6 +17,7 @@
   --color-ink-muted: #4d655f;
   --color-accent: #105666; /* the brand teal: buttons, links, focus ring */
   --color-accent-bg: #d9ebe7;
+  --color-on-accent: #ffffff; /* text on a solid accent, danger or ink-coloured button */
   --color-success: #3b6d11;
   --color-success-bg: #eaf3de;
   --color-warning: #854f0b;
@@ -39,6 +40,41 @@
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-card: 24px;
+}
+
+/*
+ * The dark palette (ADR D-58): the same tokens, redefined. `html[data-theme="dark"]` is set before
+ * first paint by the script in app/layout.tsx. Every pairing is held to WCAG AA by
+ * tests/unit/themeDark.test.ts. Safe / Caution / At Risk keep their hues (and their faces, icons
+ * and words) in lighter shades that read on a dark surface. The welcome and login pages have their
+ * own brand tokens and are not themed.
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark; /* date pickers, selects and scrollbars follow */
+  --color-page: #0e1f1d;
+  --color-surface: #142a27;
+  --color-surface-2: #19332f;
+  --color-line: #2b4642;
+  --color-field: #7da39b;
+  --color-ink: #eef4ee;
+  --color-ink-secondary: #b7cbc4;
+  --color-ink-muted: #9cb5ad;
+  --color-accent: #6cc4d3;
+  --color-accent-bg: #14414a;
+  --color-on-accent: #06262d;
+  --color-success: #8fd16a;
+  --color-success-bg: #1f3519;
+  --color-warning: #f2b865;
+  --color-warning-bg: #3b2a10;
+  --color-danger: #f59a9a;
+  --color-danger-bg: #43201f;
+  --color-sidebar: #0a2f37;
+  --color-sidebar-ink: #f1eecf;
+  --color-sidebar-muted: #b9d1cb;
+  --color-rosy: #d3968c;
+  --color-chart-blue: #2b6672;
+  --color-chart-edge: #5fb4c4;
+  --color-chart-red: #f06a69;
 }
 
 html {

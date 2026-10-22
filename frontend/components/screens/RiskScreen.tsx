@@ -156,7 +156,7 @@ function Added({ check }: { check: string }) {
       <div className="flex flex-wrap gap-2">
         <Link
           href={`/risk/${check}`}
-          className="inline-flex h-10 items-center rounded-lg bg-ink px-4 text-[13px] font-semibold text-white hover:bg-ink/85"
+          className="inline-flex h-10 items-center rounded-lg bg-ink px-4 text-[13px] font-semibold text-page hover:bg-ink/85"
         >
           See the saved report
         </Link>

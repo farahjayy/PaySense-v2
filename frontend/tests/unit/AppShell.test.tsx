@@ -164,6 +164,19 @@ describe("AppShell", () => {
     expect(container.querySelector('[data-tour="plans"]')).toHaveAttribute("href", "/plans");
   });
 
+  it("has the dark mode toggle in the top bar for everyone", () => {
+    render(
+      <AppShell user={USER}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    expect(screen.getByRole("banner")).toContainElement(
+      screen.getByRole("button", { name: "Dark mode" }),
+    );
+  });
+
   it("adds an Admin page to the navigation for an admin and to nobody else (ADR D-57)", () => {
     const ordinary = render(
       <AppShell user={USER}>
