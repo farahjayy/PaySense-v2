@@ -19,6 +19,13 @@ describe("LoginPage", () => {
     ).toBeVisible();
   });
 
+  it("invites the visitor to sign in, without telling them there is no password", () => {
+    render(<LoginPage />);
+
+    expect(screen.getByText("Sign in to see where your money is heading.")).toBeVisible();
+    expect(screen.queryByText(/no password/i)).not.toBeInTheDocument();
+  });
+
   it("previews the three results with the names the app uses", () => {
     render(<LoginPage />);
 

@@ -16,7 +16,7 @@ export default function LoginPage() {
         <section className="lg-card">
           <HelloFace />
           <h1>Welcome</h1>
-          <p className="lg-lede">Enter your username to start. There is no password.</p>
+          <p className="lg-lede">Sign in to see where your money is heading.</p>
           <LoginForm />
         </section>
       </div>

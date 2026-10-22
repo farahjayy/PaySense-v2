@@ -28,6 +28,11 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-22 — Login wording
+- **Changed:** `app/login/page.tsx` line under "Welcome": "Sign in to see where your money is heading." (was "Enter your username to start. There is no password."); `LoginForm` hint: "Have an invite from the team? Enter its username here. Lost it? Message <contact>." (the support contact is kept, since a tester who loses a username needs it). Both at the author's request, from v3's login wording. v2's login has no "New to BNPL in Malaysia?" box and none was added.
+- **Verified:** tests updated first (two failed), then `cd frontend && npx vitest run tests/unit/LoginPage.test.tsx tests/unit/LoginForm.test.tsx` -> 18 passed; `npx eslint` on the touched files clean. The full suites were not re-run for this wording change.
+- **Noted:** `uat/task-script.md` task T1 still observes whether a tester "understands there is no password"; the page no longer says so, so that observation now tests whether the form is clear on its own.
+
 ### 2026-10-22 — A public welcome page, and the routing to it (D-55)
 - **Reported:** after the P7d work, "in paysense v2 doesnt have the welcome page as i screenshot attach" (v3's `/welcome`), and that the tour called About the model "How it works" when that page does not explain how to use the app.
 - **Changed:** `app/welcome/{layout,page}.tsx` and `welcome.css` (copied from v3's self-contained stylesheet; it reuses the login theme and band faces); `AuthGate` sends a signed-out visitor at `/` to `/welcome` and anywhere else to `/login`, but only for someone who *arrives* signed out. The tour stop for the model page is now "How the scores are made". Plan and execution docs `2026-10-22-welcome-page`, ADR D-55, PRD §7 line.

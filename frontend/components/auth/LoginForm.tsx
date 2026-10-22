@@ -96,7 +96,8 @@ export function LoginForm() {
         </button>
       </div>
       <p id={hintId} className="lg-hint">
-        Use the username from your invite. Lost it? Message <strong>{SUPPORT_CONTACT}</strong>.
+        Have an invite from the team? Enter its username here. Lost it? Message{" "}
+        <strong>{SUPPORT_CONTACT}</strong>.
       </p>
       {error && (
         <p id={errorId} role="alert" className="lg-error">
