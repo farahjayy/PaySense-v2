@@ -71,17 +71,17 @@ function ControlPicture() {
 const SLIDES: readonly Slide[] = [
   {
     title: "See where your money is heading",
-    text: "Your next few months, played forward from your own spending, income and bills, as a likely range rather than one guess.",
+    text: "Your next few months, played forward from your own spending, income and bills.",
     picture: <ForecastPicture />,
   },
   {
-    title: "Check before you split",
-    text: "Describe a buy-now-pay-later purchase and get Safe, Caution or At Risk, the reasons behind it, and the smallest change that would make it safe.",
+    title: "Check a buy-now-pay-later plan before you commit",
+    text: "Describe the purchase and get Safe, Caution or At Risk, the reasons from your own figures, and the smallest change that would make it safe.",
     picture: <FacesPicture />,
   },
   {
     title: "You stay in control",
-    text: "Nothing is saved until you add it. You can download or clear everything from Settings, any time. These are estimates from your own records, not financial advice.",
+    text: "Nothing is saved until you add it. You can download or clear everything from Your data, any time.",
     picture: <ControlPicture />,
   },
 ];

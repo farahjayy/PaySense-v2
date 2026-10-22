@@ -24,12 +24,42 @@ describe("Intro", () => {
     expect(dialog).toContainElement(document.activeElement as HTMLElement);
   });
 
+  it("says what the forecast is without telling the student it is a guess", () => {
+    setup();
+
+    expect(screen.getByText(/played forward from your own spending, income and bills\./i)).toBeInTheDocument();
+    expect(screen.queryByText(/rather than one guess/i)).not.toBeInTheDocument();
+  });
+
+  it("names buy now, pay later on the second slide and gives the answer, its reasons and the smallest change in one sentence", async () => {
+    const { user } = setup();
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(
+      screen.getByText(
+        /get safe, caution or at risk, the reasons from your own figures, and the smallest change that would make it safe/i,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the last slide to what the student controls, with no disclaimer on it", async () => {
+    const { user } = setup();
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(screen.getByText(/nothing is saved until you add it/i)).toBeInTheDocument();
+    expect(screen.getByText(/from your data, any time/i)).toBeInTheDocument();
+    expect(screen.queryByText(/not financial advice/i)).not.toBeInTheDocument();
+  });
+
   it("goes forward and back one slide at a time", async () => {
     const { user } = setup();
 
     await user.click(screen.getByRole("button", { name: "Next" }));
     expect(screen.getByText(/step 2 of 3/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /check before you split/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /check a buy-now-pay-later plan before you commit/i }),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Back" }));
     expect(screen.getByText(/step 1 of 3/i)).toBeInTheDocument();
