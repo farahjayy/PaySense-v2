@@ -209,69 +209,69 @@
   {
     "persona": "frequent_bnpl",
     "buffer_sen": 0,
-    "baseline_p": 0.239,
+    "baseline_p": 0.132,
     "baseline_band": "Caution",
     "safe_cells": 0,
     "cells": [
       {
         "price_sen": 10000,
         "instalments": 3,
-        "p_with": 0.251,
+        "p_with": 0.111,
         "band": "Caution"
       },
       {
         "price_sen": 10000,
         "instalments": 6,
-        "p_with": 0.239,
+        "p_with": 0.132,
         "band": "Caution"
       },
       {
         "price_sen": 30000,
         "instalments": 3,
-        "p_with": 0.251,
+        "p_with": 0.111,
         "band": "Caution"
       },
       {
         "price_sen": 30000,
         "instalments": 6,
-        "p_with": 0.239,
+        "p_with": 0.132,
         "band": "Caution"
       },
       {
         "price_sen": 60000,
         "instalments": 3,
-        "p_with": 0.267,
+        "p_with": 0.149,
         "band": "Caution"
       },
       {
         "price_sen": 60000,
         "instalments": 6,
-        "p_with": 0.239,
+        "p_with": 0.132,
         "band": "Caution"
       },
       {
         "price_sen": 100000,
         "instalments": 3,
-        "p_with": 0.394,
-        "band": "At Risk"
+        "p_with": 0.173,
+        "band": "Caution"
       },
       {
         "price_sen": 100000,
         "instalments": 6,
-        "p_with": 0.239,
+        "p_with": 0.162,
         "band": "Caution"
       },
       {
         "price_sen": 150000,
         "instalments": 3,
-        "p_with": 0.472,
-        "band": "At Risk"
+        "p_with": 0.183,
+        "band": "Caution"
       },
       {
         "price_sen": 150000,
         "instalments": 6,
-        "p_with": 0.346,
-        "band": "At Risk"
+        "p_with": 0.165,
+        "band": "Caution"
       }
     ]
   },
@@ -280,7 +280,7 @@
     "buffer_sen": 100000,
     "baseline_p": 0.0,
     "baseline_band": "Safe",
-    "safe_cells": 8,
+    "safe_cells": 10,
     "cells": [
       {
         "price_sen": 10000,
@@ -309,7 +309,7 @@
       {
         "price_sen": 60000,
         "instalments": 3,
-        "p_with": 0.01,
+        "p_with": 0.0,
         "band": "Safe"
       },
       {
@@ -321,8 +321,8 @@
       {
         "price_sen": 100000,
         "instalments": 3,
-        "p_with": 0.146,
-        "band": "Caution"
+        "p_with": 0.0,
+        "band": "Safe"
       },
       {
         "price_sen": 100000,
@@ -333,13 +333,13 @@
       {
         "price_sen": 150000,
         "instalments": 3,
-        "p_with": 0.177,
-        "band": "Caution"
+        "p_with": 0.006,
+        "band": "Safe"
       },
       {
         "price_sen": 150000,
         "instalments": 6,
-        "p_with": 0.029,
+        "p_with": 0.0,
         "band": "Safe"
       }
     ]

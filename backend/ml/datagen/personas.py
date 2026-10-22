@@ -43,6 +43,13 @@ NEEDS_A_SAFE_PURCHASE = {"frequent_bnpl": False, "budget_conscious": True, "irre
 # How many of the 10 purchases the less common band must hold: a split, not a single outlier. The
 # first heavy-BNPL candidate had one Caution among nine At Risk, which shows a tester nothing.
 MIN_MINORITY_CELLS = {"frequent_bnpl": 3, "budget_conscious": 1, "irregular_income": 1}
+# The band a tester is SHOWN is the trained model's, not the simulation's, and the two can differ
+# sharply (frequent_bnpl was Caution on the simulation yet At Risk for every purchase from RM 200 to
+# RM 2,500 on the model). So a persona is also judged on the shown band, over a SPayLater 3-month
+# 0% grid with the persona's limit applied, whether or not the tester confirms the Recurring
+# suggestions (the forecast places confirmed bills exactly, which can change the answer).
+SHOWN_PRICES_SEN = tuple(ringgit * 100 for ringgit in (200, 400, 600, 800, 1000, 1200, 1500))
+SHOWN_LIMITS_SEN = {"spaylater": 150_000}  # RM 1,500, the assumed student median (params.yaml)
 DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "personas"
 OUTFLOW_TYPES = ("expense", "savings")
 
@@ -80,6 +87,43 @@ SHOWCASE: dict[str, Callable[[StudentProfile], bool]] = {
 }
 
 
+def spreads(bands: list[str], persona: str) -> bool:
+    """Two different bands across the grid, and a Safe one for the personas that must have it."""
+    return len(set(bands)) >= 2 and ("Safe" in bands or not NEEDS_A_SAFE_PURCHASE[persona])
+
+
+def _spreads_as_shown(profile: StudentProfile, forecaster, predictor) -> bool:
+    """The shown band spreads on every study day, with the Recurring suggestions left alone and
+    with every one confirmed."""
+    from ml.uat.shown_check import shown_bands
+
+    rows = [
+        {
+            "date": r.date,
+            "amount_sen": r.amount_sen,
+            "type": r.type,
+            "category": r.category_guess,
+            "description": r.description,
+        }
+        for r in parse_csv(render_csv(profile)).rows
+    ]
+    for offset in CHECK_DAY_OFFSETS:
+        today = profile.as_of + timedelta(days=offset)
+        for confirmed in (False, True):
+            bands = shown_bands(
+                rows,
+                today,
+                confirmed=confirmed,
+                prices_sen=SHOWN_PRICES_SEN,
+                forecaster=forecaster,
+                predictor=predictor,
+                limits=SHOWN_LIMITS_SEN,
+            )
+            if bands is None or not spreads(bands, profile.persona):
+                return False
+    return True
+
+
 def _tells_purchases_apart(profile: StudentProfile, forecaster) -> bool:
     """With no savings, on every day a tester might open the app: the student is not already
     At Risk before the purchase, the purchases in the buffer check's grid do not all get the same
@@ -113,11 +157,19 @@ def _tells_purchases_apart(profile: StudentProfile, forecaster) -> bool:
 def build_persona_profile(
     params: Params, persona: str, as_of: date = PERSONA_AS_OF
 ) -> StudentProfile:
-    """The first candidate profile that shows what this persona exists to test."""
-    from app.engines.forecasting.serving import served_forecaster
+    """The first candidate profile that shows what this persona exists to test.
 
-    forecaster = served_forecaster()
+    A candidate must spread on the shown band. One whose simulation also spreads is preferred, so
+    both ways of looking agree; where none does (no heavy-BNPL candidate does) the first that
+    spreads on the shown band is taken, because that is what the tester sees."""
+    from app.engines.forecasting.serving import served_forecaster
+    from app.engines.risk.artefact import load_if_present
+
+    forecaster, predictor = served_forecaster(), load_if_present()
+    if predictor is None:
+        raise RuntimeError("the trained risk model is not in backend/models/engine2")
     months = int(params["history.persona_months"]) + PERSONA_EXTRA_MONTHS
+    fallback: StudentProfile | None = None
     for index in range(SEARCH_LIMIT):
         profile = generate_profile(
             params,
@@ -127,12 +179,15 @@ def build_persona_profile(
             history_months=months,
             as_of=as_of,
         )
-        if (
-            SHOWCASE[persona](profile)
-            and _has_messy_rows(profile)
-            and _tells_purchases_apart(profile, forecaster)
-        ):
+        if not (SHOWCASE[persona](profile) and _has_messy_rows(profile)):
+            continue
+        if not _spreads_as_shown(profile, forecaster, predictor):
+            continue
+        if _tells_purchases_apart(profile, forecaster):
             return profile
+        fallback = fallback or profile
+    if fallback is not None:
+        return fallback
     raise RuntimeError(f"no {persona} profile in {SEARCH_LIMIT} candidates is usable for the UAT")
 
 

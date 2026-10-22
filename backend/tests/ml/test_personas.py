@@ -36,6 +36,7 @@ def as_rows(preview):
             "amount_sen": r.amount_sen,
             "type": r.type,
             "category": r.category_guess,
+            "description": r.description,
         }
         for r in preview.rows
     ]
@@ -117,12 +118,11 @@ def test_each_history_runs_from_june_to_the_day_before_the_study_opens(profiles,
     assert max(dates).year == 2026 and max(dates).month == 10
 
 
-@pytest.mark.parametrize("persona", PERSONAS)
-def test_the_risk_check_tells_purchases_apart_on_every_persona_on_every_study_day(
-    profiles, persona
-):
-    """A tester who sees every purchase come out the same cannot judge whether the tool works.
-    Measured with the app's own simulation and no savings, over the buffer check's purchase grid."""
+@pytest.mark.parametrize("persona", ("budget_conscious", "irregular_income"))
+def test_the_simulation_also_spreads_for_the_personas_that_can_manage_it(profiles, persona):
+    """The pick prefers a candidate whose direct simulation spreads as well as the shown band.
+    frequent_bnpl is exempt: no heavy-BNPL candidate does both (the shown-band test below covers
+    all three personas)."""
     from app.engines.forecasting.serving import served_forecaster
     from ml.buffer_check import measure_ledger
 
@@ -151,6 +151,36 @@ def test_the_frequent_bnpl_persona_carries_a_material_bnpl_load(profiles):
     bnpl_sen = sum(t.amount_sen for t in profile.transactions if t.category == "BNPL")
 
     assert bnpl_sen / months >= MIN_BNPL_SHARE * profile.expected_monthly_income_sen
+
+
+@pytest.mark.parametrize("persona", PERSONAS)
+def test_the_band_the_tester_sees_spreads_on_every_study_day_whether_or_not_they_confirm_bills(
+    profiles, persona
+):
+    """The tester is shown the model's band, not the simulation's. Whether they confirm the
+    Recurring suggestions changes the forecast, so both paths must give a usable spread."""
+    from app.engines.forecasting.serving import served_forecaster
+    from app.engines.risk.artefact import load_if_present
+    from ml.datagen.personas import SHOWN_LIMITS_SEN, SHOWN_PRICES_SEN, spreads
+    from ml.uat.shown_check import shown_bands
+
+    profile = profiles[persona]
+    rows = as_rows(parse_csv(render_csv(profile)))
+    forecaster, predictor = served_forecaster(), load_if_present()
+
+    for offset in CHECK_DAY_OFFSETS:
+        today = profile.as_of + timedelta(days=offset)
+        for confirmed in (False, True):
+            bands = shown_bands(
+                rows,
+                today,
+                confirmed=confirmed,
+                prices_sen=SHOWN_PRICES_SEN,
+                forecaster=forecaster,
+                predictor=predictor,
+                limits=SHOWN_LIMITS_SEN,
+            )
+            assert bands is not None and spreads(bands, persona), (persona, today, confirmed, bands)
 
 
 def test_no_amount_is_zero_and_nothing_is_dated_in_the_future(profiles):

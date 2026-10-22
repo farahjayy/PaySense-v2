@@ -1,0 +1,89 @@
+# Purchase cards: what each tester enters in the risk check, and the one BNPL limit to record.
+#
+# The tester plays the persona's student, so nobody types their own limit or needs an account with
+# the provider (D-54: synthetic data only). Everything a tester types is on the card: provider,
+# item, price, number of instalments and monthly fee. Purchase date is the day they do the test.
+#
+# `expected_band` is the ANSWER KEY, for us and never for testers: the band the trained model shows
+# when the tester has confirmed every suggestion on the Recurring page (the instructed path), on
+# every study day (25-31 October 2026) and for every random seed. `ml.uat.purchase_cards` measures
+# it and `reports/uat/purchase_cards.md` lists what both paths give. Not every tester will take the
+# instructed path, so that report also shows the path where the suggestions are left alone.
+#
+# Limits are the assumed student medians in ml/datagen/params.yaml (limit_median_sen). How a real
+# provider counts its cap is still assumed (D-28).
+#
+# Fees follow bnpl-billing-rules-my.md: 0% on the short plans used here.
+
+personas:
+  frequent_bnpl:
+    provider: spaylater
+    limit_rm: 1500
+    cards:
+      - id: F1
+        item: Wireless headphones
+        price_rm: 600
+        instalments: 3
+        monthly_fee_pct: 0
+        vignette: V1
+        expected_band: Safe
+      - id: F2
+        item: Gaming chair
+        price_rm: 1300
+        instalments: 3
+        monthly_fee_pct: 0
+        expected_band: Caution
+      - id: F3
+        item: Laptop
+        price_rm: 2000
+        instalments: 3
+        monthly_fee_pct: 0
+        expected_band: At Risk
+
+  budget_conscious:
+    provider: tiktok_paylater
+    limit_rm: 1000
+    cards:
+      - id: B1
+        item: Shoes
+        price_rm: 250
+        instalments: 2
+        monthly_fee_pct: 0
+        vignette: V3
+        expected_band: Safe
+      - id: B2
+        item: Jacket
+        price_rm: 400
+        instalments: 3
+        monthly_fee_pct: 0
+        expected_band: Caution
+      - id: B3
+        item: Tablet
+        price_rm: 1000
+        instalments: 3
+        monthly_fee_pct: 0
+        expected_band: At Risk
+
+  irregular_income:
+    provider: atome
+    limit_rm: 800
+    cards:
+      - id: I1
+        item: Backpack
+        price_rm: 400
+        instalments: 4
+        monthly_fee_pct: 0
+        expected_band: Safe
+      - id: I2
+        item: Smartwatch
+        price_rm: 800
+        instalments: 4
+        monthly_fee_pct: 0
+        expected_band: Caution
+      - id: I3
+        item: Laptop repair
+        price_rm: 1200
+        instalments: 4
+        monthly_fee_pct: 0
+        vignette: V2
+        expected_band: At Risk

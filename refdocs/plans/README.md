@@ -48,3 +48,4 @@ Status vocabulary: `Draft` · `In progress` · `Done` · `Blocked` · `Supersede
 | [2026-10-22-admin-page-and-dark-mode.md](2026-10-22-admin-page-and-dark-mode.md) | An Admin page in the sidebar (quick-tour launcher) and a dark mode | Built and green |
 | [2026-10-22-persona-histories-oct-2026.md](2026-10-22-persona-histories-oct-2026.md) | Persona histories that end on 31 October 2026, picked so the risk check tells small purchases from large ones | Done (author review of the CSVs pending) |
 | [2026-10-22-theme-everywhere.md](2026-10-22-theme-everywhere.md) | Dark mode on the public pages, a Dark/Light pill switch, and the audit's contrast fixes | Built |
+| [2026-10-22-uat-purchase-cards.md](2026-10-22-uat-purchase-cards.md) | UAT purchase cards and provider limits: a given limit and three cards per persona, measured on the band the tester is shown | Done (tester instructions that quote the cards not yet written) |

@@ -71,3 +71,6 @@ reports/uat/*
 
 # Author's working material: real bank statements and screenshots. Public repo (D-14): never commit.
 progress_material/
+
+# the answer key for the purchase cards is design material, not participant data
+!reports/uat/purchase_cards.md

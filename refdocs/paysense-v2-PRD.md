@@ -273,6 +273,7 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-60 | No savings-buffer input for the UAT (Batch B dropped); persona histories end 24 Oct 2026 for a 25-31 Oct study and are accepted only if the risk check tells their purchases apart on every study day | The measurement Batch B waited for no longer shows the gap; a persona that gives every purchase one band cannot show testers whether the tool works |
 | D-61 | The shell follows v3: labelled sidebar sections, Import back in the sidebar (and on Transactions), a profile card (name only, intro replay for everyone), a "Why?" toggle and 32px titles, a long-or-short Getting started, a View-as-a-user switch. Amends D-49 and D-56 |
 | D-62 | Month notices merge into one per month with an Import link and a close button; a Notifications page lists all, with Restore; the "four months" box moves to Transactions. Closed state is browser-only |
+| D-63 | Personas and purchase cards are judged on the band the tester is shown (not the simulation); each persona gets a given provider limit and three purchase cards; testers confirm every Recurring suggestion | The two bands can disagree sharply and the suggestions change some answers a lot; a given limit keeps real data out and results comparable |
 
 ---
 

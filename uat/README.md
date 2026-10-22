@@ -10,6 +10,7 @@ Everything needed to run a short usability and decision study with a handful of 
 | `vignettes.yaml` | The three decision scenarios, their options and the risk ordering the analysis uses |
 | `templates/` | Blank response files: `sus.csv`, `clarity.csv`, `vignettes.csv` |
 | `testers.template.csv` | Roster format: `participant,username,display,persona` |
+| `purchase-cards.yaml` | Per persona: the one BNPL limit to record and three purchases to check (the answer key is `reports/uat/purchase_cards.md`, for the facilitator only) |
 | `data/example/` | **Invented** answers for six imaginary testers, to try the analysis script |
 
 ## Running a study
@@ -39,3 +40,7 @@ Run one full session with a friend before the real ones. Read the report it prod
 ## Try the script without any data
 
 `cd backend && uv run python -m ml.uat.analyse --data ../uat/data/example` prints a report marked **invented**. The marking comes from the first line of each example file; remove that line from a file and the banner goes with it, so never do that to the example.
+
+## Purchase cards and the instructed path
+
+Testers never type their own BNPL limit or need a provider account: `purchase-cards.yaml` gives each persona one limit and three purchases (provider, item, price, instalments, fee). Tell testers to **confirm every suggestion on the Recurring page** before the risk check: the cards are measured on that path (D-63). If a tester skips it the forecast does not know the standing bills or instalments and some answers change (the answer key lists both). Regenerate the key with `cd backend && uv run python -m ml.uat.purchase_cards`.
