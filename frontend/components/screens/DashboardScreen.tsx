@@ -82,7 +82,7 @@ function Outlook() {
       </Card>
       <Notices items={notices(data)} />
       <Card>
-        <CardTitle>Your running margin</CardTitle>
+        <CardTitle>How much money you would have left over, month by month</CardTitle>
         <CardCaption>
           Imagine you start {formatMonth(sim.months[0])} with RM 0. Each point is how far ahead of
           that, or short of it, you would be by the end of each month, after income, spending and

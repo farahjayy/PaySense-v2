@@ -1,8 +1,20 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import axe from "axe-core";
+import { cloneElement, type ReactElement } from "react";
+import { describe, expect, it, vi } from "vitest";
 
 import { MarginFan } from "@/components/forecast/MarginFan";
 import type { Forecast } from "@/lib/api/queries";
+
+// jsdom has no layout, so give the responsive wrapper a size of its own and the chart really draws.
+vi.mock("recharts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("recharts")>();
+  return {
+    ...actual,
+    ResponsiveContainer: ({ children }: { children: ReactElement<{ width?: number; height?: number }> }) =>
+      cloneElement(children, { width: 600, height: 256 }),
+  };
+});
 
 const SIM = {
   months: ["2026-10", "2026-11"],
@@ -37,7 +49,7 @@ describe("MarginFan", () => {
     expect(within(november).getByText("tightest")).toBeInTheDocument();
   });
 
-  it("names the columns in plain words: this month alone, then the total so far in three cases", () => {
+  it("names the columns with the tooltip's own words: this month alone, then the total so far", () => {
     render(<MarginFan simulation={SIM} />);
 
     const table = screen.getByRole("table", { name: /forecast running margin by month/i });
@@ -47,9 +59,9 @@ describe("MarginFan", () => {
     expect(headers).toEqual([
       "Month",
       "This month alone",
-      "Total so far, bad case",
-      "Total so far, typical",
-      "Total so far, good case",
+      "Total so far, lower outcome",
+      "Total so far, most likely",
+      "Total so far, higher outcome",
     ]);
   });
 
@@ -60,11 +72,64 @@ describe("MarginFan", () => {
     expect(screen.getByText(/typical total is not the sum of the typical months/i)).toBeInTheDocument();
   });
 
-  it("explains the chart in three short statements a student can check against it", () => {
+  it("puts a legend above the chart with the three things a student needs to read it", () => {
+    const { container } = render(<MarginFan simulation={SIM} />);
+
+    const legend = screen.getByRole("list", { name: /how to read this chart/i });
+    const items = within(legend).getAllByRole("listitem");
+    expect(items.map((i) => i.textContent)).toEqual([
+      "Most likely",
+      "Where 8 out of 10 possible futures land",
+      "RM 0: below this you would be short of money",
+    ]);
+    // above the chart, not under it
+    const chart = screen.getByRole("img", { name: /most likely about/i });
+    expect(legend.compareDocumentPosition(chart) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // shape carries the meaning, not colour: a solid line, a filled block, a dashed line
+    expect(items[0].querySelector("svg line:not([stroke-dasharray])")).not.toBeNull();
+    expect(items[1].querySelector("svg rect")).not.toBeNull();
+    expect(items[2].querySelector("svg line[stroke-dasharray]")).not.toBeNull();
+    // the old three sentences under the chart are gone: the legend says them once
+    expect(container.querySelector("figcaption")).toBeNull();
+  });
+
+  it("labels the lines on the chart itself: Most likely beside the last point, and RM 0 on the dashed line", () => {
+    const { container } = render(<MarginFan simulation={SIM} />);
+
+    const svg = container.querySelector("svg.recharts-surface") as SVGElement;
+    expect(svg).not.toBeNull();
+    const texts = [...svg.querySelectorAll("text")].map((t) => t.textContent);
+    expect(texts.filter((t) => t === "Most likely")).toHaveLength(1);
+    expect(texts).toContain("RM 0");
+  });
+
+  it("always keeps RM 0 on the scale, so the dashed line and its legend entry can never be missing", () => {
+    const allAbove = {
+      ...SIM,
+      monthly_margin_p10_sen: [9000, 9000],
+      cumulative_margin_p10_sen: [90000, 120000],
+      cumulative_margin_p50_sen: [120000, 150000],
+      cumulative_margin_p90_sen: [150000, 200000],
+    } satisfies NonNullable<Forecast["simulation"]>;
+    const { container } = render(<MarginFan simulation={allAbove} />);
+
+    expect(container.querySelector(".recharts-reference-line line")).not.toBeNull();
+  });
+
+  it("keeps a text alternative and the table, the keyboard route to every number", () => {
     render(<MarginFan simulation={SIM} />);
 
-    const caption = screen.getByText(/the line is the most likely total/i).closest("figcaption");
-    expect(caption).toHaveTextContent("8 out of 10");
-    expect(caption).toHaveTextContent(/below the dashed line.*short/i);
+    expect(screen.getByRole("img", { name: /most likely about/i })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /forecast numbers, scrollable/i })).toHaveAttribute(
+      "tabindex",
+      "0",
+    );
+  });
+
+  it("has no accessibility violations: legend, drawn chart and table together", async () => {
+    const { container } = render(<MarginFan simulation={SIM} />);
+
+    expect(container.querySelector("svg.recharts-surface")).not.toBeNull(); // really drawn, not empty
+    expect((await axe.run(container)).violations).toEqual([]);
   });
 });

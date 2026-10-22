@@ -177,6 +177,12 @@ describe("DashboardScreen", () => {
     respond(OK);
     render(<DashboardScreen />, { wrapper });
 
+    expect(
+      await screen.findByRole("heading", {
+        name: "How much money you would have left over, month by month",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Your running margin")).not.toBeInTheDocument();
     expect(await screen.findByText(/imagine you start october 2026 with rm 0/i)).toBeInTheDocument();
     expect(screen.getByText(/by the end of each month/i)).toBeInTheDocument();
   });
