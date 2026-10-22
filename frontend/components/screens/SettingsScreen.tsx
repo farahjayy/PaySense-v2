@@ -19,7 +19,7 @@ import { restoreGettingStarted } from "@/lib/checklistStore";
 import { saveBlob } from "@/lib/download";
 import { todayIso } from "@/lib/format";
 import { replayIntro } from "@/lib/introTour";
-import { useAuth } from "@/lib/session";
+import { isAdmin, useAuth } from "@/lib/session";
 import { clearedSentence, SCOPE_LABEL, SCOPE_NOTE, SCOPES } from "@/lib/settings";
 
 const TEMPLATE_HREF = "/paysense-import-template.csv";
@@ -33,6 +33,7 @@ export function SettingsScreen() {
   const router = useRouter();
   const auth = useAuth();
   const userId = auth.status === "authenticated" ? auth.session.user.id : null;
+  const admin = auth.status === "authenticated" && isAdmin(auth.session);
   const summary = useAccountSummary();
   const reset = useResetAccount();
   const exportData = useExportData();
@@ -213,7 +214,22 @@ export function SettingsScreen() {
           <Button variant="secondary" onClick={restoreGettingStarted}>
             Show the getting started checklist again
           </Button>
-          {userId && (
+          <Link href="/categories" className={LINK_BUTTON}>
+            Manage categories
+          </Link>
+          <a href={TEMPLATE_HREF} download className={LINK_BUTTON}>
+            Download the import template
+          </a>
+        </div>
+      </Card>
+
+      {admin && userId && (
+        <Card>
+          <CardTitle>Admin</CardTitle>
+          <CardCaption>
+            Tools for testing. Only admins see this card.
+          </CardCaption>
+          <div className="mt-3 flex flex-wrap gap-2">
             <Button
               variant="secondary"
               onClick={() => {
@@ -223,15 +239,12 @@ export function SettingsScreen() {
             >
               Show the intro again
             </Button>
-          )}
-          <Link href="/categories" className={LINK_BUTTON}>
-            Manage categories
-          </Link>
-          <a href={TEMPLATE_HREF} download className={LINK_BUTTON}>
-            Download the import template
-          </a>
-        </div>
-      </Card>
+          </div>
+          <p className="mt-2 text-[12px] text-ink-secondary">
+            Plays the welcome slides and the tour from the start, as on a first sign-in.
+          </p>
+        </Card>
+      )}
 
       <ResetDialog
         open={dialogue !== null}

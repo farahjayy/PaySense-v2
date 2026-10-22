@@ -10,6 +10,10 @@ from app.db.client import Database
 
 USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 PERSONAS = frozenset({"frequent_bnpl", "budget_conscious", "irregular_income"})
+# A role is authorisation data on the user row (ADR D-56): read from the database on every
+# request, never from the token or the request.
+ROLES = frozenset({"user", "admin"})
+DEFAULT_ROLE = "user"
 UNIQUE_VIOLATION = "23505"
 
 
@@ -38,6 +42,13 @@ def get_by_username(db: Database, username: str) -> dict[str, Any] | None:
     return exact[0] if exact else None
 
 
+def role_of(row: dict[str, Any]) -> str:
+    """The row's role. A row from a database before migration 0003 has none, and a value this
+    build does not know confers nothing: both read as an ordinary user."""
+    role = row.get("role")
+    return role if role in ROLES else DEFAULT_ROLE
+
+
 def get_by_id(db: Database, user_id: str) -> dict[str, Any] | None:
     if not is_uuid(user_id):
         return None
@@ -46,7 +57,12 @@ def get_by_id(db: Database, user_id: str) -> dict[str, Any] | None:
 
 
 def create(
-    db: Database, *, username: str, display_name: str, persona: str | None = None
+    db: Database,
+    *,
+    username: str,
+    display_name: str,
+    persona: str | None = None,
+    role: str = DEFAULT_ROLE,
 ) -> dict[str, Any]:
     name = normalise_username(username)
     if name is None:
@@ -55,15 +71,44 @@ def create(
         raise ValueError(f"persona must be one of {sorted(PERSONAS)}")
     if not display_name.strip():
         raise ValueError("display_name is required")
+    if role not in ROLES:
+        raise ValueError(f"role must be one of {sorted(ROLES)}")
+    row: dict[str, Any] = {
+        "username": name,
+        "display_name": display_name.strip(),
+        "persona": persona,
+    }
+    if role != DEFAULT_ROLE:  # an ordinary user needs no role column, so seeding works before 0003
+        row["role"] = role
     try:
-        created = (
-            db.table("users")
-            .insert({"username": name, "display_name": display_name.strip(), "persona": persona})
-            .execute()
-            .data
-        )
+        created = db.table("users").insert(row).execute().data
     except APIError as err:
         if err.code == UNIQUE_VIOLATION:
             raise UsernameTakenError(name) from err
         raise
     return created[0]
+
+
+def update_user(
+    db: Database, username: str, *, role: str | None = None, display_name: str | None = None
+) -> dict[str, Any] | None:
+    """Change a user's role and/or display name, found by username. None if there is no such user.
+
+    Like `get_by_username` this is deliberately unscoped: it is the author's own tool
+    (`scripts/set_role.py`), never reachable from a route."""
+    changes: dict[str, Any] = {}
+    if role is not None:
+        if role not in ROLES:
+            raise ValueError(f"role must be one of {sorted(ROLES)}")
+        changes["role"] = role
+    if display_name is not None:
+        if not display_name.strip():
+            raise ValueError("display_name is required")
+        changes["display_name"] = display_name.strip()
+    if not changes:
+        raise ValueError("nothing to change: give a role or a display name")
+    user = get_by_username(db, username)
+    if user is None:
+        return None
+    updated = db.table("users").update(changes).eq("id", user["id"]).execute().data
+    return updated[0] if updated else None

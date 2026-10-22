@@ -56,6 +56,7 @@ def login(
             username=row["username"],
             display_name=row["display_name"],
             persona=row.get("persona"),
+            role=users.role_of(row),  # type: ignore[arg-type]
         ),
     )
 

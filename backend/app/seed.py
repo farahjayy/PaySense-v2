@@ -7,16 +7,23 @@ from app.db.client import Database
 
 
 def seed_user(
-    db: Database, *, username: str, display_name: str, persona: str | None
+    db: Database,
+    *,
+    username: str,
+    display_name: str,
+    persona: str | None,
+    role: str = users.DEFAULT_ROLE,
 ) -> tuple[dict[str, Any], bool]:
     """Create the user and its settings row if missing. Returns (user, created). Idempotent."""
     if persona is not None and persona not in users.PERSONAS:
         raise ValueError(f"persona must be one of {sorted(users.PERSONAS)}")
+    if role not in users.ROLES:
+        raise ValueError(f"role must be one of {sorted(users.ROLES)}")
     existing = users.get_by_username(db, username)
     created = existing is None
     try:
         user = existing or users.create(
-            db, username=username, display_name=display_name, persona=persona
+            db, username=username, display_name=display_name, persona=persona, role=role
         )
     except users.UsernameTakenError:
         user, created = users.get_by_username(db, username), False

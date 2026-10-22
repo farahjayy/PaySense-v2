@@ -104,3 +104,88 @@ def test_setting_the_onboarding_state_only_touches_that_user(db):
     user_settings.set_onboarding_state(db, amir["id"], "complete")
 
     assert user_settings.get(db, siti["id"])["onboarding_state"] == "new"
+
+
+# ------------------------------------------------------------------ roles (ADR D-56)
+def test_a_new_user_is_an_ordinary_user_by_default(db):
+    from app.db.users import role_of
+
+    user = create(db, username="amir", display_name="Amir")
+
+    assert role_of(get_by_username(db, "amir")) == "user"
+    assert role_of(user) == "user"
+
+
+def test_an_admin_can_be_created_and_a_made_up_role_cannot(db):
+    from app.db.users import role_of
+
+    admin = create(db, username="farah", display_name="Farah", role="admin")
+
+    assert role_of(get_by_username(db, "farah")) == "admin" and admin["role"] == "admin"
+    with pytest.raises(ValueError, match="role"):
+        create(db, username="root", display_name="Root", role="root")
+
+
+def test_a_row_from_a_database_without_the_role_column_reads_as_a_user(db):
+    from app.db.users import role_of
+
+    user = create(db, username="amir", display_name="Amir")
+    user.pop("role", None)
+
+    assert role_of(user) == "user"
+    assert role_of({"role": None}) == "user"
+    assert role_of({"role": "auditor"}) == "user"  # a value this build does not know is no power
+
+
+def test_the_role_and_display_name_can_be_changed_by_username(db):
+    from app.db.users import role_of, update_user
+
+    create(db, username="amir-k7q2xm", display_name="Amir")
+
+    changed = update_user(db, "AMIR-k7q2xm", role="admin", display_name="  Farah ")
+
+    assert changed is not None
+    assert role_of(changed) == "admin" and changed["display_name"] == "Farah"
+    assert role_of(get_by_username(db, "amir-k7q2xm")) == "admin"
+
+
+def test_changing_only_one_thing_leaves_the_other_alone(db):
+    from app.db.users import role_of, update_user
+
+    create(db, username="amir", display_name="Amir", role="admin")
+
+    renamed = update_user(db, "amir", display_name="Farah")
+
+    assert renamed["display_name"] == "Farah" and role_of(renamed) == "admin"
+
+
+def test_updating_an_unknown_user_returns_none_and_a_bad_value_is_refused(db):
+    from app.db.users import update_user
+
+    create(db, username="amir", display_name="Amir")
+
+    assert update_user(db, "nobody", role="admin") is None
+    with pytest.raises(ValueError, match="role"):
+        update_user(db, "amir", role="superuser")
+    with pytest.raises(ValueError, match="display_name"):
+        update_user(db, "amir", display_name="   ")
+    with pytest.raises(ValueError, match="nothing"):
+        update_user(db, "amir")
+
+
+def test_changing_one_users_role_never_touches_another(db):
+    from app.db.users import role_of, update_user
+
+    create(db, username="amir", display_name="Amir")
+    create(db, username="siti", display_name="Siti")
+
+    update_user(db, "amir", role="admin")
+
+    assert role_of(get_by_username(db, "siti")) == "user"
+
+
+def test_a_role_in_the_wrong_case_or_with_spaces_confers_nothing(db):
+    from app.db.users import role_of
+
+    for odd in ("Admin", "ADMIN", " admin", "admin ", ""):
+        assert role_of({"role": odd}) == "user", repr(odd)

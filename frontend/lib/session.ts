@@ -18,10 +18,23 @@ const SessionSchema = z.object({
     // A plain string: the allowed values belong to the backend, and a value this build does not
     // know about must not silently invalidate a valid login.
     persona: z.string().nullable(),
+    // What the person may do (ADR D-56), as the server last said. Optional, so a session saved
+    // before roles existed still signs in (as an ordinary user), and a plain string, so a role
+    // this build does not know about neither logs anyone out nor gives them any power.
+    role: z.string().optional(),
   }),
 });
 
 export type Session = z.infer<typeof SessionSchema>;
+
+/**
+ * Whether this session belongs to an admin. This decides only what to SHOW: the browser's copy of
+ * the role protects nothing. The server reads the role from the database on every request and
+ * `require_admin` is what enforces (ADR D-56).
+ */
+export function isAdmin(session: Session | null): boolean {
+  return session?.user.role === "admin";
+}
 
 const STORAGE_KEY = "paysense.session";
 const listeners = new Set<() => void>();

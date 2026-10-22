@@ -1737,6 +1737,12 @@ export interface components {
             display_name: string;
             /** Persona */
             persona: ("frequent_bnpl" | "budget_conscious" | "irregular_income") | null;
+            /**
+             * Role
+             * @default user
+             * @enum {string}
+             */
+            role: "user" | "admin";
         };
         /** VersionsOut */
         VersionsOut: {

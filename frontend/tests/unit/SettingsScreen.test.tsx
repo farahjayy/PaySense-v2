@@ -189,21 +189,46 @@ describe("SettingsScreen", () => {
     expect(await within(dialog).findByText(/already running/i)).toBeInTheDocument();
   });
 
-  it("can play the intro and the tour again, from the first slide, on the dashboard", async () => {
+  function signInAs(role: "admin" | "user") {
+    saveSession({
+      token: "t",
+      expiresAt: Date.now() + 60_000,
+      user: { id: "u1", username: "amir", display_name: "Amir", persona: null, role },
+    });
+    forgetForTests();
+    markIntroSeen("u1");
+    markTourSeen("u1");
+  }
+
+  it("lets an admin play the intro and the tour again, from the first slide, on the dashboard", async () => {
+    signInAs("admin");
+    await open();
+
+    const card = screen.getByRole("heading", { name: /^admin$/i }).closest("div") as HTMLElement;
+    expect(card).toHaveTextContent(/for testing/i);
+    await userEvent.click(within(card).getByRole("button", { name: /show the intro again/i }));
+
+    expect(stageFor("u1")).toBe("intro");
+    expect(push).toHaveBeenCalledWith("/");
+  });
+
+  it("shows an ordinary user no Admin card and no way to replay the intro", async () => {
+    signInAs("user");
+    await open();
+
+    expect(screen.queryByRole("heading", { name: /^admin$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /show the intro again/i })).not.toBeInTheDocument();
+  });
+
+  it("shows no Admin card to a session saved before roles existed", async () => {
     saveSession({
       token: "t",
       expiresAt: Date.now() + 60_000,
       user: { id: "u1", username: "amir", display_name: "Amir", persona: null },
     });
-    forgetForTests();
-    markIntroSeen("u1");
-    markTourSeen("u1");
     await open();
 
-    await userEvent.click(screen.getByRole("button", { name: /show the intro again/i }));
-
-    expect(stageFor("u1")).toBe("intro");
-    expect(push).toHaveBeenCalledWith("/");
+    expect(screen.queryByRole("heading", { name: /^admin$/i })).not.toBeInTheDocument();
   });
 
   it("can bring the getting started checklist back", async () => {

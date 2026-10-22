@@ -190,6 +190,11 @@ test("Settings: clear the transactions, then factory reset, after saving a copy"
   test.setTimeout(90_000);
   const violations = watchForCspViolations(page);
   await signIn(page, "settings");
+  // an ordinary tester has no admin tools (ADR D-56)
+  await page.goto("/settings");
+  await expect(page.getByRole("heading", { name: "Settings", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Admin", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Show the intro again" })).toHaveCount(0);
   await openImport(page);
   await page.getByLabel("Choose a statement file").setInputFiles(PERSONA_CSV);
   await page.getByRole("button", { name: /^add \d+ transactions?$/i }).click();
@@ -281,8 +286,9 @@ test("a first sign-in plays the welcome slides and the tour, and Settings can pl
   await expect(page.getByRole("heading", { level: 1, name: /hi, e2e tester/i })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
-  // ...until they ask for it again
+  // ...until an admin asks for it again (this tester is one)
   await page.goto("/settings");
+  await expect(page.getByRole("heading", { name: "Admin", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Show the intro again" }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("dialog", { name: /welcome to paysense/i })).toBeVisible();

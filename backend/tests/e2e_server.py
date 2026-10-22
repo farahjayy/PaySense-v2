@@ -60,7 +60,11 @@ def build_e2e_app():
         for journey in ("import", "screens", "risk", "spending", "existing", "settings", "welcome")
     ]
     for username in usernames:
-        seed_user(db, username=username, display_name=E2E_DISPLAY_NAME, persona="frequent_bnpl")
+        # the welcome journey replays the intro from Settings, which only an admin can (ADR D-56)
+        role = "admin" if username.endswith("-welcome") else "user"
+        seed_user(
+            db, username=username, display_name=E2E_DISPLAY_NAME, persona="frequent_bnpl", role=role
+        )
     app = create_app(settings, db=db, predictor=StubModel())
     app.dependency_overrides[get_today] = lambda: E2E_TODAY
     return app

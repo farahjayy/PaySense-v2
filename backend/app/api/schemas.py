@@ -64,6 +64,8 @@ class UserOut(BaseModel):
     username: str
     display_name: str
     persona: Persona | None = None
+    # What the person may do (ADR D-56). Read from the database on every request.
+    role: Literal["user", "admin"] = "user"
 
 
 class LoginResponse(BaseModel):

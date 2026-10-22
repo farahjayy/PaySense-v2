@@ -76,10 +76,22 @@ def current_user(
         username=row["username"],
         display_name=row["display_name"],
         persona=row.get("persona"),
+        role=users.role_of(row),  # type: ignore[arg-type]
     )
 
 
 CurrentUser = Annotated[UserOut, Depends(current_user)]
+
+
+def require_admin(user: CurrentUser) -> UserOut:
+    """A route dependency for anything only an admin may do (ADR D-56). The role was just read from
+    the database with the user, so a person whose admin was taken away is refused at once."""
+    if user.role != "admin":
+        raise api_error(403, "forbidden", "You do not have access to this.")
+    return user
+
+
+AdminUser = Annotated[UserOut, Depends(require_admin)]
 
 
 def get_request_limiter(request: Request) -> RequestRateLimiter:

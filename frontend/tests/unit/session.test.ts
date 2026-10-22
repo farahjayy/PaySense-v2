@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   clearSession,
   getSession,
+  isAdmin,
   saveSession,
   subscribeSession,
   type Session,
@@ -117,5 +118,40 @@ describe("persona handling", () => {
     saveSession(sample({ user: { id: "u", username: "x", display_name: "X", persona: "new_persona" } }));
 
     expect(getSession(NOW)?.user.persona).toBe("new_persona");
+  });
+});
+
+describe("roles (ADR D-56)", () => {
+  it("keeps the role the server gave", () => {
+    saveSession(
+      sample({
+        user: { id: "u", username: "farah", display_name: "Farah", persona: null, role: "admin" },
+      }),
+    );
+
+    expect(getSession(NOW)?.user.role).toBe("admin");
+    expect(isAdmin(getSession(NOW))).toBe(true);
+  });
+
+  it("treats a session saved before roles existed as an ordinary user", () => {
+    saveSession(sample());
+
+    expect(getSession(NOW)).not.toBeNull();
+    expect(isAdmin(getSession(NOW))).toBe(false);
+  });
+
+  it("keeps a role this build does not know, without logging anyone out, and gives it no power", () => {
+    saveSession(
+      sample({
+        user: { id: "u", username: "x", display_name: "X", persona: null, role: "auditor" },
+      }),
+    );
+
+    expect(getSession(NOW)?.user.role).toBe("auditor");
+    expect(isAdmin(getSession(NOW))).toBe(false);
+  });
+
+  it("is not an admin when nobody is signed in", () => {
+    expect(isAdmin(null)).toBe(false);
   });
 });
