@@ -267,6 +267,8 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-54 | The UAT runs on seeded username-only accounts with synthetic data; no Google sign-in, self sign-up or passphrase | Testers are real people on synthetic data; login strength is not one of the FYP's objectives |
 | D-55 | A public welcome page (`/welcome`) explains the product before sign-in; a signed-out visitor to `/` lands on it, deep links and log-out still go to `/login`; every button leads to the login (no sign-up) | The first screen should say what PaySense is; costs one static page on the existing theme |
 | D-56 | A simple admin role (`users.role`, read from the database on every request; `require_admin`); the intro-and-tour replay in Settings is an admin tool | A tester replaying the tour mid-session is noise; a role gives one place to gate author-only tools |
+| D-57 | An Admin page in the sidebar, for admins only, holding the quick-tour launcher (the Settings Admin card is removed) | A home for author-only tools; display-only gating, as D-56 |
+| D-58 | A dark mode for the signed-in app: the same tokens redefined under `data-theme=dark`, a toggle in the top bar, no flash on load, contrast held by the test | Low-light use and preference; one palette swap, not per-component styles |
 
 ---
 

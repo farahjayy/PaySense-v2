@@ -11,7 +11,15 @@ import { Face } from "@/components/ui/Face";
 import { isActive } from "@/lib/nav";
 import { clearSession, type Session } from "@/lib/session";
 
-type NavItem = { href: string; label: string; icon: string; daily: boolean; tour?: string };
+type NavItem = {
+  href: string;
+  label: string;
+  icon: string;
+  daily: boolean;
+  tour?: string;
+  /** Shown only to an admin (ADR D-57). Display only: the server enforces anything real. */
+  adminOnly?: boolean;
+};
 
 // `daily` marks the pages used every day: they fill the phone's bottom bar and sit above the
 // divider in the sidebar. The rest sit below the divider and, on a phone, in the "More pages" row
@@ -58,6 +66,13 @@ const NAV_ITEMS: readonly NavItem[] = [
     daily: false,
     tour: "model",
   },
+  {
+    href: "/admin",
+    label: "Admin",
+    icon: "M8 9l-3 3 3 3M16 9l3 3-3 3M13 7l-2 10",
+    daily: false,
+    adminOnly: true,
+  },
 ];
 
 function NavIcon({ d, size = 20 }: { d: string; size?: number }) {
@@ -93,7 +108,15 @@ function Wordmark({ onDark = false }: { onDark?: boolean }) {
   );
 }
 
-function Sidebar({ pathname, name }: { pathname: string; name: string }) {
+function Sidebar({
+  pathname,
+  name,
+  items,
+}: {
+  pathname: string;
+  name: string;
+  items: readonly NavItem[];
+}) {
   return (
     <aside className="sticky top-0 hidden h-screen w-62 shrink-0 flex-col gap-8 overflow-hidden bg-sidebar px-4 pb-6 pt-7 text-sidebar-ink md:flex">
       {/* soft rings and a tile, as on the login page: decoration only */}
@@ -110,9 +133,9 @@ function Sidebar({ pathname, name }: { pathname: string; name: string }) {
         <Wordmark onDark />
       </Link>
       <nav aria-label="Main navigation" className="relative flex flex-col gap-1">
-        {NAV_ITEMS.map((item, index) => {
+        {items.map((item, index) => {
           const active = isActive(pathname, item.href);
-          const startsSecondGroup = !item.daily && NAV_ITEMS[index - 1]?.daily;
+          const startsSecondGroup = !item.daily && items[index - 1]?.daily;
           return (
             <Fragment key={item.href}>
               {startsSecondGroup && (
@@ -182,6 +205,7 @@ function MobileNav({ pathname }: { pathname: string }) {
 type Props = { user: Session["user"]; children: ReactNode };
 
 export function AppShell({ user, children }: Props) {
+  const items = NAV_ITEMS.filter((item) => !item.adminOnly || user.role === "admin");
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -213,7 +237,7 @@ export function AppShell({ user, children }: Props) {
       >
         Skip to content
       </a>
-      <Sidebar pathname={pathname} name={user.display_name} />
+      <Sidebar pathname={pathname} name={user.display_name} items={items} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center justify-between gap-3 border-b border-line bg-surface px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2 text-ink md:hidden">
@@ -241,7 +265,7 @@ export function AppShell({ user, children }: Props) {
           aria-label="More pages"
           className="flex gap-5 border-b border-line bg-surface px-4 py-2 text-[13px] font-medium md:hidden"
         >
-          {NAV_ITEMS.filter((item) => !item.daily).map((item) => (
+          {items.filter((item) => !item.daily).map((item) => (
             <Link
               key={item.href}
               href={item.href}

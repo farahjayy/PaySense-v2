@@ -190,11 +190,11 @@ test("Settings: clear the transactions, then factory reset, after saving a copy"
   test.setTimeout(90_000);
   const violations = watchForCspViolations(page);
   await signIn(page, "settings");
-  // an ordinary tester has no admin tools (ADR D-56)
-  await page.goto("/settings");
-  await expect(page.getByRole("heading", { name: "Settings", level: 1 })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Admin", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Show the intro again" })).toHaveCount(0);
+  // an ordinary tester has no Admin page in the navigation, and none of its tools (ADR D-57)
+  await expect(page.getByRole("link", { name: "Admin" })).toHaveCount(0);
+  await page.goto("/admin");
+  await expect(page.getByText("This page is for admins")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Launch the quick tour" })).toHaveCount(0);
   await openImport(page);
   await page.getByLabel("Choose a statement file").setInputFiles(PERSONA_CSV);
   await page.getByRole("button", { name: /^add \d+ transactions?$/i }).click();
@@ -254,7 +254,7 @@ test("the transactions page shows where the month went, and picking a category f
   expect(violations).toEqual([]);
 });
 
-test("a first sign-in plays the welcome slides and the tour, and Settings can play them again", async ({
+test("a first sign-in plays the welcome slides and the tour, and an admin can launch them again from the Admin page", async ({
   page,
 }) => {
   const violations = watchForCspViolations(page);
@@ -286,10 +286,10 @@ test("a first sign-in plays the welcome slides and the tour, and Settings can pl
   await expect(page.getByRole("heading", { level: 1, name: /hi, e2e tester/i })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
-  // ...until an admin asks for it again (this tester is one)
-  await page.goto("/settings");
-  await expect(page.getByRole("heading", { name: "Admin", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Show the intro again" }).click();
+  // ...until an admin launches it again from the Admin page (this tester is one)
+  await page.getByRole("link", { name: "Admin" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Admin" })).toBeVisible();
+  await page.getByRole("button", { name: "Launch the quick tour" }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("dialog", { name: /welcome to paysense/i })).toBeVisible();
   await page.getByRole("button", { name: "Skip", exact: true }).click();

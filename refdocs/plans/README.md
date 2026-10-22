@@ -45,3 +45,4 @@ Status vocabulary: `Draft` · `In progress` · `Done` · `Blocked` · `Supersede
 | [2026-10-22-welcome-page.md](2026-10-22-welcome-page.md) | A public welcome page and the routing to it | Built and green |
 | [2026-10-22-admin-role.md](2026-10-22-admin-role.md) | A simple admin role and the intro replay as an admin tool | Built and green on the in-memory database; migration 0003 not yet applied to the real project |
 | [2026-10-22-admin-role.md](2026-10-22-admin-role.md) | A simple admin role and the intro replay as an admin tool | In progress |
+| [2026-10-22-admin-page-and-dark-mode.md](2026-10-22-admin-page-and-dark-mode.md) | An Admin page in the sidebar (quick-tour launcher) and a dark mode | In progress |

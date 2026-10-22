@@ -164,6 +164,30 @@ describe("AppShell", () => {
     expect(container.querySelector('[data-tour="plans"]')).toHaveAttribute("href", "/plans");
   });
 
+  it("adds an Admin page to the navigation for an admin and to nobody else (ADR D-57)", () => {
+    const ordinary = render(
+      <AppShell user={USER}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+    expect(ordinary.queryByRole("link", { name: "Admin" })).toBeNull();
+    ordinary.unmount();
+
+    render(
+      <AppShell user={{ ...USER, role: "admin" }}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    const links = screen.getAllByRole("link", { name: "Admin" });
+    expect(links.length).toBe(2); // the sidebar, and the "More pages" row on a phone
+    for (const link of links) expect(link).toHaveAttribute("href", "/admin");
+    const phoneBar = screen.getAllByRole("navigation").find((n) => n.className.includes("fixed"));
+    expect(phoneBar?.querySelectorAll("a").length).toBe(4); // the daily four, unchanged
+  });
+
   it("keeps Recurring and About the model reachable on a phone in a 'More pages' row", () => {
     render(
       <AppShell user={USER}>

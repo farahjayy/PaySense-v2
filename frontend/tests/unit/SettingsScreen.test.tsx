@@ -6,11 +6,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SettingsScreen } from "@/components/screens/SettingsScreen";
-import { forgetForTests, markIntroSeen, markTourSeen, stageFor } from "@/lib/introTour";
 import { saveSession } from "@/lib/session";
-
-const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
 const get = vi.fn();
 const post = vi.fn();
@@ -189,46 +185,20 @@ describe("SettingsScreen", () => {
     expect(await within(dialog).findByText(/already running/i)).toBeInTheDocument();
   });
 
-  function signInAs(role: "admin" | "user") {
-    saveSession({
-      token: "t",
-      expiresAt: Date.now() + 60_000,
-      user: { id: "u1", username: "amir", display_name: "Amir", persona: null, role },
-    });
-    forgetForTests();
-    markIntroSeen("u1");
-    markTourSeen("u1");
-  }
+  it("holds no admin content for anyone: the quick tour lives on the Admin page (ADR D-57)", async () => {
+    for (const role of ["admin", "user", undefined]) {
+      saveSession({
+        token: "t",
+        expiresAt: Date.now() + 60_000,
+        user: { id: "u1", username: "amir", display_name: "Amir", persona: null, role },
+      });
+      const view = render(<SettingsScreen />, { wrapper });
+      await screen.findByText(/download my data/i);
 
-  it("lets an admin play the intro and the tour again, from the first slide, on the dashboard", async () => {
-    signInAs("admin");
-    await open();
-
-    const card = screen.getByRole("heading", { name: /^admin$/i }).closest("div") as HTMLElement;
-    expect(card).toHaveTextContent(/for testing/i);
-    await userEvent.click(within(card).getByRole("button", { name: /show the intro again/i }));
-
-    expect(stageFor("u1")).toBe("intro");
-    expect(push).toHaveBeenCalledWith("/");
-  });
-
-  it("shows an ordinary user no Admin card and no way to replay the intro", async () => {
-    signInAs("user");
-    await open();
-
-    expect(screen.queryByRole("heading", { name: /^admin$/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /show the intro again/i })).not.toBeInTheDocument();
-  });
-
-  it("shows no Admin card to a session saved before roles existed", async () => {
-    saveSession({
-      token: "t",
-      expiresAt: Date.now() + 60_000,
-      user: { id: "u1", username: "amir", display_name: "Amir", persona: null },
-    });
-    await open();
-
-    expect(screen.queryByRole("heading", { name: /^admin$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: /^admin$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /intro again|quick tour/i })).not.toBeInTheDocument();
+      view.unmount();
+    }
   });
 
   it("can bring the getting started checklist back", async () => {
