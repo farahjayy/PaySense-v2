@@ -6,22 +6,34 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { AuthGate } from "@/components/auth/AuthGate";
+import { forgetForTests, markIntroSeen, markTourSeen, stageFor } from "@/lib/introTour";
 import { clearSession, getSession, saveSession } from "@/lib/session";
+import { setViewAsUser } from "@/lib/viewAs";
 
 const replace = vi.fn();
+const push = vi.fn();
 const where = { path: "/" }; // the page the test pretends to be on
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace }),
+  useRouter: () => ({ replace, push }),
   usePathname: () => where.path,
 }));
 
 const get = vi.fn();
-vi.mock("@/lib/api/client", () => ({ api: { GET: (...args: unknown[]) => get(...args) } }));
+vi.mock("@/lib/api/client", () => ({
+  api: { GET: (...args: unknown[]) => get(...args) },
+}));
 
-const USER = { id: "u1", username: "amir", display_name: "Amir", persona: null } as const;
+const USER = {
+  id: "u1",
+  username: "amir",
+  display_name: "Amir",
+  persona: null,
+} as const;
 
 function wrapper({ children }: { children: ReactNode }) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
@@ -77,7 +89,10 @@ describe("AuthGate", () => {
     signIn();
     get.mockImplementation(async () => {
       clearSession(); // what the API client does on a 401
-      return { data: undefined, error: { detail: { code: "invalid_token", message: "expired" } } };
+      return {
+        data: undefined,
+        error: { detail: { code: "invalid_token", message: "expired" } },
+      };
     });
     render(<AuthGate>private content</AuthGate>, { wrapper });
 
@@ -89,6 +104,8 @@ describe("AuthGate", () => {
 describe("AppShell", () => {
   beforeEach(() => {
     replace.mockReset();
+    push.mockReset();
+    setViewAsUser(false);
     where.path = "/";
     signIn();
   });
@@ -107,7 +124,7 @@ describe("AppShell", () => {
     expect(dashboardLinks.some((l) => l.getAttribute("aria-current") === "page")).toBe(true);
   });
 
-  it("lists only the pages used every day in the sidebar; Import and Categories are reached from Transactions", () => {
+  it("groups the sidebar under four labels, with Import under Your money (ADR D-61)", () => {
     render(
       <AppShell user={USER}>
         <p>page body</p>
@@ -115,26 +132,27 @@ describe("AppShell", () => {
       { wrapper },
     );
 
-    for (const name of [
-      "Dashboard",
-      "Transactions",
-      "Recurring",
-      "Plans",
-      "Risk check",
-      "About the model",
-    ]) {
-      expect(screen.getAllByRole("link", { name: new RegExp(name, "i") }).length).toBeGreaterThan(
-        0,
-      );
-    }
-    for (const name of ["Categories", "Import"]) {
-      expect(screen.queryByRole("link", { name })).toBeNull();
-    }
-    const phoneBar = screen.getAllByRole("navigation").find((n) => n.className.includes("fixed"));
-    expect(phoneBar && phoneBar.querySelectorAll("a").length).toBe(4);
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    const groups = within(nav).getAllByRole("group");
+    expect(groups.map((g) => g.getAttribute("aria-label"))).toEqual([
+      "Overview",
+      "Your money",
+      "Buy now, pay later",
+      "How it works",
+    ]);
+    const names = (g: HTMLElement) =>
+      within(g)
+        .getAllByRole("link")
+        .map((l) => l.textContent);
+    expect(names(groups[0])).toEqual(["Dashboard", "Notifications"]);
+    expect(names(groups[1])).toEqual(["Transactions", "Import", "Recurring"]);
+    expect(names(groups[2])).toEqual(["Risk check", "Plans"]);
+    expect(names(groups[3])).toEqual(["About the model"]);
+    expect(within(nav).getByRole("link", { name: "Import" })).toHaveAttribute("href", "/import");
+    expect(within(nav).queryByRole("link", { name: "Categories" })).toBeNull();
   });
 
-  it("links Settings from beside the name, on the sidebar and the phone's top bar, not as a menu item", () => {
+  it("keeps the phone's bottom bar to the four everyday pages and puts Import in More pages", () => {
     render(
       <AppShell user={USER}>
         <p>page body</p>
@@ -142,11 +160,91 @@ describe("AppShell", () => {
       { wrapper },
     );
 
-    const links = screen.getAllByRole("link", { name: /settings/i });
+    const phoneBar = screen.getAllByRole("navigation").find((n) => n.className.includes("fixed"));
+    expect(phoneBar && phoneBar.querySelectorAll("a").length).toBe(4);
+    const more = screen.getByRole("navigation", { name: "More pages" });
+    expect(within(more).getByRole("link", { name: "Import" })).toHaveAttribute("href", "/import");
+  });
+
+  it("lets a short window scroll the sections instead of clipping them", () => {
+    render(
+      <AppShell user={USER}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    expect(screen.getByRole("navigation", { name: "Main navigation" })).toHaveClass(
+      "overflow-y-auto",
+    );
+    expect(
+      screen.queryByText(/financial health forecasting and bnpl risk classification/i),
+    ).toBeNull();
+  });
+
+  it("shows the name on a profile card and never the username, which is the whole credential", () => {
+    render(
+      <AppShell user={{ ...USER, username: "amir-secret-handle" }}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    const card = screen.getByRole("region", { name: "Your profile" });
+    expect(within(card).getByText("Amir")).toBeInTheDocument();
+    expect(within(card).getByText("A")).toBeInTheDocument(); // the initials
+    expect(document.body).not.toHaveTextContent("amir-secret-handle");
+  });
+
+  it("puts Your data and Log out on the card as text links, Your data going to Settings", () => {
+    render(
+      <AppShell user={USER}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    const card = screen.getByRole("region", { name: "Your profile" });
+    expect(within(card).getByRole("link", { name: "Your data" })).toHaveAttribute(
+      "href",
+      "/settings",
+    );
+    expect(within(card).getByRole("button", { name: "Log out" })).toBeInTheDocument();
+  });
+
+  it("lets anyone, not only an admin, play the intro again from the card", async () => {
+    forgetForTests();
+    markIntroSeen("u1");
+    markTourSeen("u1");
+    expect(stageFor("u1")).toBe("done");
+    render(
+      <AppShell user={USER}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    const card = screen.getByRole("region", { name: "Your profile" });
+    await userEvent.click(within(card).getByRole("button", { name: "Show the intro again" }));
+
+    expect(stageFor("u1")).toBe("intro");
+    expect(push).toHaveBeenCalledWith("/");
+    forgetForTests();
+  });
+
+  it("links Your data from the phone's top bar too, as the sidebar is not there", () => {
+    render(
+      <AppShell user={USER}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    const links = screen.getAllByRole("link", { name: "Your data" });
     expect(links.length).toBe(2);
     for (const link of links) expect(link).toHaveAttribute("href", "/settings");
     const mainNav = screen.getByRole("navigation", { name: "Main navigation" });
-    expect(within(mainNav).queryByRole("link", { name: /settings/i })).toBeNull();
+    expect(within(mainNav).queryByRole("link", { name: /your data/i })).toBeNull();
   });
 
   it("marks the controls the tour points at, on both the sidebar and the phone's bars", () => {
@@ -237,6 +335,35 @@ describe("AppShell", () => {
     );
   });
 
+  it("hides the Admin page from an admin who chose to view as a user, and says so", async () => {
+    setViewAsUser(true);
+    render(
+      <AppShell user={{ ...USER, role: "admin" }}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    expect(screen.queryByRole("link", { name: "Admin" })).toBeNull();
+    const bar = screen.getByRole("status", { name: /viewing as a user/i });
+    await userEvent.click(within(bar).getByRole("button", { name: /back to admin view/i }));
+
+    expect(screen.getAllByRole("link", { name: "Admin" }).length).toBe(2);
+    expect(screen.queryByRole("status", { name: /viewing as a user/i })).toBeNull();
+  });
+
+  it("never shows the user-view bar to someone who is not an admin, even if the flag is set", () => {
+    setViewAsUser(true);
+    render(
+      <AppShell user={USER}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    expect(screen.queryByRole("status", { name: /viewing as a user/i })).toBeNull();
+  });
+
   it("offers a skip link that targets the focusable main region", () => {
     render(
       <AppShell user={USER}>
@@ -260,7 +387,7 @@ describe("AppShell", () => {
       { wrapper },
     );
 
-    await userEvent.click(screen.getByRole("button", { name: /log out/i }));
+    await userEvent.click(screen.getAllByRole("button", { name: /log out/i })[0]);
 
     expect(getSession()).toBeNull();
     expect(replace).toHaveBeenCalledWith("/login");

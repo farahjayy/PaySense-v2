@@ -14,10 +14,11 @@ describe("isActive", () => {
     expect(isActive("/plans/", "/plans")).toBe(true);
   });
 
-  it("keeps Transactions lit on the pages reached from it, which have no sidebar entry of their own", () => {
-    expect(isActive("/import", "/transactions")).toBe(true);
+  it("keeps Transactions lit on Categories, which has no sidebar entry of its own, but not on Import, which has (ADR D-61)", () => {
     expect(isActive("/categories", "/transactions")).toBe(true);
     expect(isActive("/categories/abc", "/transactions")).toBe(true);
+    expect(isActive("/import", "/transactions")).toBe(false);
+    expect(isActive("/import", "/import")).toBe(true);
     expect(isActive("/plans", "/transactions")).toBe(false);
   });
 

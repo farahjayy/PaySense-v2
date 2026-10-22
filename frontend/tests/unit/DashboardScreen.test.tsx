@@ -139,10 +139,10 @@ describe("DashboardScreen", () => {
     render(<DashboardScreen />, { wrapper });
 
     expect(await screen.findByText(/unlocks with four months/i)).toBeInTheDocument();
-    expect(screen.getByRole("progressbar", { name: /months of history/i })).toHaveAttribute(
-      "aria-valuenow",
-      "2",
-    );
+    expect(screen.getByText(/2 of 4 logged/i)).toBeInTheDocument();
+    // one line with an Import link; the full box with its progress bar lives on Transactions
+    expect(screen.queryByRole("progressbar", { name: /months of history/i })).toBeNull();
+    expect(screen.getAllByRole("link", { name: "Import" }).length).toBeGreaterThan(0);
     expect(screen.queryByTestId("margin-fan")).not.toBeInTheDocument();
   });
 

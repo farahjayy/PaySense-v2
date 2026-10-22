@@ -65,6 +65,24 @@ describe("riskNotices", () => {
   });
 });
 
+describe("riskNotices (incomplete months)", () => {
+  it("merges the reasons for one month and can be closed, like the dashboard's", () => {
+    const out = riskNotices(
+      check({
+        suspect_months: [
+          { month: "2026-08", reason: "low_spend", detail: "Low." },
+          { month: "2026-08", reason: "no_income", detail: "No income." },
+        ],
+      }),
+    );
+
+    expect(out).toHaveLength(1);
+    expect(out[0].body).toBe("Low. No income.");
+    expect(out[0].dismissKey).toBe("2026-08:low_spend+no_income");
+    expect(out[0].action).toEqual({ label: "Import", href: "/import" });
+  });
+});
+
 describe("draftFromInput", () => {
   it("round-trips a rule-driven request through the form state", () => {
     const input: PlanInput = {

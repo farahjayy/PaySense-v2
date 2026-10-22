@@ -1,6 +1,6 @@
 /** Pages with no sidebar entry of their own, reached from a button on the section that owns them. */
 const ALSO_UNDER: Readonly<Record<string, readonly string[]>> = {
-  "/transactions": ["/import", "/categories"],
+  "/transactions": ["/categories"],
 };
 
 function under(pathname: string, href: string): boolean {

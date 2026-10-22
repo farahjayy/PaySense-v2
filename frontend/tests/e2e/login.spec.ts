@@ -15,10 +15,16 @@ test("a visitor opens the welcome page, signs in, and lands on the shell", async
 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: `Hi, ${DISPLAY_NAME}` })).toBeVisible();
-  // the top bar names the account from tablet width up; on a phone the switch needs the room and the
-  // greeting above already says who is signed in
+  // From a laptop up the sidebar's profile card names the account (ADR D-61); on a tablet and a
+  // phone the top bar does, and on a phone the switch needs the room so the greeting above says it
   const viewport = page.viewportSize();
-  if (viewport && viewport.width >= 640) {
+  const width = viewport?.width ?? 0;
+  if (width >= 768) {
+    await expect(
+      page.getByRole("region", { name: "Your profile" }).getByText(DISPLAY_NAME, { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("banner").getByText(DISPLAY_NAME, { exact: true })).toBeHidden();
+  } else if (width >= 640) {
     await expect(page.getByRole("banner").getByText(DISPLAY_NAME, { exact: true })).toBeVisible();
   } else {
     await expect(page.getByRole("banner").getByText(DISPLAY_NAME, { exact: true })).toBeHidden();

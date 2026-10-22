@@ -8,6 +8,7 @@ import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { replayIntro } from "@/lib/introTour";
 import { isAdmin, useAuth } from "@/lib/session";
+import { setViewAsUser, useViewingAsUser } from "@/lib/viewAs";
 
 /**
  * Author-only tools (ADR D-57), reached from the sidebar for an admin. Whether to show them is
@@ -18,7 +19,8 @@ import { isAdmin, useAuth } from "@/lib/session";
 export function AdminScreen() {
   const router = useRouter();
   const auth = useAuth();
-  const admin = auth.status === "authenticated" && isAdmin(auth.session);
+  const viewingAsUser = useViewingAsUser();
+  const admin = auth.status === "authenticated" && isAdmin(auth.session) && !viewingAsUser;
   const userId = auth.status === "authenticated" ? auth.session.user.id : null;
 
   return (
@@ -28,24 +30,45 @@ export function AdminScreen() {
         intro="Tools for testing and demos. Only admins can see this page."
       />
       {admin && userId ? (
-        <Card>
-          <CardTitle>Quick tour</CardTitle>
-          <CardCaption>
-            Plays the welcome slides and the tour from the start, as on a first sign-in, so you can
-            see or demonstrate the onboarding on this account.
-          </CardCaption>
-          <div className="mt-3">
-            <Button
-              variant="accent"
-              onClick={() => {
-                replayIntro(userId);
-                router.push("/");
-              }}
-            >
-              Launch the quick tour
-            </Button>
-          </div>
-        </Card>
+        <>
+          <Card>
+            <CardTitle>Quick tour</CardTitle>
+            <CardCaption>
+              Plays the welcome slides and the tour from the start, as on a first sign-in, so you
+              can see or demonstrate the onboarding on this account.
+            </CardCaption>
+            <div className="mt-3">
+              <Button
+                variant="accent"
+                onClick={() => {
+                  replayIntro(userId);
+                  router.push("/");
+                }}
+              >
+                Launch the quick tour
+              </Button>
+            </div>
+          </Card>
+          <Card>
+            <CardTitle>View as a user</CardTitle>
+            <CardCaption>
+              Hides the Admin page in this browser so you see what an ordinary student sees. It does
+              not change what the server allows, so it is a preview, not a test of permissions. A
+              bar at the top takes you back.
+            </CardCaption>
+            <div className="mt-3">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setViewAsUser(true);
+                  router.push("/");
+                }}
+              >
+                View as a user
+              </Button>
+            </div>
+          </Card>
+        </>
       ) : (
         <Card>
           <CardTitle>This page is for admins</CardTitle>

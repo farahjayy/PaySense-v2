@@ -9,23 +9,98 @@ import { Face } from "@/components/ui/Face";
 import { useForecast, usePlans, useProviderLimits, useRecurringItems } from "@/lib/api/queries";
 import {
   checklistHidden,
+  checklistShort,
   hideGettingStarted,
   restoreGettingStarted,
+  setChecklistShort,
   subscribeToChecklist,
 } from "@/lib/checklistStore";
-import { gettingStartedSteps } from "@/lib/onboarding";
+import { gettingStartedSteps, type Step } from "@/lib/onboarding";
+
+const LINK =
+  "font-semibold text-accent underline-offset-2 hover:underline focus-visible:underline";
+
+function Tick({ step }: { step: Step }) {
+  return (
+    <>
+      <span
+        aria-hidden
+        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold ${
+          step.done
+            ? "border-success bg-success-bg text-success"
+            : "border-field bg-surface text-ink-muted"
+        }`}
+      >
+        {step.done ? "✓" : ""}
+      </span>
+      <span className="sr-only">{step.done ? "Done" : "To do"}</span>
+    </>
+  );
+}
+
+/** One line per step: the title is the link while the step is still to do. */
+function ShortStep({ step }: { step: Step }) {
+  return (
+    <li className="flex items-center gap-3">
+      <Tick step={step} />
+      {step.done || !step.href ? (
+        <span className={`text-[14px] font-medium ${step.done ? "text-ink-secondary" : "text-ink"}`}>
+          {step.title}
+        </span>
+      ) : (
+        <Link href={step.href} className={`text-[14px] ${LINK}`}>
+          {step.title}
+        </Link>
+      )}
+    </li>
+  );
+}
+
+function LongStep({ step }: { step: Step }) {
+  return (
+    <li className="flex gap-3">
+      <Tick step={step} />
+      <div className="min-w-0 flex-1">
+        <p className={`text-[14px] font-medium ${step.done ? "text-ink-secondary" : "text-ink"}`}>
+          {step.title}
+          {step.detail && (
+            <span className="ml-2 text-[12px] font-normal text-ink-secondary">{step.detail}</span>
+          )}
+        </p>
+        {!step.done && (
+          <>
+            <p className="mt-0.5 text-[13px] leading-relaxed text-ink-secondary">{step.why}</p>
+            {step.href && (
+              <Link href={step.href} className={`mt-1 inline-block text-[13px] ${LINK}`}>
+                {step.action ?? "Open"}
+              </Link>
+            )}
+          </>
+        )}
+      </div>
+    </li>
+  );
+}
 
 /**
  * The route from an empty app to a first risk check, ticking itself off from what the person has
  * actually done. It shows nothing while it is unsure (loading, or a failed call) and goes away when
  * every step is done, so it never shows a wrong checklist or nags a finished student. A student who
  * will never do every step (no BNPL, so no limits and no plans) can hide it; the choice is kept in
- * this browser only.
+ * this browser only. It opens long, with the reason for every step; it can be shortened to a plain
+ * checklist whose unfinished titles are the links (ADR D-61).
  */
 export function GettingStarted() {
   const stored = useSyncExternalStore(subscribeToChecklist, checklistHidden, () => false);
   const [hiddenNow, setHiddenNow] = useState(false); // covers a browser that will not store it
   const hidden = stored || hiddenNow;
+  const storedShort = useSyncExternalStore(subscribeToChecklist, checklistShort, () => false);
+  const [shortNow, setShortNow] = useState<boolean | null>(null); // covers a browser that will not store it
+  const short = shortNow ?? storedShort;
+  function toggleShort() {
+    setShortNow(!short); // applies for this visit even if the browser will not keep the choice
+    setChecklistShort(!short);
+  }
   function hide() {
     setHiddenNow(true); // hidden for this visit even if the browser will not keep the choice
     hideGettingStarted();
@@ -76,53 +151,22 @@ export function GettingStarted() {
             </CardCaption>
           </div>
         </div>
-        <Button variant="secondary" size="sm" onClick={hide}>
-          Hide this
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button variant="secondary" size="sm" aria-expanded={!short} onClick={toggleShort}>
+            {short ? "Show details" : "Show less"}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={hide}>
+            Hide this
+          </Button>
+        </div>
       </div>
-      <ol aria-label="Getting started steps" className="mt-4 space-y-3.5">
-        {steps.map((step) => (
-          <li key={step.id} className="flex gap-3">
-            <span
-              aria-hidden
-              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold ${
-                step.done
-                  ? "border-success bg-success-bg text-success"
-                  : "border-field bg-surface text-ink-muted"
-              }`}
-            >
-              {step.done ? "✓" : ""}
-            </span>
-            <span className="sr-only">{step.done ? "Done" : "To do"}</span>
-            <div className="min-w-0 flex-1">
-              <p
-                className={`text-[14px] font-medium ${step.done ? "text-ink-secondary" : "text-ink"}`}
-              >
-                {step.title}
-                {step.detail && (
-                  <span className="ml-2 text-[12px] font-normal text-ink-secondary">
-                    {step.detail}
-                  </span>
-                )}
-              </p>
-              {!step.done && (
-                <>
-                  <p className="mt-0.5 text-[13px] leading-relaxed text-ink-secondary">
-                    {step.why}
-                  </p>
-                  {step.href && (
-                    <Link
-                      href={step.href}
-                      className="mt-1 inline-block text-[13px] font-semibold text-accent underline-offset-2 hover:underline"
-                    >
-                      {step.action ?? "Open"}
-                    </Link>
-                  )}
-                </>
-              )}
-            </div>
-          </li>
-        ))}
+      <ol
+        aria-label="Getting started steps"
+        className={`mt-4 ${short ? "space-y-2.5" : "space-y-3.5"}`}
+      >
+        {steps.map((step) =>
+          short ? <ShortStep key={step.id} step={step} /> : <LongStep key={step.id} step={step} />,
+        )}
       </ol>
     </Card>
   );

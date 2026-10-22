@@ -12,7 +12,7 @@ import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
 import { Face } from "@/components/ui/Face";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScoreRing } from "@/components/ui/ScoreRing";
-import { ErrorState, LockedState, Skeleton } from "@/components/ui/States";
+import { ErrorState, LockedNote, Skeleton } from "@/components/ui/States";
 import { useBills, useForecast, useMonthSummary } from "@/lib/api/queries";
 import { formatMonth, formatPercent, plural } from "@/lib/format";
 import { notices, OUTLOOK_LINE } from "@/lib/forecast";
@@ -32,7 +32,7 @@ export function DashboardScreen() {
   const name = auth.session?.user.display_name ?? "";
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader title={`Hi, ${name}`} intro="Where your money is heading, and what you owe." />
+      <PageHeader title={`Hi, ${name}`} intro="Where your money is heading, what you owe, and whether the next buy-now-pay-later plan fits." />
       <AlertLine />
       <GettingStarted />
       <Outlook />
@@ -56,7 +56,7 @@ function Outlook() {
   }
   const data = forecast.data;
   if (data.status === "locked" || !data.simulation || !data.band || data.health_score === null) {
-    return <LockedState reason={data.lock_reason} monthsOfHistory={data.months_of_history} />;
+    return <LockedNote reason={data.lock_reason} monthsOfHistory={data.months_of_history} />;
   }
   const sim = data.simulation;
   return (

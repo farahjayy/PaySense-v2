@@ -93,6 +93,53 @@ describe("notices", () => {
     });
   });
 
+  it("gives a month with two reasons one notice that says both, not one notice per reason", () => {
+    const out = notices(
+      forecast({
+        suspect_months: [
+          { month: "2026-08", reason: "low_spend", detail: "Spending is far below your usual." },
+          { month: "2026-08", reason: "no_income", detail: "No income is logged this month." },
+          { month: "2026-09", reason: "no_income", detail: "No income is logged this month." },
+        ],
+      }),
+    );
+
+    expect(out.map((n) => n.title)).toEqual([
+      "August 2026 looks incomplete",
+      "September 2026 looks incomplete",
+    ]);
+    expect(out[0].body).toBe("Spending is far below your usual. No income is logged this month.");
+    expect(out[1].body).toBe("No income is logged this month.");
+  });
+
+  it("offers Import on an incomplete month and lets it be closed, under a key that carries its reasons", () => {
+    const [aug] = notices(
+      forecast({
+        suspect_months: [
+          { month: "2026-08", reason: "no_income", detail: "x" },
+          { month: "2026-08", reason: "low_spend", detail: "y" },
+        ],
+      }),
+    );
+
+    expect(aug.action).toEqual({ label: "Import", href: "/import" });
+    expect(aug.dismissKey).toBe("2026-08:low_spend+no_income"); // reasons sorted, so order never matters
+  });
+
+  it("does not let the notes that qualify the number itself be closed", () => {
+    const out = notices(
+      forecast({
+        is_stale: true,
+        stale_days: 20,
+        data_through: "2026-09-19",
+        simulation: { ...SIM, bootstrap: "fallback", horizon_capped: true },
+      }),
+    );
+
+    expect(out.length).toBeGreaterThanOrEqual(3);
+    for (const n of out) expect(n.dismissKey).toBeUndefined();
+  });
+
   it("lists recurring items that matched nothing", () => {
     const out = notices(forecast({ unmatched_items: ["Rent", "Netflix"] }));
     expect(out[0].body).toMatch(/Rent, Netflix/);

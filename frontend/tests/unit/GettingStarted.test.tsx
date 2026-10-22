@@ -97,6 +97,85 @@ describe("GettingStarted", () => {
     expect(screen.getByText("4 of 5 done")).toBeInTheDocument();
   });
 
+  it("opens long, so a new student sees the counter, the reason and the link for every step", async () => {
+    serve({ months: 2 });
+    render(<GettingStarted />, { wrapper });
+
+    const list = await screen.findByRole("list", { name: /getting started steps/i });
+    expect(within(list).getByText(/learns from at least four months/i)).toBeVisible();
+    expect(within(list).getByRole("link", { name: "Import" })).toHaveAttribute("href", "/import");
+    expect(screen.getByRole("button", { name: /show less/i })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+  });
+
+  it("shortens to a plain checklist whose unfinished titles are the links", async () => {
+    serve({ months: 2 });
+    render(<GettingStarted />, { wrapper });
+    await screen.findByRole("list", { name: /getting started steps/i });
+
+    await userEvent.click(screen.getByRole("button", { name: /show less/i }));
+
+    const list = screen.getByRole("list", { name: /getting started steps/i });
+    expect(within(list).queryByText(/learns from at least four months/i)).not.toBeInTheDocument();
+    expect(within(list).getByRole("link", { name: /bring in your spending/i })).toHaveAttribute(
+      "href",
+      "/import",
+    );
+    expect(within(list).getByRole("link", { name: /check a purchase/i })).toHaveAttribute(
+      "href",
+      "/risk",
+    );
+    expect(screen.getByRole("button", { name: /show details/i })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+  });
+
+  it("leaves a finished step as plain text in the short view", async () => {
+    serve({ months: 5, status: "ok", recurring: [{ id: "r1" }] });
+    render(<GettingStarted />, { wrapper });
+    await screen.findByRole("list", { name: /getting started steps/i });
+
+    await userEvent.click(screen.getByRole("button", { name: /show less/i }));
+
+    const list = screen.getByRole("list", { name: /getting started steps/i });
+    expect(within(list).queryByRole("link", { name: /bring in your spending/i })).toBeNull();
+    expect(within(list).getByText("Bring in your spending")).toBeInTheDocument();
+  });
+
+  it("remembers the short view on the next visit and can open the details again", async () => {
+    serve({ months: 2 });
+    const first = render(<GettingStarted />, { wrapper });
+    await screen.findByRole("list", { name: /getting started steps/i });
+    await userEvent.click(screen.getByRole("button", { name: /show less/i }));
+    first.unmount();
+
+    render(<GettingStarted />, { wrapper });
+    await screen.findByRole("button", { name: /show details/i });
+    expect(screen.queryByText(/learns from at least four months/i)).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /show details/i }));
+
+    expect(screen.getByText(/learns from at least four months/i)).toBeVisible();
+    expect(window.localStorage.getItem("paysense.gettingStarted.short")).toBeNull();
+  });
+
+  it("still shortens for this visit when the browser will not store the choice", async () => {
+    serve({ months: 2 });
+    render(<GettingStarted />, { wrapper });
+    await screen.findByRole("list", { name: /getting started steps/i });
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: /show less/i }));
+
+    expect(screen.queryByText(/learns from at least four months/i)).not.toBeInTheDocument();
+    setItem.mockRestore();
+  });
+
   it("gets out of the way once every step is done, the risk check counted from a plan made from one", async () => {
     serve({
       months: 5,

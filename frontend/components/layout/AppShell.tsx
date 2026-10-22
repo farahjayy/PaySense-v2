@@ -3,14 +3,16 @@
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Fragment, useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
+import { ProfileCard } from "@/components/layout/ProfileCard";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
-import { Face } from "@/components/ui/Face";
+import { replayIntro } from "@/lib/introTour";
 import { isActive } from "@/lib/nav";
 import { clearSession, type Session } from "@/lib/session";
+import { setViewAsUser, useViewingAsUser } from "@/lib/viewAs";
 
 type NavItem = {
   href: string;
@@ -22,59 +24,105 @@ type NavItem = {
   adminOnly?: boolean;
 };
 
-// `daily` marks the pages used every day: they fill the phone's bottom bar and sit above the
-// divider in the sidebar. The rest sit below the divider and, on a phone, in the "More pages" row
-// under the header. Import and Categories have no entry of their own: they are one-off jobs, so
-// they are buttons on Transactions (ADR D-49). `icon` is an SVG path (24x24, stroked).
-const NAV_ITEMS: readonly NavItem[] = [
+type NavGroup = { label?: string; items: readonly NavItem[] };
+
+// Grouped by what the student is doing (ADR D-61). `daily` marks the pages used every day: they
+// fill the phone's bottom bar. The rest sit in the "More pages" row under the header on a phone.
+// Categories has no entry of its own: it is a button on Transactions (ADR D-49). `icon` is an SVG
+// path (24x24, stroked).
+const NAV_GROUPS: readonly NavGroup[] = [
   {
-    href: "/",
-    label: "Dashboard",
-    icon: "M4 13h6V4H4zM14 20h6v-9h-6zM14 4h6v4h-6zM4 20h6v-3H4z",
-    daily: true,
+    label: "Overview",
+    items: [
+      {
+        href: "/",
+        label: "Dashboard",
+        icon: "M4 13h6V4H4zM14 20h6v-9h-6zM14 4h6v4h-6zM4 20h6v-3H4z",
+        daily: true,
+      },
+      {
+        href: "/notifications",
+        label: "Notifications",
+        icon: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
+        daily: false,
+      },
+    ],
   },
   {
-    href: "/transactions",
-    label: "Transactions",
-    icon: "M4 7h16M4 12h16M4 17h10",
-    daily: true,
-    tour: "transactions",
+    label: "Your money",
+    items: [
+      {
+        href: "/transactions",
+        label: "Transactions",
+        icon: "M4 7h16M4 12h16M4 17h10",
+        daily: true,
+        tour: "transactions",
+      },
+      {
+        href: "/import",
+        label: "Import",
+        icon: "M12 16V4M7 9l5-5 5 5M4 20h16",
+        daily: false,
+      },
+      {
+        href: "/recurring",
+        label: "Recurring",
+        icon: "M17 3l3 3-3 3M4 11V9a3 3 0 0 1 3-3h13M7 21l-3-3 3-3M20 13v2a3 3 0 0 1-3 3H4",
+        daily: false,
+      },
+    ],
   },
   {
-    href: "/plans",
-    label: "Plans",
-    icon: "M5 4h14v16H5zM9 9h6M9 13h6M9 17h3",
-    daily: true,
-    tour: "plans",
+    label: "Buy now, pay later",
+    items: [
+      {
+        href: "/risk",
+        label: "Risk check",
+        icon: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
+        daily: true,
+        tour: "risk",
+      },
+      {
+        href: "/plans",
+        label: "Plans",
+        icon: "M5 4h14v16H5zM9 9h6M9 13h6M9 17h3",
+        daily: true,
+        tour: "plans",
+      },
+    ],
   },
   {
-    href: "/risk",
-    label: "Risk check",
-    icon: "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
-    daily: true,
-    tour: "risk",
+    label: "How it works",
+    items: [
+      {
+        href: "/model",
+        label: "About the model",
+        icon: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v6M12 7.5v.01",
+        daily: false,
+        tour: "model",
+      },
+    ],
   },
   {
-    href: "/recurring",
-    label: "Recurring",
-    icon: "M17 3l3 3-3 3M4 11V9a3 3 0 0 1 3-3h13M7 21l-3-3 3-3M20 13v2a3 3 0 0 1-3 3H4",
-    daily: false,
-  },
-  {
-    href: "/model",
-    label: "About the model",
-    icon: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v6M12 7.5v.01",
-    daily: false,
-    tour: "model",
-  },
-  {
-    href: "/admin",
-    label: "Admin",
-    icon: "M8 9l-3 3 3 3M16 9l3 3-3 3M13 7l-2 10",
-    daily: false,
-    adminOnly: true,
+    items: [
+      {
+        href: "/admin",
+        label: "Admin",
+        icon: "M8 9l-3 3 3 3M16 9l3 3-3 3M13 7l-2 10",
+        daily: false,
+        adminOnly: true,
+      },
+    ],
   },
 ];
+
+/** The groups this person may see: admin-only items and any group left empty by that are dropped. */
+function visibleGroups(showAdmin: boolean): NavGroup[] {
+  return NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => !item.adminOnly || showAdmin),
+  })).filter((group) => group.items.length > 0);
+}
 
 function NavIcon({ d, size = 20 }: { d: string; size?: number }) {
   return (
@@ -111,15 +159,19 @@ function Wordmark({ onDark = false }: { onDark?: boolean }) {
 
 function Sidebar({
   pathname,
-  name,
-  items,
+  groups,
+  user,
+  onLogout,
+  onIntro,
 }: {
   pathname: string;
-  name: string;
-  items: readonly NavItem[];
+  groups: readonly NavGroup[];
+  user: Session["user"];
+  onLogout: () => void;
+  onIntro: () => void;
 }) {
   return (
-    <aside className="sticky top-0 hidden h-screen w-62 shrink-0 flex-col gap-8 overflow-hidden bg-sidebar px-4 pb-6 pt-7 text-sidebar-ink md:flex">
+    <aside className="sticky top-0 hidden h-screen w-62 shrink-0 flex-col gap-5 overflow-hidden bg-sidebar px-4 pb-5 pt-7 text-sidebar-ink md:flex">
       {/* soft rings and a tile, as on the login page: decoration only */}
       <div
         aria-hidden
@@ -133,80 +185,104 @@ function Sidebar({
         <BrandMark />
         <Wordmark onDark />
       </Link>
-      <nav aria-label="Main navigation" className="relative flex flex-col gap-1">
-        {items.map((item, index) => {
-          const active = isActive(pathname, item.href);
-          const startsSecondGroup = !item.daily && items[index - 1]?.daily;
-          return (
-            <Fragment key={item.href}>
-              {startsSecondGroup && (
-                <div aria-hidden className="mx-3.5 my-2 border-t border-sidebar-ink/20" />
-              )}
-              <Link
-                href={item.href}
-                data-tour={item.tour}
-                aria-current={active ? "page" : undefined}
-                className={`flex h-11.5 items-center gap-3 rounded-2xl px-3.5 text-[15px] transition-colors ${navLinkClass(active)}`}
+      <nav
+        aria-label="Main navigation"
+        className="relative flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1"
+      >
+        {groups.map((group, index) => (
+          <div
+            key={group.label ?? `group-${index}`}
+            role="group"
+            aria-label={group.label}
+            className="flex flex-col gap-1"
+          >
+            {group.label && (
+              <p
+                aria-hidden
+                className="px-3.5 pb-0.5 text-[11px] font-bold uppercase tracking-wider text-sidebar-muted"
               >
-                <NavIcon d={item.icon} />
-                {item.label}
-              </Link>
-            </Fragment>
-          );
-        })}
+                {group.label}
+              </p>
+            )}
+            {group.items.map((item) => {
+              const active = isActive(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  data-tour={item.tour}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex h-11 items-center gap-3 rounded-2xl px-3.5 text-[15px] transition-colors ${navLinkClass(active)}`}
+                >
+                  <NavIcon d={item.icon} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
-      <div className="relative mt-auto flex flex-col gap-3.5">
-        <Link
-          href="/settings"
-          data-tour="settings"
-          aria-current={isActive(pathname, "/settings") ? "page" : undefined}
-          className="flex items-center gap-3 rounded-2xl px-1.5 py-1 hover:bg-white/10"
-        >
-          <Face band="Hello" size={40} />
-          <span className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-[15px] font-bold">{name}</span>
-            <span className="text-[13px] text-sidebar-muted">Settings</span>
-          </span>
-        </Link>
-        <p className="px-1.5 text-[12px] leading-relaxed text-sidebar-muted">
-          Financial health forecasting and BNPL risk classification for students.
-        </p>
-      </div>
+      <ProfileCard user={user} onLogout={onLogout} onIntro={onIntro} />
     </aside>
   );
 }
 
-function MobileNav({ pathname }: { pathname: string }) {
+function MobileNav({ pathname, items }: { pathname: string; items: readonly NavItem[] }) {
   return (
     <nav
       aria-label="Quick navigation"
       className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-surface md:hidden"
     >
-      {NAV_ITEMS.filter((item) => item.daily).map((item) => {
-        const active = isActive(pathname, item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            data-tour={item.tour}
-            aria-current={active ? "page" : undefined}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-semibold ${
-              active ? "text-accent" : "text-ink-muted"
-            }`}
-          >
-            <NavIcon d={item.icon} size={22} />
-            {item.label}
-          </Link>
-        );
-      })}
+      {items
+        .filter((item) => item.daily)
+        .map((item) => {
+          const active = isActive(pathname, item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              data-tour={item.tour}
+              aria-current={active ? "page" : undefined}
+              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-semibold ${
+                active ? "text-accent" : "text-ink-muted"
+              }`}
+            >
+              <NavIcon d={item.icon} size={22} />
+              {item.label}
+            </Link>
+          );
+        })}
     </nav>
+  );
+}
+
+/** Shown to an admin who is previewing the app as an ordinary student (ADR D-61). */
+function ViewingAsUserBar() {
+  return (
+    <div
+      role="status"
+      aria-label="Viewing as a user"
+      className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-accent px-4 py-1.5 text-[13px] font-semibold text-on-accent"
+    >
+      <span>You are viewing PaySense as a user.</span>
+      <button
+        type="button"
+        onClick={() => setViewAsUser(false)}
+        className="rounded underline underline-offset-2 hover:no-underline"
+      >
+        Back to admin view
+      </button>
+    </div>
   );
 }
 
 type Props = { user: Session["user"]; children: ReactNode };
 
 export function AppShell({ user, children }: Props) {
-  const items = NAV_ITEMS.filter((item) => !item.adminOnly || user.role === "admin");
+  const viewingAsUser = useViewingAsUser();
+  const isAdminAccount = user.role === "admin";
+  const groups = visibleGroups(isAdminAccount && !viewingAsUser);
+  const items = groups.flatMap((group) => group.items);
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -230,6 +306,11 @@ export function AppShell({ user, children }: Props) {
     router.replace("/login");
   }
 
+  function handleIntro() {
+    replayIntro(user.id);
+    router.push("/"); // the tour's first stop, the forecast, is on the dashboard
+  }
+
   return (
     <div className="flex min-h-screen">
       <a
@@ -238,8 +319,15 @@ export function AppShell({ user, children }: Props) {
       >
         Skip to content
       </a>
-      <Sidebar pathname={pathname} name={user.display_name} items={items} />
+      <Sidebar
+        pathname={pathname}
+        groups={groups}
+        user={user}
+        onLogout={handleLogout}
+        onIntro={handleIntro}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
+        {isAdminAccount && viewingAsUser && <ViewingAsUserBar />}
         <header className="flex h-14 items-center justify-between gap-3 border-b border-line bg-surface px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2 text-ink md:hidden">
             <BrandMark size={28} />
@@ -247,7 +335,8 @@ export function AppShell({ user, children }: Props) {
           </Link>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <span className="hidden max-w-[10rem] truncate text-[13px] font-medium text-ink sm:inline">
+            {/* the sidebar's profile card does these jobs from a laptop up */}
+            <span className="hidden max-w-[10rem] truncate text-[13px] font-medium text-ink sm:inline md:hidden">
               {user.display_name}
             </span>
             <Link
@@ -256,28 +345,37 @@ export function AppShell({ user, children }: Props) {
               aria-current={isActive(pathname, "/settings") ? "page" : undefined}
               className="inline-flex min-h-6 items-center px-1 text-[13px] font-semibold text-accent underline-offset-2 hover:underline md:hidden"
             >
-              Settings
+              Your data
             </Link>
-            <Button variant="secondary" size="sm" onClick={handleLogout}>
+            <Button variant="secondary" size="sm" onClick={handleLogout} className="md:hidden">
               Log out
             </Button>
           </div>
         </header>
         <nav
           aria-label="More pages"
-          className="flex gap-5 border-b border-line bg-surface px-4 py-2 text-[13px] font-medium md:hidden"
+          className="flex flex-wrap gap-x-5 gap-y-1 border-b border-line bg-surface px-4 py-2 text-[13px] font-medium md:hidden"
         >
-          {items.filter((item) => !item.daily).map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              data-tour={item.tour}
-              aria-current={isActive(pathname, item.href) ? "page" : undefined}
-              className="py-1 text-accent underline-offset-2 hover:underline"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {items
+            .filter((item) => !item.daily)
+            .map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                data-tour={item.tour}
+                aria-current={isActive(pathname, item.href) ? "page" : undefined}
+                className="py-1 text-accent underline-offset-2 hover:underline"
+              >
+                {item.label}
+              </Link>
+            ))}
+          <button
+            type="button"
+            onClick={handleIntro}
+            className="py-1 text-accent underline-offset-2 hover:underline"
+          >
+            Show the intro again
+          </button>
         </nav>
         <main
           id="main"
@@ -288,7 +386,7 @@ export function AppShell({ user, children }: Props) {
           {children}
         </main>
       </div>
-      <MobileNav pathname={pathname} />
+      <MobileNav pathname={pathname} items={items} />
     </div>
   );
 }

@@ -9,13 +9,20 @@ const TONES: Record<Tone, { box: string; icon: string; glyph: string }> = {
   danger: { box: "border-danger/30 bg-danger-bg text-ink", icon: "text-danger", glyph: "▲" },
 };
 
-type Props = { tone?: Tone; title?: string; children?: ReactNode; className?: string };
+type Props = {
+  tone?: Tone;
+  title?: string;
+  children?: ReactNode;
+  className?: string;
+  /** Adds a close button, named after the title, for a message the person may put away. */
+  onClose?: () => void;
+};
 
 /**
  * A message that qualifies a number or explains a state. Colour is never the only signal: every
  * tone has its own glyph, and a danger banner is announced immediately (role="alert").
  */
-export function Banner({ tone = "info", title, children, className = "" }: Props) {
+export function Banner({ tone = "info", title, children, className = "", onClose }: Props) {
   const style = TONES[tone];
   return (
     <div
@@ -25,10 +32,20 @@ export function Banner({ tone = "info", title, children, className = "" }: Props
       <span aria-hidden className={`mt-0.5 w-4 shrink-0 text-center font-bold ${style.icon}`}>
         {style.glyph}
       </span>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         {title && <p className="font-semibold">{title}</p>}
         {children && <div className={title ? "mt-0.5 text-ink-secondary" : ""}>{children}</div>}
       </div>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={title ? `Close: ${title}` : "Close"}
+          className="-mr-1 -mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[16px] leading-none text-ink-secondary hover:bg-black/5 hover:text-ink"
+        >
+          <span aria-hidden>×</span>
+        </button>
+      )}
     </div>
   );
 }

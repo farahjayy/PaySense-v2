@@ -19,6 +19,20 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
+/** Background a reader can open or close, written as a group so it has an accessible name. */
+function Aside({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <Card>
+      <details open aria-label={title} className="group">
+        <summary className="cursor-pointer text-[15px] font-semibold text-ink">{title}</summary>
+        <div className="mt-2 space-y-2 text-[14px] leading-relaxed text-ink-secondary">
+          {children}
+        </div>
+      </details>
+    </Card>
+  );
+}
+
 /**
  * Plain-language model card. It says what each tool does, how to read the result and, as
  * prominently, where it is weak. Static on purpose: nothing here is a number from a model.
@@ -30,6 +44,36 @@ export function ModelScreen() {
         title="About the model"
         intro="How the forecast and the BNPL risk check work, what they were built from, and where they are weak."
       />
+      <Aside title="Where PaySense comes from">
+        <p>
+          PaySense is a university final-year project in Malaysia: a working prototype for students
+          deciding whether to buy now and pay later. It is not a bank&apos;s product, and what it
+          shows are estimates from your own records: the decision stays yours.
+        </p>
+      </Aside>
+      <Aside title="New to BNPL in Malaysia?">
+        <ul className="list-disc space-y-1.5 pl-5">
+          <li>
+            Amounts are in Malaysian ringgit (RM); a ringgit is a hundred sen, and PaySense counts
+            in sen so nothing is lost to rounding.
+          </li>
+          <li>
+            SPayLater (Shopee), TikTok PayLater and Atome are the buy-now-pay-later services
+            students meet most at online checkouts. Each splits a purchase into instalments,
+            sometimes with a fee, up to a spending limit the provider sets.
+          </li>
+          <li>
+            PTPTN is Malaysia&apos;s national higher-education loan fund; many students receive it
+            once a semester, so their income arrives in lumps. Allowances from family, a
+            scholarship or a programme such as PESP usually arrive monthly.
+          </li>
+          <li>
+            Small instalments make a phone or a laptop feel affordable today, but several plans at
+            once can outrun an income that arrives in lumps. PaySense checks that before you
+            commit.
+          </li>
+        </ul>
+      </Aside>
       <ModelVersions />
       <Section id="forecast" title="Financial health forecast">
         <p>

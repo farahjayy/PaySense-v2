@@ -14,7 +14,7 @@ import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
 import { Face } from "@/components/ui/Face";
 import { Fold } from "@/components/ui/Fold";
 import { ScoreRing } from "@/components/ui/ScoreRing";
-import { LockedState, Skeleton } from "@/components/ui/States";
+import { LockedNote, Skeleton } from "@/components/ui/States";
 import type { PlanInput, RiskCheck } from "@/lib/api/queries";
 import { BAND_COPY, formatPercent, plural } from "@/lib/format";
 import { formatRm } from "@/lib/money";
@@ -114,7 +114,7 @@ function sections(check: RiskCheck): Section[] {
 export function RiskResult({ check, onTrySuggestion, busy, stale = false, footer }: Props) {
   const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
   if (check.status !== "ok" || check.probability === null || !check.band || check.score === null) {
-    return <LockedState reason={check.lock_reason} monthsOfHistory={check.months_of_history} />;
+    return <LockedNote reason={check.lock_reason} monthsOfHistory={check.months_of_history} />;
   }
   const copy = BAND_COPY[check.band];
   const folds = sections(check);

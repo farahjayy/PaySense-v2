@@ -33,12 +33,9 @@ async function signIn(page: Page, journey: string, { skipIntro = true } = {}) {
   await expect(page.getByRole("heading", { level: 1, name: /hi, e2e tester/i })).toBeVisible();
 }
 
-/** Import has no sidebar entry: it is a button on Transactions. */
+/** Import has a sidebar entry (ADR D-61) and a button on Transactions; the sidebar's comes first. */
 async function openImport(page: Page) {
-  await page.getByRole("link", { name: "Transactions" }).first().click();
-  // wait for the page to change: the dashboard checklist has an Import link of its own
-  await expect(page.getByRole("heading", { level: 1, name: "Transactions" })).toBeVisible();
-  await page.getByRole("link", { name: "Import", exact: true }).click();
+  await page.getByRole("link", { name: "Import", exact: true }).first().click();
   await expect(page.getByRole("heading", { level: 1, name: "Import" })).toBeVisible();
 }
 
@@ -76,6 +73,7 @@ test("every screen loads for a signed-in tester with its own title", async ({ pa
     ["/plans", /bnpl plans/i],
     ["/import", /import/i],
     ["/model", /about the model/i],
+    ["/notifications", /notifications/i],
   ];
   for (const [route, heading] of screens) {
     await page.goto(route);
@@ -200,8 +198,8 @@ test("Settings: clear the transactions, then factory reset, after saving a copy"
   await page.getByRole("button", { name: /^add \d+ transactions?$/i }).click();
   await expect(page.getByText(/transactions added/i)).toBeVisible();
 
-  // Settings is a link by the name, not a menu item
-  await page.getByRole("link", { name: /settings/i }).click();
+  // Settings is reached from "Your data" on the profile card, not a menu item
+  await page.getByRole("link", { name: "Your data" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
 
   // a copy first: the CSV downloads
@@ -224,7 +222,7 @@ test("Settings: clear the transactions, then factory reset, after saving a copy"
   await expect(page.getByText(/nothing to forecast|unlocks with four months/i)).toBeVisible();
 
   // a factory reset after that has nothing left to remove
-  await page.getByRole("link", { name: /settings/i }).click();
+  await page.getByRole("link", { name: "Your data" }).click();
   await page.getByRole("button", { name: /reset everything/i }).click();
   const factory = page.getByRole("dialog");
   await factory.getByLabel(/type reset/i).fill("RESET");
@@ -291,6 +289,12 @@ test("a first sign-in plays the welcome slides and the tour, and an admin can la
   await expect(page.getByRole("heading", { level: 1, name: "Admin" })).toBeVisible();
   await page.getByRole("button", { name: "Launch the quick tour" }).click();
   await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("dialog", { name: /welcome to paysense/i })).toBeVisible();
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // ...and anyone can play it again from "Show the intro again" (ADR D-61)
+  await page.getByRole("button", { name: "Show the intro again" }).first().click();
   await expect(page.getByRole("dialog", { name: /welcome to paysense/i })).toBeVisible();
   await page.getByRole("button", { name: "Skip", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);

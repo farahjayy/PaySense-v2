@@ -13,11 +13,12 @@ import { Button } from "@/components/ui/Button";
 import { CatIcon } from "@/components/ui/CatIcon";
 import { Dialog } from "@/components/ui/Dialog";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { EmptyState, ErrorState, Skeleton } from "@/components/ui/States";
+import { EmptyState, ErrorState, LockedState, Skeleton } from "@/components/ui/States";
 import {
   useCategorySummary,
   useCreateTransaction,
   useDeleteTransaction,
+  useForecast,
   useMonthSummary,
   usePlans,
   useTransactions,
@@ -76,6 +77,7 @@ function Ledger({ initialMonth, firstMonth, lastMonth }: LedgerProps) {
   });
   const spending = useCategorySummary(month);
   const plans = usePlans();
+  const forecast = useForecast();
   const categories = useAssignableCategories([
     ...(list.data ?? []).map((t) => t.category),
     ...(category ? [category] : []),
@@ -144,6 +146,14 @@ function Ledger({ initialMonth, firstMonth, lastMonth }: LedgerProps) {
           </>
         }
       />
+      {forecast.data?.status === "locked" && (
+        <div className="mb-5">
+          <LockedState
+            reason={forecast.data.lock_reason}
+            monthsOfHistory={forecast.data.months_of_history}
+          />
+        </div>
+      )}
       <form
         aria-label="Filter transactions"
         className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-card border border-line bg-surface px-5 py-4"

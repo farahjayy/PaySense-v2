@@ -67,7 +67,41 @@ export function chartSummary(sim: Simulation): string {
   return `By ${formatMonth(sim.months[last])} your running margin is most likely about ${end}.${worst}`;
 }
 
-export type Notice = { id: string; tone: "info" | "warning"; title: string; body: string };
+export type Notice = {
+  id: string;
+  tone: "info" | "warning";
+  title: string;
+  body: string;
+  /** A link that helps put the notice right. */
+  action?: { label: string; href: string };
+  /**
+   * Present only on a notice the person may close (ADR D-62). It names what is being closed,
+   * reasons included, so a new reason on a closed month brings the notice back.
+   */
+  dismissKey?: string;
+};
+
+type SuspectMonth = Forecast["suspect_months"][number];
+
+/**
+ * One notice per month that looks incomplete, saying every reason, with a way to import what is
+ * missing and a key to close it by. Months keep the order the server gave them.
+ */
+export function suspectNotices(months: readonly SuspectMonth[]): Notice[] {
+  const byMonth = new Map<string, SuspectMonth[]>();
+  for (const m of months) byMonth.set(m.month, [...(byMonth.get(m.month) ?? []), m]);
+  return [...byMonth].map(([month, rows]) => ({
+    id: `suspect-${month}`,
+    tone: "warning",
+    title: `${formatMonth(month)} looks incomplete`,
+    body: rows.map((r) => r.detail).join(" "),
+    action: { label: "Import", href: "/import" },
+    dismissKey: `${month}:${rows
+      .map((r) => r.reason)
+      .sort()
+      .join("+")}`,
+  }));
+}
 
 const BOOTSTRAP_NOTES: Partial<Record<Simulation["bootstrap"], string>> = {
   block:
@@ -92,14 +126,7 @@ export function notices(forecast: Forecast): Notice[] {
       }. The forecast only knows what you logged up to then, so import or add what has happened since.`,
     });
   }
-  for (const m of forecast.suspect_months) {
-    out.push({
-      id: `suspect-${m.month}`,
-      tone: "warning",
-      title: `${formatMonth(m.month)} looks incomplete`,
-      body: m.detail,
-    });
-  }
+  out.push(...suspectNotices(forecast.suspect_months));
   if (forecast.unmatched_items.length > 0) {
     out.push({
       id: "unmatched",

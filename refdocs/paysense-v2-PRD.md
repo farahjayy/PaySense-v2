@@ -271,6 +271,8 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-58 | A dark mode for the signed-in app: the same tokens redefined under `data-theme=dark`, a toggle in the top bar, no flash on load, contrast held by the test | Low-light use and preference; one palette swap, not per-component styles |
 | D-59 | Dark mode reaches the welcome and login pages (teal split into fill, text and label roles); the switch is a Dark | Light pill shown on every page; contrast fixes from an audit (chart danger line, dark divider); amends D-58 | A dark choice should reach the front door and be reachable from it; the danger line was below 3:1 |
 | D-60 | No savings-buffer input for the UAT (Batch B dropped); persona histories end 24 Oct 2026 for a 25-31 Oct study and are accepted only if the risk check tells their purchases apart on every study day | The measurement Batch B waited for no longer shows the gap; a persona that gives every purchase one band cannot show testers whether the tool works |
+| D-61 | The shell follows v3: labelled sidebar sections, Import back in the sidebar (and on Transactions), a profile card (name only, intro replay for everyone), a "Why?" toggle and 32px titles, a long-or-short Getting started, a View-as-a-user switch. Amends D-49 and D-56 |
+| D-62 | Month notices merge into one per month with an Import link and a close button; a Notifications page lists all, with Restore; the "four months" box moves to Transactions. Closed state is browser-only |
 
 ---
 

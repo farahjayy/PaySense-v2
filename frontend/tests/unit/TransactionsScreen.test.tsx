@@ -130,6 +130,13 @@ const CATEGORY_LIST = {
   ],
 };
 
+const FORECAST_LOCKED = {
+  status: "locked",
+  lock_reason: "needs_four_months",
+  months_of_history: 2,
+};
+const FORECAST_OK = { status: "ok", lock_reason: null, months_of_history: 6 };
+let forecast: unknown = FORECAST_OK;
 let transactions: unknown[] = ROWS;
 let categoryList: () => unknown = () => ok(CATEGORY_LIST);
 
@@ -143,6 +150,8 @@ function route(path: string) {
       return ok(SPENDING);
     case "/api/plans":
       return ok(PLANS);
+    case "/api/forecast":
+      return ok(forecast);
     case "/api/categories":
       return categoryList();
     default:
@@ -160,12 +169,37 @@ describe("TransactionsScreen", () => {
     vi.setSystemTime(new Date(2026, 9, 15));
     for (const m of [get, post, patch, del]) m.mockReset();
     transactions = ROWS;
+    forecast = FORECAST_OK;
     categoryList = () => ok(CATEGORY_LIST);
     get.mockImplementation(async (path: string) => route(path));
   });
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it("shows the four-months box here, where the history is added, while the forecast is locked (ADR D-62)", async () => {
+    forecast = FORECAST_LOCKED;
+    render(<TransactionsScreen />, { wrapper });
+
+    expect(await screen.findByText(/unlocks with four months of history/i)).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: /months of history/i })).toHaveAttribute(
+      "aria-valuenow",
+      "2",
+    );
+    expect(screen.getByRole("link", { name: "Import a statement" })).toHaveAttribute(
+      "href",
+      "/import",
+    );
+  });
+
+  it("shows no such box once the forecast is unlocked", async () => {
+    render(<TransactionsScreen />, { wrapper });
+
+    await screen.findByRole("heading", { level: 1, name: "Transactions" });
+    await vi.waitFor(() => expect(get).toHaveBeenCalledWith("/api/forecast"));
+    expect(screen.queryByText(/unlocks with four months/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("progressbar", { name: /months of history/i })).toBeNull();
   });
 
   it("lists transactions with signs, and shows a plan payment's plan instead of Edit and Delete", async () => {

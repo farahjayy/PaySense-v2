@@ -27,7 +27,7 @@ Use the persona that goes with the scenario they will check at the end. Say each
 | # | Say | Watch for | Note |
 |---|---|---|---|
 | T1 | **"Log in with the username on this card."** | Finds the login; understands there is no password | |
-| T2 | **"This file is a few months of an imaginary student's bank statement. Bring it into the app."** | Finds Import (a button on Transactions, not in the sidebar); reads the preview; whether they notice rows left unticked (already saved) and the category and type menus; whether the success message leads them on | |
+| T2 | **"This file is a few months of an imaginary student's bank statement. Bring it into the app."** | Finds Import (its own entry in the sidebar under Your money, and a button on Transactions); reads the preview; whether they notice rows left unticked (already saved) and the category and type menus; whether the success message leads them on | |
 | T3 | **"What does the app say about this student's money over the next few months? Tell me in your own words."** | Reads the score and the band; whether they notice the shaded range, the table behind it and any warnings | |
 | T4 | **"Is there anything in the app you would want to tell it that repeats every month?"** | Finds Recurring; understands the suggestions and the Confirm button | |
 | T5 | **"Now this student is thinking of making the purchase in scenario <V>. Find out whether it is a good idea."** | Finds the risk check; enters the provider, the item, the price and the number of instalments; what they make of the preview-free form (the answer only appears after "Check this purchase") | |

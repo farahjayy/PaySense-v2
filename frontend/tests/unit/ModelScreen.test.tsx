@@ -112,4 +112,24 @@ describe("ModelScreen", () => {
     expect(weak).toHaveTextContent(/simulated students, not on real repayments/i);
     expect(weak).toHaveTextContent(/already stand before you buy/i);
   });
+
+  it("says where PaySense comes from, as a final-year prototype and not a bank's product", async () => {
+    serve(INFO);
+    render(<ModelScreen />, { wrapper });
+
+    const origin = screen.getByRole("group", { name: /where paysense comes from/i });
+    expect(origin).toHaveTextContent(/final-year project/i);
+    expect(origin).toHaveTextContent(/not a bank/i);
+    expect(origin).not.toHaveTextContent(/fintechathon/i);
+  });
+
+  it("explains the local terms for a reader new to BNPL in Malaysia", async () => {
+    serve(INFO);
+    render(<ModelScreen />, { wrapper });
+
+    const glossary = screen.getByRole("group", { name: /new to bnpl in malaysia/i });
+    for (const term of [/ringgit/i, /SPayLater/, /PTPTN/, /instalments/i]) {
+      expect(glossary).toHaveTextContent(term);
+    }
+  });
 });

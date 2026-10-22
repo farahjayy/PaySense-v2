@@ -7,7 +7,7 @@ import { BandBadge } from "@/components/ui/BandBadge";
 import { Dialog } from "@/components/ui/Dialog";
 import { MoneyInput } from "@/components/ui/MoneyInput";
 import { ScoreRing } from "@/components/ui/ScoreRing";
-import { EmptyState, ErrorState, LockedState, Skeleton } from "@/components/ui/States";
+import { EmptyState, ErrorState, LockedState, LockedNote, Skeleton } from "@/components/ui/States";
 import { StatTile } from "@/components/ui/StatTile";
 
 describe("Banner", () => {
@@ -104,6 +104,25 @@ describe("states", () => {
     rerender(<LockedState reason="no_usable_history" monthsOfHistory={5} />);
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     expect(screen.getByText("There is nothing to forecast from yet")).toBeInTheDocument();
+  });
+});
+
+describe("LockedNote", () => {
+  it("is one line with the months so far and a link to import, and no progress bar", () => {
+    render(<LockedNote reason="needs_four_months" monthsOfHistory={2} />);
+
+    expect(screen.getByText(/unlocks with four months of history \(2 of 4 logged\)/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Import" })).toHaveAttribute("href", "/import");
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
+  it("says something different when the months are there but the weeks are not, or nothing is usable", () => {
+    const { rerender } = render(<LockedNote reason="needs_four_months" monthsOfHistory={9} />);
+    expect(screen.getByText(/a few more complete weeks/i)).toBeInTheDocument();
+    expect(screen.queryByText(/unlocks with four months/i)).not.toBeInTheDocument();
+
+    rerender(<LockedNote reason="no_usable_history" monthsOfHistory={5} />);
+    expect(screen.getByText(/nothing to forecast from yet/i)).toBeInTheDocument();
   });
 });
 

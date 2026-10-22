@@ -3,8 +3,7 @@
  * server sends them. This module only reshapes (notices, the form prefilled from a suggestion).
  */
 import type { PlanInput, RiskCheck } from "@/lib/api/queries";
-import { formatMonth } from "@/lib/format";
-import type { Notice } from "@/lib/forecast";
+import { suspectNotices, type Notice } from "@/lib/forecast";
 import { emptyDraft, type PlanDraft } from "@/lib/plans";
 
 /** The server flags a ledger as stale after this many days; the check carries the age only. */
@@ -20,14 +19,7 @@ export function riskNotices(check: RiskCheck): Notice[] {
       body: `Your last logged day was ${check.stale_days} days ago. The check only knows what you logged up to then, so import or add what has happened since.`,
     });
   }
-  for (const m of check.suspect_months) {
-    out.push({
-      id: `suspect-${m.month}`,
-      tone: "warning",
-      title: `${formatMonth(m.month)} looks incomplete`,
-      body: m.detail,
-    });
-  }
+  out.push(...suspectNotices(check.suspect_months));
   if (check.unmatched_items.length > 0) {
     out.push({
       id: "unmatched",

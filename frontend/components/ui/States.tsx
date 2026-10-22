@@ -66,6 +66,34 @@ type LockedProps = {
 };
 
 /**
+ * The one-line version of the locked state, for the dashboard and the risk check (ADR D-62). The
+ * full box, with its progress bar, lives on Transactions, where the missing history is put right.
+ */
+export function LockedNote({ reason, monthsOfHistory }: LockedProps) {
+  const shown = Math.min(monthsOfHistory, MONTHS_NEEDED);
+  const text =
+    reason === "no_usable_history"
+      ? "There is nothing to forecast from yet. Add your everyday spending and income."
+      : monthsOfHistory >= MONTHS_NEEDED
+        ? "Almost there: the forecast needs a few more complete weeks of history."
+        : `Your forecast unlocks with four months of history (${shown} of ${MONTHS_NEEDED} logged).`;
+  return (
+    <div
+      role="status"
+      className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-card border border-line bg-surface px-5 py-4"
+    >
+      <p className="text-[14px] font-medium text-ink">{text}</p>
+      <Link
+        href="/import"
+        className="text-[13px] font-semibold text-accent underline-offset-2 hover:underline"
+      >
+        Import
+      </Link>
+    </div>
+  );
+}
+
+/**
  * The forecast needs about four months of history. This is a normal first-run state, not an error:
  * it says what is missing and where to fix it.
  */
