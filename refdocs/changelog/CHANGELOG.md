@@ -29,7 +29,7 @@ Rules that make this file worth keeping:
 ## [Unreleased]
 
 ### 2026-10-22 — Login wording
-- **Changed:** `app/login/page.tsx` line under "Welcome": "Sign in to see where your money is heading." (was "Enter your username to start. There is no password."); `LoginForm` hint: "Have an invite from the team? Enter its username here. Lost it? Message <contact>." (the support contact is kept, since a tester who loses a username needs it). Both at the author's request, from v3's login wording. v2's login has no "New to BNPL in Malaysia?" box and none was added.
+- **Changed:** `app/login/page.tsx` line under "Welcome": "Sign in to see where your money is heading." (was "Enter your username to start. There is no password."); `LoginForm` hint: "Enter the username you were given. Lost it? Message <contact>." (first written as "Have an invite from the team?…", changed the same day because testers are given a username, not an invitation code) (the support contact is kept, since a tester who loses a username needs it). Both at the author's request, from v3's login wording. v2's login has no "New to BNPL in Malaysia?" box and none was added.
 - **Verified:** tests updated first (two failed), then `cd frontend && npx vitest run tests/unit/LoginPage.test.tsx tests/unit/LoginForm.test.tsx` -> 18 passed; `npx eslint` on the touched files clean. The full suites were not re-run for this wording change.
 - **Noted:** `uat/task-script.md` task T1 still observes whether a tester "understands there is no password"; the page no longer says so, so that observation now tests whether the form is clear on its own.
 

@@ -121,7 +121,7 @@ describe("LoginForm", () => {
     const input = screen.getByLabelText(/username/i);
 
     const before = input.getAttribute("aria-describedby") ?? "";
-    expect(document.getElementById(before)).toHaveTextContent(/invite from the team\? enter its username here/i);
+    expect(document.getElementById(before)).toHaveTextContent(/enter the username you were given/i);
 
     await userEvent.type(input, "ghost");
     await userEvent.click(screen.getByRole("button", { name: /continue/i }));
@@ -129,7 +129,7 @@ describe("LoginForm", () => {
 
     const ids = (input.getAttribute("aria-describedby") ?? "").split(" ");
     const described = ids.map((id) => document.getElementById(id)?.textContent ?? "").join(" ");
-    expect(described).toMatch(/invite from the team\? enter its username here/i);
+    expect(described).toMatch(/enter the username you were given/i);
     expect(described).toMatch(/no account with that username/i);
     expect(input).toHaveAttribute("aria-invalid", "true");
   });
