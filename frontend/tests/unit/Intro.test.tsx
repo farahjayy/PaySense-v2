@@ -119,6 +119,50 @@ describe("Intro", () => {
     expect(card).not.toHaveClass("aspect-[4/3]");
   });
 
+  it("draws a forecast that climbs steeply, so the picture fills its square card", () => {
+    const { container } = setup();
+
+    const line = container.querySelector("[data-intro-card] path.intro-draw") as SVGPathElement;
+    const ys = [...(line.getAttribute("d") ?? "").matchAll(/[ML]\s*[\d.]+\s+([\d.]+)/g)].map((m) =>
+      Number(m[1]),
+    );
+    expect(ys.length).toBeGreaterThan(4);
+    expect(ys[0] - ys[ys.length - 1]).toBeGreaterThanOrEqual(60); // ends well above where it starts
+    const box = (container.querySelector("[data-intro-card] svg") as SVGElement)
+      .getAttribute("viewBox")!
+      .split(" ")
+      .map(Number);
+    expect(box[3] / box[2]).toBeGreaterThan(0.85); // close to square, not a wide strip
+  });
+
+  it("keeps the progress bar, the heading, the words and the buttons at the same height on every slide", async () => {
+    const { user, container } = setup();
+    const layout = () => {
+      const column = container.querySelector("[data-intro-text]") as HTMLElement;
+      const title = column.querySelector("h2") as HTMLElement;
+      return {
+        columnClasses: (column.parentElement as HTMLElement).className,
+        titleClasses: title.className,
+        wordsClasses: column.className,
+        wordsLine: (title.nextElementSibling as HTMLElement).className,
+      };
+    };
+    const first = layout();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(layout()).toEqual(first);
+    // pinned from the top with the buttons at the foot, never centred on whatever the copy needs
+    expect(first.columnClasses).not.toContain("justify-center");
+    expect(first.wordsClasses).toContain("flex-1");
+    // room for a title of three lines on a phone and two beside the picture, and for three lines of
+    // words, even when this slide needs fewer, so nothing below moves
+    expect(first.titleClasses).toContain("min-h-[3.75em]");
+    expect(first.titleClasses).toContain("sm:min-h-[2.5em]");
+    expect(first.wordsLine).toContain("min-h-[4.9em]");
+  });
+
   it("goes forward and back one slide at a time", async () => {
     const { user } = setup();
 

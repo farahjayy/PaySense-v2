@@ -18,22 +18,22 @@ type Slide = { title: string; text: string; picture: ReactNode };
 // One entrance per element, started by a delay; reduced motion shows the finished picture.
 const after = (seconds: number): CSSProperties => ({ animationDelay: `${seconds}s` });
 
-/** A forecast line draws in and the likely range opens out where the future starts. */
+/** A forecast line climbs, then the likely range opens out where the future starts. */
 function ForecastPicture() {
   return (
-    <svg viewBox="0 0 240 150" className="h-full w-full" aria-hidden>
-      <line x1="10" y1="130" x2="230" y2="130" className="stroke-line" strokeWidth="2" />
-      <path d="M130 78 L230 36 L230 116 Z" className="intro-rise fill-accent-bg" style={after(1)} />
+    <svg viewBox="0 0 240 220" className="h-full w-full" aria-hidden>
+      <line x1="10" y1="200" x2="230" y2="200" className="stroke-line" strokeWidth="2" />
+      <path d="M130 118 L230 26 L230 144 Z" className="intro-rise fill-accent-bg" style={after(1)} />
       <path
-        d="M10 100 L40 88 L70 95 L100 72 L130 78 L180 66 L230 76"
+        d="M10 176 L40 160 L70 168 L100 136 L130 118 L180 90 L230 62"
         pathLength={1}
         className="intro-draw fill-none stroke-accent"
         strokeWidth="4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <line x1="130" y1="20" x2="130" y2="130" className="stroke-field" strokeDasharray="4 4" />
-      <circle cx="130" cy="78" r="6" className="intro-pop fill-rosy" style={after(0.9)} />
+      <line x1="130" y1="14" x2="130" y2="200" className="stroke-field" strokeDasharray="4 4" />
+      <circle cx="130" cy="118" r="6" className="intro-pop fill-rosy" style={after(0.9)} />
     </svg>
   );
 }
@@ -192,7 +192,7 @@ export function Intro({ onTour, onSkip }: Props) {
             </div>
           </div>
         </div>
-        <div className="flex flex-col justify-center gap-5 p-6 sm:p-9">
+        <div className="flex flex-col gap-5 p-6 sm:p-9">
           <div className="flex items-center gap-3">
             <div className="flex flex-1 gap-1.5" aria-hidden>
               {SLIDES.map((s, i) => (
@@ -210,14 +210,14 @@ export function Intro({ onTour, onSkip }: Props) {
               Skip
             </button>
           </div>
-          <div key={index} data-intro-slide className={`ob-in-${dir}`}>
+          <div key={index} data-intro-slide data-intro-text className={`ob-in-${dir} flex-1`}>
             <p className="text-[12px] font-bold uppercase tracking-wider text-accent">
               Step {index + 1} of {SLIDES.length}
             </p>
-            <h2 className="mt-1.5 font-display text-[26px] font-extrabold leading-tight text-ink">
+            <h2 className="mt-1.5 min-h-[3.75em] font-display text-[26px] font-extrabold leading-tight text-ink sm:min-h-[2.5em]">
               {slide.title}
             </h2>
-            <p className="mt-3 text-[15px] leading-relaxed text-ink-secondary">{slide.text}</p>
+            <p className="mt-3 min-h-[4.9em] text-[15px] leading-relaxed text-ink-secondary">{slide.text}</p>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             {index > 0 ? (

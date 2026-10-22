@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-22 — Intro: a steeper graph, and every slide's text at the same heights
+- **Reported:** make the forecast graph "incline" so it looks bigger in its card; make "the progress statement" and every card's text sit at the same height on all slides.
+- **Changed:** `components/onboarding/Intro.tsx`: the forecast picture is drawn in a near-square box (240 x 220) and climbs from low left to high right with a wider range, so it fills the square card; the right panel is no longer centred on whatever the copy needs but pinned from the top, with the buttons at the foot; the heading reserves room for three lines on a phone and two beside the picture, and the words reserve three lines, so a short slide cannot pull the rest up; two tests in `tests/unit/Intro.test.tsx` (red first).
+- **Diagnosed:** measured in a browser, the desktop slides were already identical after the pinning (progress bar 85 px, step label 85, heading 109, words 186, buttons 341, card height 418 on all three). On a phone the second slide's longer title wrapped to three lines and pushed its words and buttons 32 px lower, and the modal changed height between slides (654, 711, 679 px); after reserving the lines every phone slide reads 420 / 444 / 553 / 647 and 712 px.
+- **Verified:** `npx eslint --ignore-pattern ".next-devcheck/**"` and `npx tsc --noEmit` clean; `npm run test` 61 files passed; the browser measurements above on the production build (desktop and Pixel 7 projects); screenshot of slide 1 read. Slides 2 and 3 were measured but not looked at again after the graph change.
+
+
 ### 2026-10-22 — Intro: a taller picture card
 - **Reported:** "the card, should it be bigger (height increase)?" after the author confirmed the animation now works in her browser.
 - **Changed:** `components/onboarding/Intro.tsx`: the picture card is 5:4 above the text and square beside it (it was 4:3, which left empty teal above and below it), and the left panel is at least 26 rem tall from tablet width up; one test in `tests/unit/Intro.test.tsx`.
