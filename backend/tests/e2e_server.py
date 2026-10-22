@@ -8,21 +8,22 @@ sessions with a random per-start key. Test tooling only — never deployed.
 
 import os
 import secrets
-from datetime import date
+from datetime import timedelta
 
 from app.api.deps import get_today
 from app.core.settings import Settings
 from app.engines.risk.features import FEATURE_NAMES, FEATURE_SCHEMA_HASH
 from app.main import create_app
 from app.seed import seed_user
+from ml.datagen.personas import PERSONA_AS_OF
 from tests.fakes import FakeSupabase
 
 E2E_ORIGIN = os.environ.get("E2E_FRONTEND_ORIGIN", "http://localhost:3100")
 E2E_USERNAME = "e2e"
 E2E_DISPLAY_NAME = "E2E Tester"
-# The persona CSVs end on 28 December 2025; the browser tests run "the next day" so the imported
-# ledger is fresh and the forecast is not flagged as out of date.
-E2E_TODAY = date(2025, 12, 29)
+# The browser tests run "the day after the persona CSVs end", so the imported ledger is fresh and
+# the forecast is not flagged as out of date. Derived, so the two can never drift apart.
+E2E_TODAY = PERSONA_AS_OF + timedelta(days=1)
 
 
 class StubModel:

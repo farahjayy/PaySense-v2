@@ -160,7 +160,7 @@ test("a plan that has already started keeps a check of what is left, and the rep
   await page.getByRole("button", { name: "Add a plan" }).first().click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("What are you buying?").fill("Old tablet");
-  await dialog.getByLabel("Purchase date").fill("2025-08-01");
+  await dialog.getByLabel("Purchase date").fill("2026-06-01");
   await dialog.getByLabel("Number of instalments").fill("3");
   await dialog.getByLabel(/^price/i).fill("300");
 

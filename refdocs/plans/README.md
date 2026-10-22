@@ -46,3 +46,4 @@ Status vocabulary: `Draft` · `In progress` · `Done` · `Blocked` · `Supersede
 | [2026-10-22-admin-role.md](2026-10-22-admin-role.md) | A simple admin role and the intro replay as an admin tool | Built and green; migration 0003 applied to the real project |
 | [2026-10-22-admin-role.md](2026-10-22-admin-role.md) | A simple admin role and the intro replay as an admin tool | In progress |
 | [2026-10-22-admin-page-and-dark-mode.md](2026-10-22-admin-page-and-dark-mode.md) | An Admin page in the sidebar (quick-tour launcher) and a dark mode | Built and green |
+| [2026-10-22-persona-histories-oct-2026.md](2026-10-22-persona-histories-oct-2026.md) | Persona histories that end on 31 October 2026, picked so the risk check tells small purchases from large ones | Done (author review of the CSVs pending) |

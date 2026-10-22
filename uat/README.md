@@ -24,7 +24,7 @@ The report gives mean SUS with a 95% confidence interval, the mean of each clari
 
 ## Persona dates
 
-The persona statements were written for a fixed period. Imported unchanged on a later date, a tester would see a ledger months out of date and a forecast flagged as stale. Before a session, move the persona forward so it ends just before that day:
+The committed persona files run from 1 June to 31 October 2026 and need no shifting for a study that starts between 31 October and 14 November: the forecast calls a ledger stale after 14 days without a transaction, and each persona was checked to tell a small purchase from a large one on every day in that stretch (`ml.datagen.personas`, `CHECK_DAY_OFFSETS`). For a study that starts later, move the persona forward so it ends just before that day (the purchase outcomes were checked only for the stretch above, so look at them again after shifting):
 
 ```
 cd backend && uv run python -m ml.uat.shift_persona --persona budget_conscious     --session <the session date, YYYY-MM-DD> --out ../uat/data/budget_conscious_shifted.csv

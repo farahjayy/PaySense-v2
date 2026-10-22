@@ -1,4 +1,5 @@
 import hashlib
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -8,6 +9,8 @@ from app.domain.csv_import import parse_csv
 from app.domain.flows import history_span, month_summary
 from ml.datagen.params import load_params
 from ml.datagen.personas import (
+    CHECK_DAY_OFFSETS,
+    MIN_BNPL_SHARE,
     PERSONA_SEEDS,
     build_persona_profile,
     render_csv,
@@ -99,6 +102,41 @@ def test_the_irregular_persona_is_paid_in_gigs_not_a_steady_allowance(profiles):
     gigs = [t for t in profiles["irregular_income"].transactions if t.category == "Gig"]
 
     assert len(gigs) >= 3
+
+
+@pytest.mark.parametrize("persona", PERSONAS)
+def test_each_history_runs_from_june_to_the_end_of_october_2026(profiles, persona):
+    profile = profiles[persona]
+    dates = [t.date for t in profile.transactions]
+
+    assert profile.as_of == date(2026, 10, 31)
+    assert min(dates) >= date(2026, 6, 1) and min(dates).month == 6
+    assert max(dates).year == 2026 and max(dates).month == 10
+
+
+@pytest.mark.parametrize("persona", PERSONAS)
+def test_the_risk_check_tells_a_small_purchase_from_a_large_one_on_every_persona(profiles, persona):
+    """A tester who sees every purchase come out the same cannot judge whether the tool works.
+    Measured with the app's own simulation and no savings, over the buffer check's purchase grid."""
+    from app.engines.forecasting.serving import served_forecaster
+    from ml.buffer_check import measure_ledger
+
+    profile = profiles[persona]
+    rows = [t.as_row() for t in profile.transactions]
+    forecaster = served_forecaster()
+
+    for offset in CHECK_DAY_OFFSETS:
+        today = profile.as_of + timedelta(days=offset)
+        bands = {c["band"] for c in measure_ledger(rows, today, 0, forecaster)["cells"]}
+        assert "Safe" in bands and bands != {"Safe"}, (persona, today, bands)
+
+
+def test_the_frequent_bnpl_persona_carries_a_material_bnpl_load(profiles):
+    profile = profiles["frequent_bnpl"]
+    months = len({(t.date.year, t.date.month) for t in profile.transactions})
+    bnpl_sen = sum(t.amount_sen for t in profile.transactions if t.category == "BNPL")
+
+    assert bnpl_sen / months >= MIN_BNPL_SHARE * profile.expected_monthly_income_sen
 
 
 def test_no_amount_is_zero_and_nothing_is_dated_in_the_future(profiles):

@@ -60,6 +60,13 @@ def with_buffer(buffer_sen: int):
 
 def measure(persona: str, buffer_sen: int, forecaster) -> dict[str, Any]:
     rows, today = ledger(persona)
+    return {"persona": persona, **measure_ledger(rows, today, buffer_sen, forecaster)}
+
+
+def measure_ledger(
+    rows: list[dict[str, Any]], today, buffer_sen: int, forecaster
+) -> dict[str, Any]:
+    """The purchase grid on one ledger, so a persona can be checked before its file is written."""
     original, patched = with_buffer(buffer_sen)
     service.simulate = patched
     try:
@@ -76,7 +83,7 @@ def measure(persona: str, buffer_sen: int, forecaster) -> dict[str, Any]:
                     rows, [], [], proposal, {}, today, forecaster, seed=SEED, paths=PATHS
                 )
                 if built is None:
-                    raise RuntimeError(f"{persona}: the forecast is locked")
+                    raise RuntimeError("the forecast is locked")
                 baseline = built.p_without
                 cells.append(
                     {
@@ -89,7 +96,6 @@ def measure(persona: str, buffer_sen: int, forecaster) -> dict[str, Any]:
     finally:
         service.simulate = original
     return {
-        "persona": persona,
         "buffer_sen": buffer_sen,
         "baseline_p": baseline,
         "baseline_band": band(baseline),
