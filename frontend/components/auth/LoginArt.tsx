@@ -81,12 +81,12 @@ export function HelloFace() {
   return (
     <svg className="lg-hello" viewBox="0 0 100 100" aria-hidden="true">
       <rect className="lg-hello-tile" width="100" height="100" rx="30" />
-      <circle cx="35" cy="42" r="5.5" fill="var(--lg-ink)" />
-      <circle cx="65" cy="42" r="5.5" fill="var(--lg-ink)" />
+      <circle cx="35" cy="42" r="5.5" fill="var(--color-face-ink)" />
+      <circle cx="65" cy="42" r="5.5" fill="var(--color-face-ink)" />
       <path
         d="M32 59q18 18 36 0"
         fill="none"
-        stroke="var(--lg-ink)"
+        stroke="var(--color-face-ink)"
         strokeWidth="5.5"
         strokeLinecap="round"
       />

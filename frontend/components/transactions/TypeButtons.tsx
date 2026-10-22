@@ -28,7 +28,7 @@ export function TypeButtons({ value, onChange }: Props) {
             aria-pressed={pressed}
             onClick={() => onChange(option.value)}
             className={`h-9 border-l border-line px-3 text-[13px] font-medium first:border-l-0 ${
-              pressed ? "bg-accent-bg font-semibold text-accent" : "text-ink hover:bg-surface-2"
+              pressed ? "bg-accent-bg font-semibold text-accent shadow-[inset_0_-3px_0_var(--color-accent)]" : "text-ink hover:bg-surface-2"
             }`}
           >
             {option.label}

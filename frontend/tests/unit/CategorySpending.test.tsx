@@ -69,4 +69,15 @@ describe("CategorySpending", () => {
     await userEvent.click(food);
     expect(onSelect).toHaveBeenLastCalledWith(undefined);
   });
+
+  it("marks the chosen category with a bar on its left edge as well as the tint (not colour alone)", () => {
+    show(vi.fn(), "Food");
+
+    expect(screen.getByRole("button", { name: /food/i })).toHaveClass(
+      "shadow-[inset_3px_0_0_var(--color-accent)]",
+    );
+    expect(screen.getByRole("button", { name: /transport/i })).not.toHaveClass(
+      "shadow-[inset_3px_0_0_var(--color-accent)]",
+    );
+  });
 });

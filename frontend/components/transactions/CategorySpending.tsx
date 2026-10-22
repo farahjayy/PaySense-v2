@@ -108,7 +108,7 @@ function SpendingBreakdown({ rows, selected, onSelect }: BreakdownProps) {
                 aria-pressed={selected === r.category}
                 onClick={() => onSelect(selected === r.category ? undefined : r.category)}
                 className={`block w-full rounded-[10px] text-left hover:bg-surface-2 ${
-                  selected === r.category ? "bg-accent-bg" : ""
+                  selected === r.category ? "bg-accent-bg shadow-[inset_3px_0_0_var(--color-accent)]" : ""
                 }`}
               >
                 <RowBody row={r} active={selected === r.category} />

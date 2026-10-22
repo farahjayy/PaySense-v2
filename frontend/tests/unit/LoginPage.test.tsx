@@ -19,6 +19,16 @@ describe("LoginPage", () => {
     ).toBeVisible();
   });
 
+  it("has the dark mode switch, after the form so the username stays the first stop", () => {
+    render(<LoginPage />);
+
+    const toggle = screen.getByRole("button", { name: "Dark mode" });
+    const username = screen.getByLabelText(/username/i);
+    expect(
+      username.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("invites the visitor to sign in, without telling them there is no password", () => {
     render(<LoginPage />);
 

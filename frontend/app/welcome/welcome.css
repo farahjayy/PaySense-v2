@@ -17,6 +17,11 @@
   gap: 12px;
   padding: 8px 4px 20px;
 }
+.login-theme .wl-nav-end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .login-theme .wl-brand {
   display: flex;
   align-items: center;
@@ -26,7 +31,7 @@
   border-radius: 12px;
 }
 .login-theme .wl-brand .lg-brand-name span {
-  color: var(--lg-teal);
+  color: var(--lg-teal-text);
 }
 
 /* ---------- Buttons ---------- */
@@ -56,7 +61,7 @@
 }
 .login-theme .wl-btn-primary {
   background: var(--lg-teal);
-  color: var(--lg-page);
+  color: var(--lg-on-teal);
   box-shadow: 0 14px 28px -16px rgba(16, 86, 102, 0.7);
 }
 .login-theme .wl-btn-primary:hover {
@@ -73,7 +78,7 @@
   border-color: var(--lg-field);
 }
 .login-theme .wl-btn-light {
-  background: var(--lg-page);
+  background: var(--lg-on-teal);
   color: var(--lg-teal);
 }
 .login-theme .wl-btn-light:hover {
@@ -81,7 +86,7 @@
 }
 .login-theme .wl-btn-light:focus-visible,
 .login-theme .wl-ready a:focus-visible {
-  outline-color: var(--lg-page);
+  outline-color: var(--lg-on-teal);
 }
 
 /* ---------- Hero ---------- */
@@ -106,7 +111,7 @@
   padding: 6px 12px;
   border-radius: 999px;
   background: var(--color-accent-bg);
-  color: var(--lg-teal);
+  color: var(--lg-teal-text);
   font-size: 13px;
   font-weight: 700;
 }
@@ -121,8 +126,8 @@
 }
 .login-theme .wl-hero h1 em {
   font-style: normal;
-  color: var(--lg-teal);
-  background: linear-gradient(transparent 68%, rgba(211, 150, 140, 0.45) 68%);
+  color: var(--lg-teal-text);
+  background: linear-gradient(transparent 68%, var(--lg-mark) 68%);
 }
 .login-theme .wl-lede {
   max-width: 32rem;
@@ -219,7 +224,7 @@
 }
 .login-theme .wl-line {
   fill: none;
-  stroke: var(--lg-teal);
+  stroke: var(--lg-teal-text);
   stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -301,7 +306,7 @@
   height: 40px;
   border-radius: 14px;
   background: var(--lg-teal);
-  color: var(--lg-page);
+  color: var(--lg-on-teal);
   font-family: var(--lg-font-display);
   font-weight: 800;
   font-size: 18px;
@@ -347,7 +352,7 @@
   padding: 48px 32px;
   border-radius: 32px;
   background: var(--lg-teal);
-  color: var(--lg-page);
+  color: var(--lg-on-teal);
   text-align: center;
 }
 .login-theme .wl-ready p {

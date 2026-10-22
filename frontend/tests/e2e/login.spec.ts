@@ -15,7 +15,14 @@ test("a visitor opens the welcome page, signs in, and lands on the shell", async
 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: `Hi, ${DISPLAY_NAME}` })).toBeVisible();
-  await expect(page.getByRole("banner").getByText(DISPLAY_NAME, { exact: true })).toBeVisible();
+  // the top bar names the account from tablet width up; on a phone the switch needs the room and the
+  // greeting above already says who is signed in
+  const viewport = page.viewportSize();
+  if (viewport && viewport.width >= 640) {
+    await expect(page.getByRole("banner").getByText(DISPLAY_NAME, { exact: true })).toBeVisible();
+  } else {
+    await expect(page.getByRole("banner").getByText(DISPLAY_NAME, { exact: true })).toBeHidden();
+  }
 });
 
 test("an unknown username shows an error and stays on /login", async ({ page }) => {

@@ -15,6 +15,14 @@ describe("WelcomePage (ADR D-55)", () => {
     expect(screen.getByText(/know whether a buy-now-pay-later plan fits/i)).toBeInTheDocument();
   });
 
+  it("has the dark mode switch in the top bar, next to Sign in", () => {
+    render(<WelcomePage />);
+
+    const bar = screen.getByRole("banner");
+    expect(within(bar).getByRole("button", { name: "Dark mode" })).toBeInTheDocument();
+    expect(within(bar).getByRole("link", { name: "Sign in" })).toBeInTheDocument();
+  });
+
   it("has its sections in a sensible order", () => {
     render(<WelcomePage />);
 

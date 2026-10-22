@@ -97,7 +97,7 @@ function NavIcon({ d, size = 20 }: { d: string; size?: number }) {
 
 function navLinkClass(active: boolean): string {
   return active
-    ? "bg-page font-bold text-accent"
+    ? "bg-page font-bold text-accent shadow-[inset_3px_0_0_var(--color-accent)]"
     : "font-semibold text-sidebar-ink/90 hover:bg-white/10";
 }
 
@@ -245,9 +245,9 @@ export function AppShell({ user, children }: Props) {
             <BrandMark size={28} />
             <Wordmark />
           </Link>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <span className="max-w-[10rem] truncate text-[13px] font-medium text-ink">
+            <span className="hidden max-w-[10rem] truncate text-[13px] font-medium text-ink sm:inline">
               {user.display_name}
             </span>
             <Link

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -47,6 +47,32 @@ describe("ThemeToggle (ADR D-58)", () => {
       "aria-pressed",
       "true",
     );
+  });
+
+  it("draws both sides, DARK and LIGHT, hidden from assistive technology (one toggle, not two labels)", () => {
+    render(<ThemeToggle />);
+    const button = screen.getByRole("button", { name: "Dark mode" });
+
+    for (const word of ["DARK", "LIGHT"]) {
+      const label = within(button).getByText(word);
+      expect(label.closest("[aria-hidden='true']")).not.toBeNull();
+    }
+    expect(button.querySelectorAll("svg")).toHaveLength(2);
+  });
+
+  it("slides the black thumb to the side that is on", async () => {
+    const user = userEvent.setup();
+    render(<ThemeToggle />);
+    const button = screen.getByRole("button", { name: "Dark mode" });
+    const thumb = () => button.querySelector("[data-thumb]");
+
+    expect(button).toHaveAttribute("data-mode", "light");
+    expect(thumb()).toHaveClass("translate-x-full");
+
+    await user.click(button);
+
+    expect(button).toHaveAttribute("data-mode", "dark");
+    expect(thumb()).not.toHaveClass("translate-x-full");
   });
 
   it("has no accessibility violations in either state", async () => {

@@ -269,6 +269,7 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-56 | A simple admin role (`users.role`, read from the database on every request; `require_admin`); the intro-and-tour replay in Settings is an admin tool | A tester replaying the tour mid-session is noise; a role gives one place to gate author-only tools |
 | D-57 | An Admin page in the sidebar, for admins only, holding the quick-tour launcher (the Settings Admin card is removed) | A home for author-only tools; display-only gating, as D-56 |
 | D-58 | A dark mode for the signed-in app: the same tokens redefined under `data-theme=dark`, a toggle in the top bar, no flash on load, contrast held by the test | Low-light use and preference; one palette swap, not per-component styles |
+| D-59 | Dark mode reaches the welcome and login pages (teal split into fill, text and label roles); the switch is a Dark | Light pill shown on every page; contrast fixes from an audit (chart danger line, dark divider); amends D-58 | A dark choice should reach the front door and be reachable from it; the danger line was below 3:1 |
 
 ---
 

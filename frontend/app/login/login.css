@@ -1,7 +1,9 @@
 /*
  * Login page look (soft pond theme). Scoped to `.login-theme`, so nothing here touches the rest of
  * the app. The Safe / Caution / At Risk colours are the app's own band colours (globals.css), kept
- * unchanged on purpose: they carry meaning. Light only, like the rest of the app.
+ * unchanged on purpose: they carry meaning. The page follows the app's theme (D-59): the dark
+ * values sit in the second block below. `--lg-teal` is a FILL (panels, buttons) carrying
+ * `--lg-on-teal` labels; `--lg-teal-text` is the teal as TEXT, a stroke or a border on the page.
  */
 .login-theme {
   --lg-page: #f7f4d5;
@@ -15,13 +17,22 @@
   --lg-ink-3: #4d655f; /* 5.6:1 on the page background */
   --lg-field: #6b8a84; /* input border: 3.7:1 on white (WCAG 1.4.11) */
   --lg-line: #e4e0b8;
+  --lg-teal-text: #105666;
+  --lg-on-teal: #f7f4d5;
+  --lg-input: #ffffff;
+  --lg-placeholder: #5c756f; /* 4.9:1 on white (was #6f8680, 3.9:1) */
+  --lg-disabled: #a9c3c8;
+  --lg-ring: rgba(16, 86, 102, 0.22);
+  --lg-tint: rgba(16, 86, 102, 0.1);
+  --lg-mark: rgba(211, 150, 140, 0.45); /* the rosy highlight under a word */
 
-  --lg-safe: var(--color-success);
-  --lg-safe-bg: var(--color-success-bg);
-  --lg-caution: var(--color-warning);
-  --lg-caution-bg: var(--color-warning-bg);
-  --lg-risk: var(--color-danger);
-  --lg-risk-bg: var(--color-danger-bg);
+  /* the result characters and chips keep the app's face colours in both themes */
+  --lg-safe: var(--color-face-safe);
+  --lg-safe-bg: var(--color-face-safe-bg);
+  --lg-caution: var(--color-face-caution);
+  --lg-caution-bg: var(--color-face-caution-bg);
+  --lg-risk: var(--color-face-risk);
+  --lg-risk-bg: var(--color-face-risk-bg);
 
   --lg-font-display: var(--font-display);
   --lg-font-body: var(--font-sans);
@@ -31,6 +42,39 @@
   background: var(--lg-page);
   color: var(--lg-ink);
   font-family: var(--lg-font-body);
+}
+
+/* Dark values (the same roles, redefined). The page, card, ink and field match the app's dark palette. */
+:root[data-theme="dark"] .login-theme {
+  --lg-page: #0e1f1d;
+  --lg-card: #142a27;
+  --lg-teal: #135664;
+  --lg-teal-deep: #0f4350;
+  --lg-teal-soft: #24798b;
+  --lg-ink: #eef4ee;
+  --lg-ink-2: #b7cbc4;
+  --lg-ink-3: #9cb5ad;
+  --lg-field: #7da39b;
+  --lg-line: #35544f;
+  --lg-teal-text: #6cc4d3;
+  --lg-on-teal: #f1eecf;
+  --lg-input: #0e1f1d;
+  --lg-placeholder: #8fa9a1;
+  --lg-disabled: #2c4a50;
+  --lg-ring: rgba(108, 196, 211, 0.4);
+  --lg-tint: rgba(108, 196, 211, 0.14);
+  --lg-mark: rgba(211, 150, 140, 0.28);
+}
+
+/* the theme switch, top right of the page (it follows the form in the document) */
+.login-theme {
+  position: relative;
+}
+.login-theme .lg-theme-switch {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 5;
 }
 
 .login-theme .lg-shell {
@@ -59,7 +103,7 @@
   padding: 32px;
   border-radius: 32px;
   background: var(--lg-teal);
-  color: var(--lg-page);
+  color: var(--lg-on-teal);
 }
 @media (min-width: 880px) {
   .login-theme .lg-panel {
@@ -147,7 +191,7 @@
   color: var(--lg-rosy);
 }
 .login-theme .lg-mark-page {
-  fill: var(--lg-page);
+  fill: var(--lg-on-teal);
 }
 .login-theme .lg-mark-teal {
   fill: var(--lg-teal);
@@ -333,7 +377,7 @@
   padding: 0 52px 0 18px;
   border: 1.5px solid var(--lg-field);
   border-radius: 16px;
-  background: #fff;
+  background: var(--lg-input);
   color: var(--lg-ink);
   font: inherit;
   font-size: 1.0625rem;
@@ -342,18 +386,18 @@
     box-shadow 140ms;
 }
 .login-theme .lg-input::placeholder {
-  color: #6f8680;
+  color: var(--lg-placeholder);
 }
 .login-theme .lg-input:hover {
-  border-color: var(--lg-teal);
+  border-color: var(--lg-teal-text);
 }
 .login-theme .lg-input:read-only {
   background: var(--lg-card);
 }
 .login-theme .lg-input:focus-visible {
   outline: none;
-  border-color: var(--lg-teal);
-  box-shadow: 0 0 0 4px rgba(16, 86, 102, 0.22);
+  border-color: var(--lg-teal-text);
+  box-shadow: 0 0 0 4px var(--lg-ring);
 }
 .login-theme .lg-field-error .lg-input {
   border-color: var(--lg-risk);
@@ -377,11 +421,11 @@
     color 140ms;
 }
 .login-theme .lg-eye:hover {
-  background: rgba(16, 86, 102, 0.1);
-  color: var(--lg-teal);
+  background: var(--lg-tint);
+  color: var(--lg-teal-text);
 }
 .login-theme .lg-eye:focus-visible {
-  outline: 3px solid var(--lg-teal);
+  outline: 3px solid var(--lg-teal-text);
   outline-offset: 1px;
 }
 .login-theme .lg-hint {
@@ -410,7 +454,7 @@
   border: 0;
   border-radius: 16px;
   background: var(--lg-teal);
-  color: var(--lg-page);
+  color: var(--lg-on-teal);
   font: inherit;
   font-size: 1.0625rem;
   font-weight: 700;
@@ -435,11 +479,11 @@
   transform: translateY(0);
 }
 .login-theme .lg-go:focus-visible {
-  outline: 3px solid var(--lg-teal);
+  outline: 3px solid var(--lg-teal-text);
   outline-offset: 3px;
 }
 .login-theme .lg-go:disabled {
-  background: #a9c3c8;
+  background: var(--lg-disabled);
   box-shadow: none;
   cursor: not-allowed;
 }

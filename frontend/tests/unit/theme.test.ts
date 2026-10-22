@@ -84,3 +84,29 @@ describe("pond theme contrast", () => {
     ).toEqual(["#3b6d11", "#854f0b", "#a32d2d"]);
   });
 });
+
+
+describe("the danger line on the chart (contrast audit)", () => {
+  it("is the audited colour", () => {
+    expect(token("chart-red").toLowerCase()).toBe("#b92a2a");
+  });
+
+  it("is at least 3:1 against the chart band it is drawn over (WCAG 1.4.11)", () => {
+    expect(contrast(token("chart-red"), token("chart-blue"))).toBeGreaterThanOrEqual(3);
+  });
+
+  it("is at least 3:1 against the card behind the chart", () => {
+    expect(contrast(token("chart-red"), token("surface"))).toBeGreaterThanOrEqual(3);
+  });
+});
+
+
+describe("the danger lines the charts actually draw (they use --color-danger)", () => {
+  it("are at least 3:1 against the chart band in light", () => {
+    expect(contrast(token("danger"), token("chart-blue"))).toBeGreaterThanOrEqual(3);
+  });
+
+  it("are at least 3:1 against the card in light", () => {
+    expect(contrast(token("danger"), token("surface"))).toBeGreaterThanOrEqual(3);
+  });
+});

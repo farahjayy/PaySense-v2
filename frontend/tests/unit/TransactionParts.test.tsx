@@ -55,6 +55,15 @@ describe("TypeButtons", () => {
   });
 });
 
+describe("TypeButtons selected cue", () => {
+  it("underlines the chosen type with a bar as well as the tint (not colour alone)", () => {
+    render(<TypeButtons value="income" onChange={() => {}} />);
+
+    expect(screen.getByRole("button", { name: "Income" })).toHaveClass("shadow-[inset_0_-3px_0_var(--color-accent)]");
+    expect(screen.getByRole("button", { name: "Spending" })).not.toHaveClass("shadow-[inset_0_-3px_0_var(--color-accent)]");
+  });
+});
+
 describe("MonthStepper", () => {
   it("names the month and steps one month either way", async () => {
     const onChange = vi.fn();

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { ArrowIcon, BandFace, BrandMark, type BandKey } from "@/components/auth/LoginArt";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import type { Band } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Welcome" };
@@ -110,9 +111,12 @@ export default function WelcomePage() {
             Pay<span>Sense</span>
           </span>
         </Link>
-        <Link href="/login" className="wl-btn wl-btn-ghost">
-          Sign in
-        </Link>
+        <div className="wl-nav-end">
+          <ThemeToggle />
+          <Link href="/login" className="wl-btn wl-btn-ghost">
+            Sign in
+          </Link>
+        </div>
       </header>
 
       <main>

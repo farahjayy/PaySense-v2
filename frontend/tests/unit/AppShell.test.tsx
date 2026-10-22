@@ -164,6 +164,23 @@ describe("AppShell", () => {
     expect(container.querySelector('[data-tour="plans"]')).toHaveAttribute("href", "/plans");
   });
 
+  it("marks the current page with a bar on its edge, not just a lighter chip", () => {
+    render(
+      <AppShell user={USER}>
+        <p>page body</p>
+      </AppShell>,
+      { wrapper },
+    );
+
+    const current = screen
+      .getAllByRole("link", { name: /dashboard/i })
+      .filter((link) => link.getAttribute("aria-current") === "page");
+    expect(current.length).toBeGreaterThan(0);
+    expect(current[0]).toHaveClass("shadow-[inset_3px_0_0_var(--color-accent)]");
+    const other = screen.getAllByRole("link", { name: /transactions/i })[0];
+    expect(other).not.toHaveClass("shadow-[inset_3px_0_0_var(--color-accent)]");
+  });
+
   it("has the dark mode toggle in the top bar for everyone", () => {
     render(
       <AppShell user={USER}>

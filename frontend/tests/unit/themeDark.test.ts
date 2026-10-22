@@ -57,6 +57,7 @@ const TEXT_PAIRS: [string, string, number][] = [
   ["on-accent", "accent", 4.5],
   ["on-accent", "danger", 4.5],
   ["page", "ink", 7], // the label on a solid ink button
+  ["on-switch", "switch-thumb", 7], // DARK / LIGHT on the black thumb (ADR D-59)
 ];
 
 const NON_TEXT_PAIRS: [string, string][] = [
@@ -135,26 +136,6 @@ describe("no fixed text colour on a themed background", () => {
 });
 
 
-describe("the public pages stay light when the app is dark (ADR D-58)", () => {
-  // The login and welcome pages are wrapped in .login-theme and read some app tokens (the result
-  // chips and faces); without this block a dark device gave them dark chips and unreadable labels.
-  const PUBLIC_BLOCK = /\[data-theme="dark"\]\s+\.login-theme\s*\{([^}]*)\}/.exec(CSS)?.[1] ?? "";
-  const publicTokens = tokens(PUBLIC_BLOCK);
-
-  it("is declared for .login-theme", () => {
-    expect(PUBLIC_BLOCK).not.toBe("");
-  });
-
-  it("restores every colour to its light value, so the two cannot drift apart", () => {
-    expect(publicTokens).toEqual(light);
-  });
-
-  it("tells native controls to use the light scheme there", () => {
-    expect(PUBLIC_BLOCK).toMatch(/color-scheme:\s*light/);
-  });
-});
-
-
 describe("the faces keep their bright look in both modes (ADR D-58)", () => {
   // Safe / Caution / At Risk are characters, drawn as pastel tiles with a dark face. In dark they
   // first took the dark result shades and looked burnt; they keep the same pastel in both modes.
@@ -180,5 +161,45 @@ describe("the faces keep their bright look in both modes (ADR D-58)", () => {
     expect(source).not.toMatch(/(?:text|fill)-(?:success|warning|danger|ink)/);
     expect(source).toMatch(/face-safe/);
     expect(source).toMatch(/face-risk/);
+  });
+});
+
+
+describe("the danger line and the divider in dark (contrast audit)", () => {
+  it("use the audited colours", () => {
+    expect(dark["chart-red"].toLowerCase()).toBe("#f89c9b");
+    expect(dark.line.toLowerCase()).toBe("#35544f");
+  });
+
+  it("keep the danger line at least 3:1 against the chart band and against the card", () => {
+    expect(contrast(dark["chart-red"], dark["chart-blue"])).toBeGreaterThanOrEqual(3);
+    expect(contrast(dark["chart-red"], dark.surface)).toBeGreaterThanOrEqual(3);
+  });
+
+  it("keeps the divider visible without shouting: at least 1.8:1 on a card and 2:1 on the page", () => {
+    expect(contrast(dark.line, dark.surface)).toBeGreaterThanOrEqual(1.8);
+    expect(contrast(dark.line, dark.page)).toBeGreaterThanOrEqual(2);
+  });
+
+  it("leaves every other token as it was, so only the audited three changed", () => {
+    const unchanged: Record<string, string> = {
+      page: "#0e1f1d", surface: "#142a27", "surface-2": "#19332f", field: "#7da39b",
+      ink: "#eef4ee", "ink-secondary": "#b7cbc4", "ink-muted": "#9cb5ad", accent: "#6cc4d3",
+      "accent-bg": "#14414a", "on-accent": "#06262d", success: "#8fd16a", "success-bg": "#1f3519",
+      warning: "#f2b865", "warning-bg": "#3b2a10", danger: "#f59a9a", "danger-bg": "#43201f",
+      sidebar: "#0a2f37", "sidebar-ink": "#f1eecf", "sidebar-muted": "#b9d1cb", rosy: "#d3968c",
+      "chart-blue": "#2b6672", "chart-edge": "#5fb4c4",
+    };
+    for (const [name, value] of Object.entries(unchanged)) {
+      expect(dark[name].toLowerCase(), name).toBe(value);
+    }
+  });
+});
+
+
+describe("the danger lines the charts actually draw, in dark (they use --color-danger)", () => {
+  it("are at least 3:1 against the chart band and the card", () => {
+    expect(contrast(dark.danger, dark["chart-blue"])).toBeGreaterThanOrEqual(3);
+    expect(contrast(dark.danger, dark.surface)).toBeGreaterThanOrEqual(3);
   });
 });
