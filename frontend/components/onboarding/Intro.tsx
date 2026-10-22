@@ -169,7 +169,7 @@ export function Intro({ onTour, onSkip }: Props) {
         onKeyDown={handleKey}
         className="grid w-full max-w-3xl overflow-hidden rounded-card border border-line bg-surface shadow-xl outline-none sm:grid-cols-[0.9fr_1.1fr]"
       >
-        <div className="relative isolate flex min-h-48 flex-col items-center justify-center gap-6 overflow-hidden bg-sidebar p-8 text-sidebar-ink">
+        <div className="relative isolate flex min-h-48 flex-col items-center justify-center sm:min-h-[26rem] gap-6 overflow-hidden bg-sidebar p-8 text-sidebar-ink">
           <div aria-hidden className="ob-ring -z-10 h-[260px] w-[260px]" />
           <div aria-hidden className="ob-ring -z-10 h-[420px] w-[420px] opacity-70" />
           <div aria-hidden className="ob-ring -z-10 h-[580px] w-[580px] opacity-40" />
@@ -186,7 +186,7 @@ export function Intro({ onTour, onSkip }: Props) {
           >
             <div
               data-intro-card
-              className="ob-float flex aspect-[4/3] w-full max-w-80 items-center justify-center rounded-2xl bg-surface p-4 shadow-lg"
+              className="ob-float flex aspect-[5/4] w-full max-w-80 sm:aspect-square items-center justify-center rounded-2xl bg-surface p-4 shadow-lg"
             >
               {slide.picture}
             </div>

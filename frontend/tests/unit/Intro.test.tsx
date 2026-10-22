@@ -111,6 +111,14 @@ describe("Intro", () => {
     expect(css).toMatch(/prefers-reduced-motion: reduce\)[^@]*animation-iteration-count: 1 !important/);
   });
 
+  it("gives the picture card more height than the old 4:3, so the picture has room", () => {
+    const { container } = setup();
+
+    const card = container.querySelector("[data-intro-card]") as HTMLElement;
+    expect(card).toHaveClass("aspect-[5/4]", "sm:aspect-square"); // square beside the text, 5:4 above it
+    expect(card).not.toHaveClass("aspect-[4/3]");
+  });
+
   it("goes forward and back one slide at a time", async () => {
     const { user } = setup();
 

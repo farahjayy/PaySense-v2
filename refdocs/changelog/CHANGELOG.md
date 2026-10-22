@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-22 — Intro: a taller picture card
+- **Reported:** "the card, should it be bigger (height increase)?" after the author confirmed the animation now works in her browser.
+- **Changed:** `components/onboarding/Intro.tsx`: the picture card is 5:4 above the text and square beside it (it was 4:3, which left empty teal above and below it), and the left panel is at least 26 rem tall from tablet width up; one test in `tests/unit/Intro.test.tsx`.
+- **Deviations:** a first attempt at 5:4 alone changed almost nothing, because the card's width is capped by the panel; the square shape on wide screens is what gave it height.
+- **Verified:** new test red then green; `npx eslint --ignore-pattern ".next-devcheck/**"` and `npx tsc --noEmit` clean; `npm run test` 61 files passed. Screenshots of slides 1 and 2 on desktop, and slide 1 on a phone, were read. The pictures inside the card are not scaled up, so a little empty white remains around the chart.
+
+
 ### 2026-10-22 — Intro: v3's floating picture card and sliding slides
 - **Reported:** "in v3 there is animation added to this component, pls copy it to v2", after the line-drawing port (entry below) still looked still to the author.
 - **Diagnosed:** the earlier port copied only the one-off entrances (the line draws in about a second, then stops). What makes v3's card look alive is two other animations in `Onboarding.tsx` that were not copied: `ob-float`, a 5-second endless rise and fall of the picture card, and `ob-in-next` / `ob-in-back`, which slide each new slide in from the side the student is moving towards. Measured in a browser after the change: the card's top moved 266.7 → 260.8 px over 3 s, and after Next the card came in from x 313 to 289 px.
