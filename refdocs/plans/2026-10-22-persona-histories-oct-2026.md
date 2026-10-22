@@ -2,6 +2,8 @@
 
 > Execution: `refdocs/execution/2026-10-22-persona-histories-oct-2026.md`. Part of P9 (UAT kit); the persona CSVs come from P2 (D-08).
 
+> **Update (2026-10-22, later):** the study was set for 25-31 October 2026, so the end date became 24 October and the pick rule changed; see ADR D-60 and the CHANGELOG. The text below is the original plan.
+
 ## 1. Why this exists
 
 The UAT is self-guided and starts at the end of October or the beginning of November. The three persona CSVs end on 28 December 2025, so a tester who imports one sees a ledger ten months old and a forecast flagged as out of date. The whole-week shift (`ml.uat.shift_persona`) fixes the staleness but moves a payment on the 1st to some other day of the month and shifts the PTPTN months. The generator already takes an `as_of` day, so the honest fix is to generate the histories for the study period itself.

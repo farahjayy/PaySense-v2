@@ -8,11 +8,13 @@ first profile that actually shows what the persona exists to test.
 
 import csv
 import io
+from collections import Counter
 from collections.abc import Callable
 from datetime import date, timedelta
 from pathlib import Path
 
 from app.domain.categorize import BNPL, REFUND, TRANSFER
+from app.domain.csv_import import parse_csv
 from ml.datagen.params import Params, load_params
 from ml.datagen.profile import StudentProfile, generate_profile
 
@@ -27,14 +29,20 @@ MIN_BNPL_SHARE = 0.10
 # (a file that starts on a Tuesday has 16). One extra month leaves room, including for the shift to
 # a session date. Kept here, not in params.yaml, so the labels' provenance hash is unchanged.
 PERSONA_EXTRA_MONTHS = 1
-# The histories end on the last day of the month before the UAT, so a tester who imports one sees a
-# ledger that is current and whose paydays, rent and PTPTN months sit on the real calendar.
-PERSONA_AS_OF = date(2026, 10, 31)
-# The forecast looks three months ahead from the day a tester opens it, so the same ledger reads
-# differently on 31 October and on 1 November (a PTPTN month can fall in or out of the window). A
-# persona must tell purchases apart on the end day, the day after, and the last day before the
-# forecast calls the ledger stale (14 days), so the study can start anywhere in that stretch.
-CHECK_DAY_OFFSETS = (0, 1, 14)
+# The UAT runs 25-31 October 2026. The histories end the day before it opens, so every row is in
+# the past for every tester and nobody imports a ledger with dated-in-the-future transactions;
+# the last test day is then 7 days after the last row, well inside the 14 the forecast allows.
+PERSONA_AS_OF = date(2026, 10, 24)
+# The forecast looks three months ahead from the day a tester opens it, so the same ledger can read
+# differently on different days. A persona must tell purchases apart on every day of the study.
+CHECK_DAY_OFFSETS = tuple(range(1, 8))
+# Whether a persona must also have a purchase that comes out Safe. A student with a large standing
+# BNPL load sits in one band whatever they add (of the 51 heavy-BNPL candidates in the search, none
+# spanned Safe and a worse band), so for frequent_bnpl two different bands are what can be asked.
+NEEDS_A_SAFE_PURCHASE = {"frequent_bnpl": False, "budget_conscious": True, "irregular_income": True}
+# How many of the 10 purchases the less common band must hold: a split, not a single outlier. The
+# first heavy-BNPL candidate had one Caution among nine At Risk, which shows a tester nothing.
+MIN_MINORITY_CELLS = {"frequent_bnpl": 3, "budget_conscious": 1, "irregular_income": 1}
 DEFAULT_OUT_DIR = Path(__file__).resolve().parents[3] / "data" / "personas"
 OUTFLOW_TYPES = ("expense", "savings")
 
@@ -73,21 +81,31 @@ SHOWCASE: dict[str, Callable[[StudentProfile], bool]] = {
 
 
 def _tells_purchases_apart(profile: StudentProfile, forecaster) -> bool:
-    """With no savings, at least one purchase in the buffer check's grid comes out Safe and at
-    least one does not, on every day a tester might open the app. A tester who sees every
-    purchase get the same band cannot tell whether the risk check works. Measured with the
-    app's own simulation, not a rule of thumb."""
+    """With no savings, on every day a tester might open the app: the student is not already
+    At Risk before the purchase, the purchases in the buffer check's grid do not all get the same
+    band, and for most personas at least one is Safe. A tester who sees every purchase get the
+    same band cannot tell whether the risk check works. Measured with the app's own simulation."""
     from ml.buffer_check import measure_ledger
 
-    rows = [t.as_row() for t in profile.transactions]
+    # the rows the app gets after a tester imports the file, not the generator's own labels
+    # (the importer never guesses BNPL from a description, so the two can differ)
+    rows = [
+        {"date": r.date, "amount_sen": r.amount_sen, "type": r.type, "category": r.category_guess}
+        for r in parse_csv(render_csv(profile)).rows
+    ]
     for offset in CHECK_DAY_OFFSETS:
         today = profile.as_of + timedelta(days=offset)
         try:
-            cells = measure_ledger(rows, today, 0, forecaster)["cells"]
+            result = measure_ledger(rows, today, 0, forecaster)
         except RuntimeError:  # the forecast is locked for this history
             return False
-        bands = {c["band"] for c in cells}
-        if "Safe" not in bands or bands == {"Safe"}:
+        counts = Counter(c["band"] for c in result["cells"])
+        if (
+            result["baseline_band"] == "At Risk"
+            or len(counts) < 2
+            or min(counts.values()) < MIN_MINORITY_CELLS[profile.persona]
+            or ("Safe" not in counts and NEEDS_A_SAFE_PURCHASE[profile.persona])
+        ):
             return False
     return True
 

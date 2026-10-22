@@ -1,4 +1,5 @@
 import hashlib
+from collections import Counter
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -11,6 +12,8 @@ from ml.datagen.params import load_params
 from ml.datagen.personas import (
     CHECK_DAY_OFFSETS,
     MIN_BNPL_SHARE,
+    MIN_MINORITY_CELLS,
+    NEEDS_A_SAFE_PURCHASE,
     PERSONA_SEEDS,
     build_persona_profile,
     render_csv,
@@ -105,30 +108,41 @@ def test_the_irregular_persona_is_paid_in_gigs_not_a_steady_allowance(profiles):
 
 
 @pytest.mark.parametrize("persona", PERSONAS)
-def test_each_history_runs_from_june_to_the_end_of_october_2026(profiles, persona):
+def test_each_history_runs_from_june_to_the_day_before_the_study_opens(profiles, persona):
     profile = profiles[persona]
     dates = [t.date for t in profile.transactions]
 
-    assert profile.as_of == date(2026, 10, 31)
+    assert profile.as_of == date(2026, 10, 24)
     assert min(dates) >= date(2026, 6, 1) and min(dates).month == 6
     assert max(dates).year == 2026 and max(dates).month == 10
 
 
 @pytest.mark.parametrize("persona", PERSONAS)
-def test_the_risk_check_tells_a_small_purchase_from_a_large_one_on_every_persona(profiles, persona):
+def test_the_risk_check_tells_purchases_apart_on_every_persona_on_every_study_day(
+    profiles, persona
+):
     """A tester who sees every purchase come out the same cannot judge whether the tool works.
     Measured with the app's own simulation and no savings, over the buffer check's purchase grid."""
     from app.engines.forecasting.serving import served_forecaster
     from ml.buffer_check import measure_ledger
 
     profile = profiles[persona]
-    rows = [t.as_row() for t in profile.transactions]
+    rows = as_rows(
+        parse_csv(render_csv(profile))
+    )  # what the app reads, not what the generator holds
     forecaster = served_forecaster()
 
     for offset in CHECK_DAY_OFFSETS:
         today = profile.as_of + timedelta(days=offset)
-        bands = {c["band"] for c in measure_ledger(rows, today, 0, forecaster)["cells"]}
-        assert "Safe" in bands and bands != {"Safe"}, (persona, today, bands)
+        result = measure_ledger(rows, today, 0, forecaster)
+        counts = Counter(c["band"] for c in result["cells"])
+        where = (persona, today, dict(counts))
+        assert result["baseline_band"] != "At Risk", (
+            where
+        )  # not already failing before the purchase
+        assert len(counts) >= 2, where
+        assert min(counts.values()) >= MIN_MINORITY_CELLS[persona], where
+        assert "Safe" in counts or not NEEDS_A_SAFE_PURCHASE[persona], where
 
 
 def test_the_frequent_bnpl_persona_carries_a_material_bnpl_load(profiles):

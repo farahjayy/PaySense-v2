@@ -2,6 +2,8 @@
 
 > Plan: `refdocs/plans/2026-10-22-persona-histories-oct-2026.md`. Each task carries its own **Verify**.
 
+> **Update (2026-10-22, later):** end date 24 October 2026, checked on 25-31 October, measured on the imported rows, per-persona band rules (D-60). Task H4 below describes the first version.
+
 ### Task H1 — Test first
 - **Files:** `backend/tests/ml/test_personas.py`.
 - **Steps:** add a test that each persona profile's `as_of` is 2026-10-31, that its first transaction is in June 2026 and its last in October 2026.

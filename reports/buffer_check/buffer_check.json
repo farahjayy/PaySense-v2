@@ -9,7 +9,7 @@
       {
         "price_sen": 10000,
         "instalments": 3,
-        "p_with": 0.004,
+        "p_with": 0.0,
         "band": "Safe"
       },
       {
@@ -20,92 +20,299 @@
       },
       {
         "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.012,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.251,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      }
+    ]
+  },
+  {
+    "persona": "budget_conscious",
+    "buffer_sen": 100000,
+    "baseline_p": 0.0,
+    "baseline_band": "Safe",
+    "safe_cells": 10,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      }
+    ]
+  },
+  {
+    "persona": "budget_conscious",
+    "buffer_sen": 300000,
+    "baseline_p": 0.0,
+    "baseline_band": "Safe",
+    "safe_cells": 10,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      }
+    ]
+  },
+  {
+    "persona": "frequent_bnpl",
+    "buffer_sen": 0,
+    "baseline_p": 0.239,
+    "baseline_band": "Caution",
+    "safe_cells": 0,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.251,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.239,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.251,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.239,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 3,
+        "p_with": 0.267,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 60000,
+        "instalments": 6,
+        "p_with": 0.239,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 3,
+        "p_with": 0.394,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 100000,
+        "instalments": 6,
+        "p_with": 0.239,
+        "band": "Caution"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.472,
+        "band": "At Risk"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 6,
+        "p_with": 0.346,
+        "band": "At Risk"
+      }
+    ]
+  },
+  {
+    "persona": "frequent_bnpl",
+    "buffer_sen": 100000,
+    "baseline_p": 0.0,
+    "baseline_band": "Safe",
+    "safe_cells": 8,
+    "cells": [
+      {
+        "price_sen": 10000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 10000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 3,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 30000,
+        "instalments": 6,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 60000,
         "instalments": 3,
         "p_with": 0.01,
         "band": "Safe"
       },
       {
-        "price_sen": 30000,
-        "instalments": 6,
-        "p_with": 0.005,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 60000,
-        "instalments": 3,
-        "p_with": 0.049,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 60000,
-        "instalments": 6,
-        "p_with": 0.009,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 100000,
-        "instalments": 3,
-        "p_with": 0.098,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 100000,
-        "instalments": 6,
-        "p_with": 0.038,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 150000,
-        "instalments": 3,
-        "p_with": 0.133,
-        "band": "Caution"
-      },
-      {
-        "price_sen": 150000,
-        "instalments": 6,
-        "p_with": 0.065,
-        "band": "Safe"
-      }
-    ]
-  },
-  {
-    "persona": "budget_conscious",
-    "buffer_sen": 100000,
-    "baseline_p": 0.0,
-    "baseline_band": "Safe",
-    "safe_cells": 10,
-    "cells": [
-      {
-        "price_sen": 10000,
-        "instalments": 3,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 10000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 30000,
-        "instalments": 3,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 30000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 60000,
-        "instalments": 3,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
         "price_sen": 60000,
         "instalments": 6,
         "p_with": 0.0,
@@ -114,232 +321,25 @@
       {
         "price_sen": 100000,
         "instalments": 3,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 100000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 150000,
-        "instalments": 3,
-        "p_with": 0.013,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 150000,
-        "instalments": 6,
-        "p_with": 0.004,
-        "band": "Safe"
-      }
-    ]
-  },
-  {
-    "persona": "budget_conscious",
-    "buffer_sen": 300000,
-    "baseline_p": 0.0,
-    "baseline_band": "Safe",
-    "safe_cells": 10,
-    "cells": [
-      {
-        "price_sen": 10000,
-        "instalments": 3,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 10000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 30000,
-        "instalments": 3,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 30000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 60000,
-        "instalments": 3,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 60000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 100000,
-        "instalments": 3,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 100000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 150000,
-        "instalments": 3,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 150000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      }
-    ]
-  },
-  {
-    "persona": "frequent_bnpl",
-    "buffer_sen": 0,
-    "baseline_p": 0.096,
-    "baseline_band": "Safe",
-    "safe_cells": 3,
-    "cells": [
-      {
-        "price_sen": 10000,
-        "instalments": 3,
-        "p_with": 0.111,
-        "band": "Caution"
-      },
-      {
-        "price_sen": 10000,
-        "instalments": 6,
-        "p_with": 0.096,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 30000,
-        "instalments": 3,
-        "p_with": 0.111,
-        "band": "Caution"
-      },
-      {
-        "price_sen": 30000,
-        "instalments": 6,
-        "p_with": 0.097,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 60000,
-        "instalments": 3,
-        "p_with": 0.127,
-        "band": "Caution"
-      },
-      {
-        "price_sen": 60000,
-        "instalments": 6,
-        "p_with": 0.097,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 100000,
-        "instalments": 3,
-        "p_with": 0.127,
+        "p_with": 0.146,
         "band": "Caution"
       },
       {
         "price_sen": 100000,
         "instalments": 6,
-        "p_with": 0.117,
+        "p_with": 0.0,
+        "band": "Safe"
+      },
+      {
+        "price_sen": 150000,
+        "instalments": 3,
+        "p_with": 0.177,
         "band": "Caution"
       },
       {
         "price_sen": 150000,
-        "instalments": 3,
-        "p_with": 0.139,
-        "band": "Caution"
-      },
-      {
-        "price_sen": 150000,
         "instalments": 6,
-        "p_with": 0.117,
-        "band": "Caution"
-      }
-    ]
-  },
-  {
-    "persona": "frequent_bnpl",
-    "buffer_sen": 100000,
-    "baseline_p": 0.0,
-    "baseline_band": "Safe",
-    "safe_cells": 10,
-    "cells": [
-      {
-        "price_sen": 10000,
-        "instalments": 3,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 10000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 30000,
-        "instalments": 3,
-        "p_with": 0.001,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 30000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 60000,
-        "instalments": 3,
-        "p_with": 0.008,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 60000,
-        "instalments": 6,
-        "p_with": 0.0,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 100000,
-        "instalments": 3,
-        "p_with": 0.025,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 100000,
-        "instalments": 6,
-        "p_with": 0.004,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 150000,
-        "instalments": 3,
-        "p_with": 0.062,
-        "band": "Safe"
-      },
-      {
-        "price_sen": 150000,
-        "instalments": 6,
-        "p_with": 0.012,
+        "p_with": 0.029,
         "band": "Safe"
       }
     ]
@@ -416,69 +416,69 @@
   {
     "persona": "irregular_income",
     "buffer_sen": 0,
-    "baseline_p": 0.038,
+    "baseline_p": 0.0,
     "baseline_band": "Safe",
-    "safe_cells": 2,
+    "safe_cells": 9,
     "cells": [
       {
         "price_sen": 10000,
         "instalments": 3,
-        "p_with": 0.063,
+        "p_with": 0.0,
         "band": "Safe"
       },
       {
         "price_sen": 10000,
         "instalments": 6,
-        "p_with": 0.05,
+        "p_with": 0.0,
         "band": "Safe"
       },
       {
         "price_sen": 30000,
         "instalments": 3,
-        "p_with": 0.118,
-        "band": "Caution"
+        "p_with": 0.0,
+        "band": "Safe"
       },
       {
         "price_sen": 30000,
         "instalments": 6,
-        "p_with": 0.101,
-        "band": "Caution"
+        "p_with": 0.0,
+        "band": "Safe"
       },
       {
         "price_sen": 60000,
         "instalments": 3,
-        "p_with": 0.201,
-        "band": "Caution"
+        "p_with": 0.0,
+        "band": "Safe"
       },
       {
         "price_sen": 60000,
         "instalments": 6,
-        "p_with": 0.153,
-        "band": "Caution"
+        "p_with": 0.0,
+        "band": "Safe"
       },
       {
         "price_sen": 100000,
         "instalments": 3,
-        "p_with": 0.379,
-        "band": "At Risk"
+        "p_with": 0.091,
+        "band": "Safe"
       },
       {
         "price_sen": 100000,
         "instalments": 6,
-        "p_with": 0.219,
-        "band": "Caution"
+        "p_with": 0.0,
+        "band": "Safe"
       },
       {
         "price_sen": 150000,
         "instalments": 3,
-        "p_with": 0.683,
+        "p_with": 0.394,
         "band": "At Risk"
       },
       {
         "price_sen": 150000,
         "instalments": 6,
-        "p_with": 0.391,
-        "band": "At Risk"
+        "p_with": 0.021,
+        "band": "Safe"
       }
     ]
   },
@@ -534,19 +534,19 @@
       {
         "price_sen": 100000,
         "instalments": 6,
-        "p_with": 0.002,
+        "p_with": 0.0,
         "band": "Safe"
       },
       {
         "price_sen": 150000,
         "instalments": 3,
-        "p_with": 0.07,
+        "p_with": 0.0,
         "band": "Safe"
       },
       {
         "price_sen": 150000,
         "instalments": 6,
-        "p_with": 0.017,
+        "p_with": 0.0,
         "band": "Safe"
       }
     ]

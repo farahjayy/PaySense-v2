@@ -398,6 +398,14 @@ An ADR is worth writing when the decision (a) is expensive to reverse, (b) will 
 
 ---
 
+## D-60 — No savings-buffer input for the UAT; the persona histories end on 24 October 2026 and are picked by measurement
+*2026-10-22 · the author's decision ("skip Batch B if not in the current system"; the study runs 25-31 October 2026)*
+
+**Decision.** (1) The optional savings-buffer input (D-27 future work, "Batch B" of P7d) is **not built**; the forecast keeps starting from no savings and the UI keeps saying so. (2) The three UAT persona CSVs run 1 June to 24 October 2026, so every row is in the past on every study day (25-31 October) and the last study day is 7 days after the last row (the forecast calls a ledger stale after 14). (3) A persona is accepted only if, measured with the app's own simulation on the rows the importer reads back, on every study day: the student is not already At Risk before the purchase, the 10 purchases of the buffer-check grid do not all get one band, `budget_conscious` and `irregular_income` have at least one Safe purchase, and `frequent_bnpl` carries instalments of at least 10% of monthly income (`ASSUMED:` threshold) with at least 3 of the 10 purchases in its less common band.
+**Why.** The measurement that Batch B was waiting for changed with the new ledgers: with no buffer 9 of 10 purchases are Safe for `budget_conscious` and `irregular_income`, and `frequent_bnpl` splits between Caution and At Risk (`reports/buffer_check/`), so the tool visibly tells purchases apart without a buffer. A persona whose every purchase gets the same band cannot show a tester whether the risk check works.
+**Rejected.** Building the buffer input (an engine change that alters Engine 1's simulation and Engine 2's labels, for a gap the ledgers no longer show); ending the histories on 31 October (rows dated after a tester's day are ignored by the forecast and look odd on the Transactions page); choosing candidates by their generator labels (the importer never guesses BNPL from a description, so the app saw a different ledger and `frequent_bnpl` was Caution for all 10 purchases); requiring a Safe purchase from `frequent_bnpl` (none of the 51 heavy-BNPL candidates in the search spanned Safe and a worse band).
+**Trade-off.** The outcomes were checked only for 25-31 October and only over the grid (RM 100 to RM 1,500, 3 or 6 instalments, SPayLater). `budget_conscious` and `irregular_income` stay Safe for everything but the largest purchase, so a card above RM 1,500 is needed to show them a worse band. A student living on savings with no income still looks At Risk (D-27 limitation, unchanged). A study that starts after 31 October needs the shift tool and a fresh look at the outcomes.
+
 ## Working assumptions (`ASSUMED:`)
 
 Not decisions — guesses made to keep moving. Each one must be confirmed or killed before anything load-bearing is built on it. When one is resolved, delete it here and write a real ADR above.
@@ -419,3 +427,4 @@ Not decisions — guesses made to keep moving. Each one must be confirmed or kil
 16. `ASSUMED:` (D-54) UAT testers use seeded accounts with synthetic persona data and do not open each other's accounts. If any tester enters their own real financial data, reopen D-54 and add consent and handling.
 17. `ASSUMED:` (D-52) Six folds on the risk result is the right number and a one-line summary on each is enough for a closed fold to read as evidence; confirmed by the author on a 375 px and a 1440 px screenshot.
 18. ~~`ASSUMED:` (D-51) the next two income dates~~ **Dropped (P7d):** the search was not extended; D-41 already tries the next one.
+19. `ASSUMED:` (D-60) "Frequent BNPL" means instalments of at least 10% of monthly income. A threshold chosen to exclude a ledger with RM 12 a month of BNPL, not taken from a source.

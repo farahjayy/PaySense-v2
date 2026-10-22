@@ -270,6 +270,7 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-57 | An Admin page in the sidebar, for admins only, holding the quick-tour launcher (the Settings Admin card is removed) | A home for author-only tools; display-only gating, as D-56 |
 | D-58 | A dark mode for the signed-in app: the same tokens redefined under `data-theme=dark`, a toggle in the top bar, no flash on load, contrast held by the test | Low-light use and preference; one palette swap, not per-component styles |
 | D-59 | Dark mode reaches the welcome and login pages (teal split into fill, text and label roles); the switch is a Dark | Light pill shown on every page; contrast fixes from an audit (chart danger line, dark divider); amends D-58 | A dark choice should reach the front door and be reachable from it; the danger line was below 3:1 |
+| D-60 | No savings-buffer input for the UAT (Batch B dropped); persona histories end 24 Oct 2026 for a 25-31 Oct study and are accepted only if the risk check tells their purchases apart on every study day | The measurement Batch B waited for no longer shows the gap; a persona that gives every purchase one band cannot show testers whether the tool works |
 
 ---
 
