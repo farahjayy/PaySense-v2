@@ -193,7 +193,7 @@ export function Tour({ onDone }: { onDone: () => void }) {
       <div
         aria-hidden
         data-testid="tour-spotlight"
-        className="pointer-events-none absolute rounded-2xl shadow-[0_0_0_9999px_rgba(10,51,35,0.58)] ring-2 ring-page transition-all duration-200 motion-reduce:transition-none"
+        className="pointer-events-none absolute rounded-2xl shadow-[0_0_0_3px_var(--color-rosy),0_0_22px_6px_rgba(211,150,140,0.55),0_0_0_9999px_rgba(4,24,30,0.7)] transition-all duration-200 motion-reduce:transition-none"
         style={spotlight}
       />
       <div

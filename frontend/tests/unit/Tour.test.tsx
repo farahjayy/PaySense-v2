@@ -102,6 +102,16 @@ describe("Tour", () => {
     expect(screen.getByTestId("tour-spotlight")).toBeInTheDocument();
   });
 
+  it("lights the target with a rose ring and glow that show in both themes, not a ring in the page colour", () => {
+    setup(ALL);
+
+    const spotlight = screen.getByTestId("tour-spotlight");
+    // the page colour is dark in dark mode, so a ring in it vanishes against the dimmed page
+    expect(spotlight.className).not.toContain("ring-page");
+    expect(spotlight.className).toContain("var(--color-rosy)");
+    expect(spotlight.className).toContain("rgba(211,150,140,0.55)"); // the glow
+  });
+
   it("is a modal dialog", () => {
     setup(ALL);
 

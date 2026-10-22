@@ -28,6 +28,14 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-22 — Tour: a spotlight that shows in dark mode
+- **Reported:** "for the tour, i think its not really highlighted. can it change to other colour" (a dark-mode screenshot of the Transactions stop).
+- **Diagnosed:** the ring round the lit control used the page colour, which is cream in light mode (visible) but nearly black in dark mode, the same as the dimmed page behind it, so the lit control barely differed from its surroundings.
+- **Changed:** `components/onboarding/Tour.tsx`: the spotlight now has a 3 px ring in the brand's rose (`--color-rosy`) with a soft rose glow, and the dimming is a little darker (0.7 of a near-black teal, was 0.58 of a dark green); one test in `tests/unit/Tour.test.tsx` (written together with the change, so its red step was not observed).
+- **Verified:** `npx eslint --ignore-pattern ".next-devcheck/**"` and `npx tsc --noEmit` clean; `npm run test` 61 files passed; screenshots of the tour's second stop in light and dark mode were read and show the ring and glow in both.
+- **Noted, not changed:** the tour stop is still titled "Check before you split" while the intro slide now says "Check a buy-now-pay-later plan before you commit"; the glow colour is typed as an rgba value in the class, so it will not follow a future change to the rose token.
+
+
 ### 2026-10-22 — Intro: a steeper graph, and every slide's text at the same heights
 - **Reported:** make the forecast graph "incline" so it looks bigger in its card; make "the progress statement" and every card's text sit at the same height on all slides.
 - **Changed:** `components/onboarding/Intro.tsx`: the forecast picture is drawn in a near-square box (240 x 220) and climbs from low left to high right with a wider range, so it fills the square card; the right panel is no longer centred on whatever the copy needs but pinned from the top, with the buttons at the foot; the heading reserves room for three lines on a phone and two beside the picture, and the words reserve three lines, so a short slide cannot pull the rest up; two tests in `tests/unit/Intro.test.tsx` (red first).
