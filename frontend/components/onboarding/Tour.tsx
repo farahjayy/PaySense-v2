@@ -39,8 +39,8 @@ const STOPS: readonly Stop[] = [
   },
   {
     target: "model",
-    title: "How it works",
-    text: "What the forecast and the risk check are built from, and where they are weak.",
+    title: "How the scores are made",
+    text: "How the forecast and the risk check work, what they were built from, and where they are weak.",
   },
   {
     target: "settings",
