@@ -133,3 +133,52 @@ describe("no fixed text colour on a themed background", () => {
     expect(offenders.map((f) => path.relative(ROOT, f))).toEqual([]);
   });
 });
+
+
+describe("the public pages stay light when the app is dark (ADR D-58)", () => {
+  // The login and welcome pages are wrapped in .login-theme and read some app tokens (the result
+  // chips and faces); without this block a dark device gave them dark chips and unreadable labels.
+  const PUBLIC_BLOCK = /\[data-theme="dark"\]\s+\.login-theme\s*\{([^}]*)\}/.exec(CSS)?.[1] ?? "";
+  const publicTokens = tokens(PUBLIC_BLOCK);
+
+  it("is declared for .login-theme", () => {
+    expect(PUBLIC_BLOCK).not.toBe("");
+  });
+
+  it("restores every colour to its light value, so the two cannot drift apart", () => {
+    expect(publicTokens).toEqual(light);
+  });
+
+  it("tells native controls to use the light scheme there", () => {
+    expect(PUBLIC_BLOCK).toMatch(/color-scheme:\s*light/);
+  });
+});
+
+
+describe("the faces keep their bright look in both modes (ADR D-58)", () => {
+  // Safe / Caution / At Risk are characters, drawn as pastel tiles with a dark face. In dark they
+  // first took the dark result shades and looked burnt; they keep the same pastel in both modes.
+  const FACE = ["face-safe", "face-safe-bg", "face-caution", "face-caution-bg", "face-risk", "face-risk-bg", "face-ink"];
+
+  it.each(FACE)("%s is the same colour in light and dark", (name) => {
+    expect(light[name]).toBeDefined();
+    expect(dark[name]).toBe(light[name]);
+  });
+
+  it.each([
+    ["face-safe", "face-safe-bg"],
+    ["face-caution", "face-caution-bg"],
+    ["face-risk", "face-risk-bg"],
+    ["face-ink", "rosy"],
+  ])("%s reads on %s at 4.5:1", (fg, bg) => {
+    expect(contrast(dark[fg], dark[bg])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("draws the faces from those tokens, not from colours that change with the theme", () => {
+    const source = readFileSync(path.join(ROOT, "components", "ui", "Face.tsx"), "utf8");
+
+    expect(source).not.toMatch(/(?:text|fill)-(?:success|warning|danger|ink)/);
+    expect(source).toMatch(/face-safe/);
+    expect(source).toMatch(/face-risk/);
+  });
+});

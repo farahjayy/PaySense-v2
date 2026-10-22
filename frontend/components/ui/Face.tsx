@@ -2,22 +2,26 @@ import type { ReactNode } from "react";
 
 import type { Band } from "@/lib/format";
 
-/** The three result faces from the login page, drawn in the app's own band colours. */
+/**
+ * The three result faces from the login page: pastel tiles with a dark face, the same colours in
+ * light and dark mode (ADR D-58), so on a dark surface they stand out like stickers instead of
+ * turning into muddy dark shades.
+ */
 
 export type FaceKind = Band | "Hello";
 
 const TONE = {
-  Hello: "text-ink",
-  Safe: "text-success",
-  Caution: "text-warning",
-  "At Risk": "text-danger",
+  Hello: "text-face-ink",
+  Safe: "text-face-safe",
+  Caution: "text-face-caution",
+  "At Risk": "text-face-risk",
 } as const;
 
 const TILE = {
   Hello: "fill-rosy",
-  Safe: "fill-success-bg",
-  Caution: "fill-warning-bg",
-  "At Risk": "fill-danger-bg",
+  Safe: "fill-face-safe-bg",
+  Caution: "fill-face-caution-bg",
+  "At Risk": "fill-face-risk-bg",
 } as const;
 
 const SHAPES: Record<FaceKind, ReactNode> = {

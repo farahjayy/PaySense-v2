@@ -31,6 +31,14 @@
   --color-chart-blue: #8fc3cc;
   --color-chart-edge: #1b6b7d; /* outline of the chart band */
   --color-chart-red: #e24b4a;
+  /* the three faces and the welcome-style tiles: the same in light and dark, so they never look burnt */
+  --color-face-safe: #3b6d11;
+  --color-face-safe-bg: #eaf3de;
+  --color-face-caution: #854f0b;
+  --color-face-caution-bg: #faeeda;
+  --color-face-risk: #a32d2d;
+  --color-face-risk-bg: #fcebeb;
+  --color-face-ink: #0a3323;
 
   --font-display: var(--font-bricolage), "Segoe UI", system-ui, sans-serif;
   --font-sans: var(--font-figtree), "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial,
@@ -75,6 +83,54 @@
   --color-chart-blue: #2b6672;
   --color-chart-edge: #5fb4c4;
   --color-chart-red: #f06a69;
+  --color-face-safe: #3b6d11;
+  --color-face-safe-bg: #eaf3de;
+  --color-face-caution: #854f0b;
+  --color-face-caution-bg: #faeeda;
+  --color-face-risk: #a32d2d;
+  --color-face-risk-bg: #fcebeb;
+  --color-face-ink: #0a3323;
+}
+
+/*
+ * The welcome and login pages keep the light brand look whatever the app is showing (ADR D-58).
+ * They are wrapped in .login-theme and read some app tokens (the result chips and faces), so the
+ * light values are put back here. tests/unit/themeDark.test.ts fails if this block and the light
+ * theme ever differ.
+ */
+:root[data-theme="dark"] .login-theme {
+  color-scheme: light;
+  --color-page: #f7f4d5;
+  --color-surface: #fffef6;
+  --color-surface-2: #fbf9e5;
+  --color-line: #e4e0b8;
+  --color-field: #6b8a84;
+  --color-ink: #0a3323;
+  --color-ink-secondary: #3f5a54;
+  --color-ink-muted: #4d655f;
+  --color-accent: #105666;
+  --color-accent-bg: #d9ebe7;
+  --color-on-accent: #ffffff;
+  --color-success: #3b6d11;
+  --color-success-bg: #eaf3de;
+  --color-warning: #854f0b;
+  --color-warning-bg: #faeeda;
+  --color-danger: #a32d2d;
+  --color-danger-bg: #fcebeb;
+  --color-sidebar: #105666;
+  --color-sidebar-ink: #f7f4d5;
+  --color-sidebar-muted: #d3e3de;
+  --color-rosy: #d3968c;
+  --color-chart-blue: #8fc3cc;
+  --color-chart-edge: #1b6b7d;
+  --color-chart-red: #e24b4a;
+  --color-face-safe: #3b6d11;
+  --color-face-safe-bg: #eaf3de;
+  --color-face-caution: #854f0b;
+  --color-face-caution-bg: #faeeda;
+  --color-face-risk: #a32d2d;
+  --color-face-risk-bg: #fcebeb;
+  --color-face-ink: #0a3323;
 }
 
 html {
