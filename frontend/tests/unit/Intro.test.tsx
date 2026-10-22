@@ -83,6 +83,34 @@ describe("Intro", () => {
     for (const band of ["Safe", "Caution", "At Risk"]) expect(picture).toHaveTextContent(band);
   });
 
+  it("floats the picture card gently, as v3 does", () => {
+    const { container } = setup();
+
+    expect(container.querySelector("[data-intro-card]")).toHaveClass("ob-float");
+  });
+
+  it("slides the picture and the words in from the side the student is moving towards", async () => {
+    const { user, container } = setup();
+    const moving = () =>
+      [...container.querySelectorAll("[data-intro-slide]")].map((el) => el.className);
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(moving().every((c) => c.includes("ob-in-next"))).toBe(true);
+    expect(moving()).toHaveLength(2);
+
+    await user.click(screen.getByRole("button", { name: "Back" }));
+    expect(moving().every((c) => c.includes("ob-in-back"))).toBe(true);
+  });
+
+  it("has the float and slide keyframes, and reduced motion stops the endless float", () => {
+    const css = readFileSync(path.resolve(__dirname, "../../app/globals.css"), "utf-8");
+
+    for (const name of ["ob-float", "ob-in-next", "ob-in-back"]) {
+      expect(css).toContain(`@keyframes ${name}`);
+    }
+    expect(css).toMatch(/prefers-reduced-motion: reduce\)[^@]*animation-iteration-count: 1 !important/);
+  });
+
   it("goes forward and back one slide at a time", async () => {
     const { user } = setup();
 

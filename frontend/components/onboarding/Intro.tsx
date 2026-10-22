@@ -121,6 +121,12 @@ type Props = {
  */
 export function Intro({ onTour, onSkip }: Props) {
   const [index, setIndex] = useState(0);
+  // Which way the student is moving, so the new slide comes in from that side (as in v3).
+  const [dir, setDir] = useState<"next" | "back">("next");
+  function go(to: number) {
+    setDir(to > index ? "next" : "back");
+    setIndex(to);
+  }
   const panel = useRef<HTMLDivElement>(null);
   const slide = SLIDES[index] ?? SLIDES[0];
   const last = index === SLIDES.length - 1;
@@ -163,7 +169,10 @@ export function Intro({ onTour, onSkip }: Props) {
         onKeyDown={handleKey}
         className="grid w-full max-w-3xl overflow-hidden rounded-card border border-line bg-surface shadow-xl outline-none sm:grid-cols-[0.9fr_1.1fr]"
       >
-        <div className="relative flex min-h-48 flex-col items-center justify-center gap-6 bg-sidebar p-8 text-sidebar-ink">
+        <div className="relative isolate flex min-h-48 flex-col items-center justify-center gap-6 overflow-hidden bg-sidebar p-8 text-sidebar-ink">
+          <div aria-hidden className="ob-ring -z-10 h-[260px] w-[260px]" />
+          <div aria-hidden className="ob-ring -z-10 h-[420px] w-[420px] opacity-70" />
+          <div aria-hidden className="ob-ring -z-10 h-[580px] w-[580px] opacity-40" />
           <div className="absolute left-5 top-5 flex items-center gap-2">
             <BrandMark size={28} />
             <span className="font-display text-lg font-extrabold">
@@ -171,10 +180,16 @@ export function Intro({ onTour, onSkip }: Props) {
             </span>
           </div>
           <div
-            data-intro-card
-            className="mt-8 flex aspect-[4/3] w-full max-w-80 items-center justify-center rounded-2xl bg-surface p-4 shadow-lg sm:mt-6"
+            key={index}
+            data-intro-slide
+            className={`ob-in-${dir} mt-8 flex w-full justify-center sm:mt-6`}
           >
-            {slide.picture}
+            <div
+              data-intro-card
+              className="ob-float flex aspect-[4/3] w-full max-w-80 items-center justify-center rounded-2xl bg-surface p-4 shadow-lg"
+            >
+              {slide.picture}
+            </div>
           </div>
         </div>
         <div className="flex flex-col justify-center gap-5 p-6 sm:p-9">
@@ -183,7 +198,7 @@ export function Intro({ onTour, onSkip }: Props) {
               {SLIDES.map((s, i) => (
                 <span
                   key={s.title}
-                  className={`h-1 flex-1 rounded-full ${i <= index ? "bg-accent" : "bg-line"}`}
+                  className={`h-1 flex-1 rounded-full transition-colors duration-500 ${i <= index ? "bg-accent" : "bg-line"}`}
                 />
               ))}
             </div>
@@ -195,7 +210,7 @@ export function Intro({ onTour, onSkip }: Props) {
               Skip
             </button>
           </div>
-          <div>
+          <div key={index} data-intro-slide className={`ob-in-${dir}`}>
             <p className="text-[12px] font-bold uppercase tracking-wider text-accent">
               Step {index + 1} of {SLIDES.length}
             </p>
@@ -206,7 +221,7 @@ export function Intro({ onTour, onSkip }: Props) {
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             {index > 0 ? (
-              <Button variant="secondary" onClick={() => setIndex(index - 1)}>
+              <Button variant="secondary" onClick={() => go(index - 1)}>
                 Back
               </Button>
             ) : (
@@ -222,7 +237,7 @@ export function Intro({ onTour, onSkip }: Props) {
                 </Button>
               </div>
             ) : (
-              <Button variant="accent" onClick={() => setIndex(index + 1)}>
+              <Button variant="accent" onClick={() => go(index + 1)}>
                 Next
               </Button>
             )}

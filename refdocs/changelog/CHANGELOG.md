@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-22 — Intro: v3's floating picture card and sliding slides
+- **Reported:** "in v3 there is animation added to this component, pls copy it to v2", after the line-drawing port (entry below) still looked still to the author.
+- **Diagnosed:** the earlier port copied only the one-off entrances (the line draws in about a second, then stops). What makes v3's card look alive is two other animations in `Onboarding.tsx` that were not copied: `ob-float`, a 5-second endless rise and fall of the picture card, and `ob-in-next` / `ob-in-back`, which slide each new slide in from the side the student is moving towards. Measured in a browser after the change: the card's top moved 266.7 → 260.8 px over 3 s, and after Next the card came in from x 313 to 289 px.
+- **Changed:** `app/globals.css` (the three keyframes, `ob-ring`, and reduced motion now also sets `animation-iteration-count: 1` so the endless float cannot flicker at 0.01 ms per loop, a fault v3 has); `components/onboarding/Intro.tsx` (the card floats, the picture and the words slide by direction, the progress bar fades between steps, and three soft rings sit behind the picture as in v3); three tests in `tests/unit/Intro.test.tsx`.
+- **Verified:** the new tests failed first, then `npm run test` 61 files, 660 passed; `npx tsc --noEmit` clean; `npx eslint --ignore-pattern ".next-devcheck/**"` clean. Plain `npm run lint` reports 6,697 problems, all in `frontend/.next-devcheck/`, the build output of an earlier dev-server check that this session was not permitted to delete; delete that folder and plain lint is clean again.
+
+
 ### 2026-10-22 — Intro pictures: v3's animated forecast graph and the "New phone" card
 - **Reported:** v2's forecast graph on the first intro slide is still while v3's draws itself; the second slide should also show the "New phone, pay later, in instalments" card.
 - **Changed:** `components/onboarding/Intro.tsx`: the forecast picture is v3's (the line draws, the range rises, the marker pops), the second picture is the phone card above the three faces, and all three pictures now sit on a white card on the teal panel (so slide 3 matches, which the author did not ask for); `app/globals.css` gains the `intro-draw`, `intro-rise` and `intro-pop` keyframes, and the reduced-motion block now also zeroes `animation-delay` so a delayed entrance cannot leave a picture blank for people who turn motion off (applies app-wide, harmless elsewhere).
