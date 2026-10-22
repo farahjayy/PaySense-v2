@@ -4,8 +4,10 @@ import { expect, test } from "@playwright/test";
 const USERNAME = process.env.PLAYWRIGHT_USERNAME ?? "e2e";
 const DISPLAY_NAME = process.env.PLAYWRIGHT_DISPLAY_NAME ?? "E2E Tester";
 
-test("a visitor is sent to /login, signs in, and lands on the shell", async ({ page }) => {
+test("a visitor opens the welcome page, signs in, and lands on the shell", async ({ page }) => {
   await page.goto("/");
+  await expect(page).toHaveURL(/\/welcome$/);
+  await page.getByRole("link", { name: "Sign in" }).first().click();
   await expect(page).toHaveURL(/\/login$/);
 
   await page.getByLabel("Username").fill(USERNAME);
@@ -42,8 +44,10 @@ test("the session survives a reload and ends on log out", async ({ page }) => {
   await expect(page.getByRole("heading", { name: `Hi, ${DISPLAY_NAME}` })).toBeVisible();
 
   await page.getByRole("button", { name: "Log out" }).click();
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login$/); // logging out ends on the login, not the welcome page
 
   await page.goto("/");
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/welcome$/); // arriving signed out at the root is the front door
+  await page.goto("/plans");
+  await expect(page).toHaveURL(/\/login$/); // a deep link goes straight to the login
 });

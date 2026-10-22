@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -9,9 +9,10 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { clearSession, getSession, saveSession } from "@/lib/session";
 
 const replace = vi.fn();
+const where = { path: "/" }; // the page the test pretends to be on
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace }),
-  usePathname: () => "/",
+  usePathname: () => where.path,
 }));
 
 const get = vi.fn();
@@ -33,13 +34,23 @@ describe("AuthGate", () => {
     replace.mockReset();
     get.mockReset();
     get.mockResolvedValue({ data: USER, error: undefined });
+    where.path = "/";
   });
 
-  it("sends visitors without a session to the login page and shows nothing private", async () => {
+  it("sends a signed-out visitor at the root to the welcome page and shows nothing private", async () => {
+    render(<AuthGate>secret content</AuthGate>, { wrapper });
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/welcome"));
+    expect(replace).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("secret content")).not.toBeInTheDocument();
+  });
+
+  it("sends a signed-out visitor to any other page to the login, so a deep link keeps its meaning", async () => {
+    where.path = "/plans";
     render(<AuthGate>secret content</AuthGate>, { wrapper });
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
-    expect(screen.queryByText("secret content")).not.toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalledWith("/welcome");
   });
 
   it("renders its children for a signed-in user and does not redirect", async () => {
@@ -50,7 +61,19 @@ describe("AuthGate", () => {
     expect(replace).not.toHaveBeenCalled();
   });
 
+  it("sends someone who signs out at the root to the login, not the welcome page", async () => {
+    signIn();
+    render(<AuthGate>private content</AuthGate>, { wrapper });
+    await screen.findByText("private content");
+
+    act(() => clearSession());
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
+    expect(replace).not.toHaveBeenCalledWith("/welcome");
+  });
+
   it("checks the session with the server and bounces the user if it was revoked", async () => {
+    where.path = "/transactions";
     signIn();
     get.mockImplementation(async () => {
       clearSession(); // what the API client does on a 401
@@ -66,6 +89,7 @@ describe("AuthGate", () => {
 describe("AppShell", () => {
   beforeEach(() => {
     replace.mockReset();
+    where.path = "/";
     signIn();
   });
 

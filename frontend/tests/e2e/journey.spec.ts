@@ -19,6 +19,9 @@ function watchForCspViolations(page: Page): string[] {
  * A first sign-in plays the welcome slides (ADR D-53); most journeys skip them, one walks through. */
 async function signIn(page: Page, journey: string, { skipIntro = true } = {}) {
   await page.goto("/");
+  // the front door is the welcome page (ADR D-55); signing in starts from it
+  await expect(page).toHaveURL(/\/welcome$/);
+  await page.getByRole("link", { name: "Sign in" }).first().click();
   await expect(page).toHaveURL(/\/login/);
   await page.getByLabel("Username").fill(`e2e-${test.info().project.name}-${journey}`);
   await page.getByRole("button", { name: "Continue" }).click();
