@@ -163,6 +163,26 @@ describe("Intro", () => {
     expect(first.wordsLine).toContain("min-h-[4.9em]");
   });
 
+  it("colours the steps taken in rose, and the current one glows like the tour's spotlight", async () => {
+    const { user, container } = setup();
+    const segments = () =>
+      [...container.querySelectorAll('[aria-hidden="true"].flex-1 > span')] as HTMLElement[];
+
+    expect(segments()).toHaveLength(3);
+    expect(segments()[0]).toHaveClass("bg-rosy");
+    expect(segments()[0].className).toContain("rgba(211,150,140,0.55)"); // the current step glows
+    expect(segments()[1]).toHaveClass("bg-line");
+    expect(segments()[1].className).not.toContain("rgba(211,150,140");
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(segments()[0]).toHaveClass("bg-rosy"); // a step already taken stays rose, without the glow
+    expect(segments()[0].className).not.toContain("rgba(211,150,140");
+    expect(segments()[1]).toHaveClass("bg-rosy");
+    expect(segments()[1].className).toContain("rgba(211,150,140,0.55)");
+    expect(segments()[2]).toHaveClass("bg-line");
+  });
+
   it("goes forward and back one slide at a time", async () => {
     const { user } = setup();
 

@@ -198,7 +198,13 @@ export function Intro({ onTour, onSkip }: Props) {
               {SLIDES.map((s, i) => (
                 <span
                   key={s.title}
-                  className={`h-1 flex-1 rounded-full transition-colors duration-500 ${i <= index ? "bg-accent" : "bg-line"}`}
+                  className={`h-1.5 flex-1 rounded-full transition-[background-color,box-shadow] duration-500 ${
+                    i > index
+                      ? "bg-line"
+                      : i === index
+                        ? "bg-rosy shadow-[0_0_10px_2px_rgba(211,150,140,0.55)]"
+                        : "bg-rosy"
+                  }`}
                 />
               ))}
             </div>

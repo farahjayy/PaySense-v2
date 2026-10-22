@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-22 — Intro: the step markers in rose
+- **Reported:** "yes i like the rose colour. can it be implemented on the step 1 2 3 on the intro?"
+- **Changed:** `components/onboarding/Intro.tsx`: the three progress segments are rose (`bg-rosy`) once reached, the current one has the same soft rose glow as the tour's spotlight, and they are a little thicker (6 px, was 4); one test in `tests/unit/Intro.test.tsx` (red first).
+- **Decided:** the "STEP 2 OF 3" words stay teal. The rose is documented in `globals.css` as decoration only (2.2:1 on the card), so it is not used for text; the step is also stated in words beside the segments, so colour is not the only signal.
+- **Verified:** the new test failed first; `npx eslint --ignore-pattern ".next-devcheck/**"` and `npx tsc --noEmit` clean; `npm run test` 61 files passed; screenshots of slide 2 in light and dark mode were read.
+
+
 ### 2026-10-22 — Tour: a spotlight that shows in dark mode
 - **Reported:** "for the tour, i think its not really highlighted. can it change to other colour" (a dark-mode screenshot of the Transactions stop).
 - **Diagnosed:** the ring round the lit control used the page colour, which is cream in light mode (visible) but nearly black in dark mode, the same as the dimmed page behind it, so the lit control barely differed from its surroundings.
