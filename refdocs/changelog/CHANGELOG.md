@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-22 — The savings limitation is written down; no savings rows in the personas
+- **Reported:** the author asked how the importer tells savings from spending, whether to put savings in the persona data, and what happens when a month of saving is followed by a month of spending above income.
+- **Diagnosed:** tested against the real parser. Only a `Type` column (`Savings`, `Saving`, `Save`) or choosing Savings by hand makes a row savings; signed amounts import as expenses (`Tabung Haji savings, -100` becomes an expense in category Other; `Transfer to savings` becomes an expense in category Transfer, flagged and left out of both sides). Savings are shown beside spending and affect neither the month's "left over" (D-45) nor the forecast or risk check (D-27). The three persona CSVs contain no savings rows.
+- **Decided:** do not add savings rows to the personas (they change nothing a tester can see in the forecast or risk check, and they invite the "saved RM 1,000, then flagged as short" confusion). The limitation is recorded in `refdocs/STATUS.md` Known gaps; the savings-buffer round stays dropped (D-60). No new ADR: it restates D-27, D-45 and D-60.
+- **Noted, not changed:** the tester instructions and the dissertation should carry the sentence "the check assumes you pay from your monthly income, not savings". The author's earlier request to subtract savings from "left over" is still `ASSUMED` (D-45) and unconfirmed.
+- **Verified:** nothing run for this entry beyond the parser checks above (documentation only).
+
 ### 2026-10-22 — Intro: the step markers in rose
 - **Reported:** "yes i like the rose colour. can it be implemented on the step 1 2 3 on the intro?"
 - **Changed:** `components/onboarding/Intro.tsx`: the three progress segments are rose (`bg-rosy`) once reached, the current one has the same soft rose glow as the tour's spotlight, and they are a little thicker (6 px, was 4); one test in `tests/unit/Intro.test.tsx` (red first).
