@@ -14,8 +14,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ScoreRing } from "@/components/ui/ScoreRing";
 import { ErrorState, LockedNote, Skeleton } from "@/components/ui/States";
 import { useBills, useForecast, useMonthSummary } from "@/lib/api/queries";
-import { formatMonth, formatPercent, plural } from "@/lib/format";
-import { notices, OUTLOOK_LINE } from "@/lib/forecast";
+import { formatMonth } from "@/lib/format";
+import { notices, OUTLOOK_LINE, shortfallLine } from "@/lib/forecast";
 import { useAuth } from "@/lib/session";
 
 // Recharts is the heaviest dependency; it loads only once there is a forecast to draw.
@@ -59,6 +59,7 @@ function Outlook() {
     return <LockedNote reason={data.lock_reason} monthsOfHistory={data.months_of_history} />;
   }
   const sim = data.simulation;
+  const chance = shortfallLine(sim.p_shortfall, sim.months.length);
   return (
     <section aria-labelledby="outlook-heading" className="space-y-4">
       <Card data-tour="forecast" className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:gap-8">
@@ -74,10 +75,8 @@ function Outlook() {
           <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink">
             {OUTLOOK_LINE[data.band]}
           </p>
-          <p className="mt-2 text-[13px] text-ink-secondary">
-            In {formatPercent(sim.p_shortfall)} of the futures we simulated over the next{" "}
-            {plural(sim.months.length, "month")}, your running margin dips below zero at some point.
-          </p>
+          <p className="mt-2 text-[13px] text-ink-secondary">{chance.headline}</p>
+          <p className="mt-1 text-[12px] text-ink-muted">{chance.detail}</p>
         </div>
       </Card>
       <Notices items={notices(data)} />

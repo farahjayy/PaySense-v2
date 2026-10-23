@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Forecast } from "@/lib/api/queries";
-import { chartSummary, marginPoints, marginTable, notices } from "@/lib/forecast";
+import { chartSummary, marginPoints, marginTable, notices, shortfallLine } from "@/lib/forecast";
 
 const SIM = {
   months: ["2026-10", "2026-11", "2026-12"],
@@ -156,5 +156,53 @@ describe("notices", () => {
 
   it("works for a locked forecast, which has no simulation", () => {
     expect(notices(forecast({ status: "locked", simulation: null, band: null }))).toEqual([]);
+  });
+});
+
+describe("shortfallLine", () => {
+  it("says the chance in plain words: a 10% chance you would run short of money", () => {
+    const line = shortfallLine(0.1, 3);
+
+    expect(line.headline).toBe(
+      "There is a 10% chance you would run short of money at some point in the next 3 months.",
+    );
+  });
+
+  it("says what was counted, without borrowing the engine's term or inventing a number of runs", () => {
+    const { detail } = shortfallLine(0.1, 3);
+
+    expect(detail).toMatch(/played your recent income and spending forward many times/i);
+    expect(detail).toMatch(/running total/i);
+    expect(detail).toMatch(/below RM 0/);
+    expect(detail).not.toMatch(/1,?000/); // the response carries no run count, so none is quoted
+  });
+
+  it("handles no chance at all, which is the best result", () => {
+    expect(shortfallLine(0, 3).headline).toBe(
+      "In none of the futures we simulated did you run short of money over the next 3 months.",
+    );
+  });
+
+  it("handles a chance too small to round to 1%", () => {
+    expect(shortfallLine(0.004, 3).headline).toBe(
+      "There is under a 1% chance you would run short of money at some point in the next 3 months.",
+    );
+  });
+
+  it("says one month, not 1 months", () => {
+    expect(shortfallLine(0.25, 1).headline).toContain("in the next 1 month.");
+    expect(shortfallLine(0, 1).headline).toContain("over the next 1 month.");
+  });
+
+  it("keeps a high chance as plain as a low one", () => {
+    expect(shortfallLine(0.68, 3).headline).toBe(
+      "There is a 68% chance you would run short of money at some point in the next 3 months.",
+    );
+  });
+
+  it("says an 8%, an 11%, an 18% and an 85%, but a 10% and a 68%", () => {
+    const article = (p: number) => shortfallLine(p, 3).headline.split(" ")[2];
+    for (const p of [0.08, 0.11, 0.18, 0.85]) expect(article(p)).toBe("an");
+    for (const p of [0.1, 0.12, 0.2, 0.68, 1]) expect(article(p)).toBe("a");
   });
 });

@@ -4,7 +4,7 @@
  * alternative) and turns data-quality fields into plain sentences the person can act on.
  */
 import type { Forecast } from "@/lib/api/queries";
-import { formatDate, formatMonth } from "@/lib/format";
+import { formatDate, formatMonth, formatPercent, plural } from "@/lib/format";
 import { formatRm } from "@/lib/money";
 
 type Simulation = NonNullable<Forecast["simulation"]>;
@@ -149,6 +149,35 @@ export function notices(forecast: Forecast): Notice[] {
     }
   }
   return out;
+}
+
+/**
+ * The chance of running short, in the words a student would use (the engine calls it the shortfall
+ * probability: the share of simulated futures in which the running margin is below RM 0 at any
+ * month-end). The figure is the server's `p_shortfall`; only its wording is made here. The detail
+ * says what was counted and quotes no number of runs, because the response carries none.
+ */
+export function shortfallLine(
+  pShortfall: number,
+  months: number,
+): { headline: string; detail: string } {
+  const span = plural(months, "month");
+  const detail =
+    "We played your recent income and spending forward many times and counted how often your running total, starting from RM 0, ended a month below RM 0.";
+  if (pShortfall === 0) {
+    return {
+      headline: `In none of the futures we simulated did you run short of money over the next ${span}.`,
+      detail,
+    };
+  }
+  const percent = formatPercent(pShortfall);
+  // "an 8%", "an 11%", "an 18%", "an 85%", but "a 10%"
+  const article = /^(8\d?|11|18)$/.test(String(Math.round(pShortfall * 100))) ? "an" : "a";
+  const chance = percent === "under 1%" ? "under a 1% chance" : `${article} ${percent} chance`;
+  return {
+    headline: `There is ${chance} you would run short of money at some point in the next ${span}.`,
+    detail,
+  };
 }
 
 /** What the headline band means for the month-by-month outlook (not for one purchase). */

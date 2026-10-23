@@ -120,7 +120,7 @@ describe("DashboardScreen", () => {
       await screen.findByRole("img", { name: /score 78 out of 100, caution/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/most months should work/i)).toBeInTheDocument();
-    expect(screen.getByText(/in 22% of the futures/i)).toBeInTheDocument();
+    expect(screen.getByText(/there is a 22% chance you would run short of money/i)).toBeInTheDocument();
     expect(await screen.findByTestId("margin-fan")).toBeInTheDocument();
     expect(await screen.findByText("Headphones")).toBeInTheDocument();
     expect(await screen.findByText("RM 500.00")).toBeInTheDocument();
@@ -171,6 +171,17 @@ describe("DashboardScreen", () => {
 
     expect(await screen.findByText("Forecast is unavailable.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
+  });
+
+  it("states the chance of running short in plain words, not as a share of simulated futures", async () => {
+    respond(OK);
+    render(<DashboardScreen />, { wrapper });
+
+    expect(
+      await screen.findByText(/there is an? \d+% chance you would run short of money/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/dips below zero/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/of the futures we simulated over the next/i)).not.toBeInTheDocument();
   });
 
   it("says in plain words what the running margin starts from and what each point means", async () => {
