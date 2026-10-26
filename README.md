@@ -22,6 +22,8 @@ Final Year Project, BSc (Hons) Computer Science, Universiti Teknologi PETRONAS â
 
 ## Setup
 
+The full, current steps (both servers, the env files, seeding a user, troubleshooting) are in [`SETUP.md`](SETUP.md). In short:
+
 ```bash
 git clone <this repo>
 cd backend

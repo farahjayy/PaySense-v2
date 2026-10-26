@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-10-26 — Setup doc, and the local servers started
+- **Reported:** "make a setup doc that should at least contain the commands to start up localhost (frontend and backend)", then "run the host".
+- **Changed:** new `SETUP.md` at the repository root (requirements, one-time setup, the two env files, the two start commands with a health check, seeding a user, everyday commands, a troubleshooting table, where things are); `README.md` links to it from its Setup section.
+- **Verified:** started `uv run uvicorn app.main:app --reload --port 8000` and `npm run dev` in the background; `GET /api/health` returned `{"status":"ok"}` (HTTP 200), `/docs` returned 200 and the frontend's `/welcome` returned 200 on port 3000. The frontend's first start stopped once with the Next.js upgrade notice (exit code 1); the same command run again carried on, as the notice says. The `.env.example` files were not readable this session (permission), so the variable names in `SETUP.md` come from `refdocs/guides/env_setup.md`.
+- **Noted, not changed:** `README.md` still says "scaffolded 2026-10-08, no application code yet" and its layout list marks built parts as planned; it is stale and was left alone. `refdocs/guides/env_setup.md` says the setup commands "exist as of P0" and lists no seed-user step; `SETUP.md` is the current one.
+
+
 ### 2026-10-23 — The chance of running short, in plain words
 - **Reported:** "In 0% of the futures we simulated … your running margin dips below zero at some point" is hard to read; the author suggested "a 10% chance your future balance will be negative" or similar.
 - **Changed:** `lib/forecast.ts` gains `shortfallLine(p_shortfall, months)`; `components/screens/DashboardScreen.tsx` shows its two lines under the band. Examples: "There is a 10% chance you would run short of money at some point in the next 3 months."; no chance: "In none of the futures we simulated did you run short of money over the next 3 months."; a tiny chance: "There is under a 1% chance …"; and a small line saying what was counted ("We played your recent income and spending forward many times and counted how often your running total, starting from RM 0, ended a month below RM 0."). Tests in `tests/unit/forecast.test.ts` and `DashboardScreen.test.tsx` (red first; an old assertion on the previous sentence was updated).
