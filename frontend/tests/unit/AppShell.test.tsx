@@ -195,7 +195,7 @@ describe("AppShell", () => {
     expect(document.body).not.toHaveTextContent("amir-secret-handle");
   });
 
-  it("puts Your data and Log out on the card as text links, Your data going to Settings", () => {
+  it("puts a settings gear beside the name that goes to Settings, and Log out below, with no 'Your data' text", () => {
     render(
       <AppShell user={USER}>
         <p>page body</p>
@@ -204,10 +204,11 @@ describe("AppShell", () => {
     );
 
     const card = screen.getByRole("region", { name: "Your profile" });
-    expect(within(card).getByRole("link", { name: "Your data" })).toHaveAttribute(
-      "href",
-      "/settings",
-    );
+    const gear = within(card).getByRole("link", { name: "Your data" }); // its accessible name
+    expect(gear).toHaveAttribute("href", "/settings");
+    expect(gear).toHaveAttribute("title", "Your data and settings");
+    expect(gear).toHaveTextContent(""); // an icon, not words
+    expect(card).not.toHaveTextContent("Your data");
     expect(within(card).getByRole("button", { name: "Log out" })).toBeInTheDocument();
   });
 
@@ -226,7 +227,7 @@ describe("AppShell", () => {
     expect(logout.className).not.toMatch(/danger|red/);
   });
 
-  it("gives Your data an icon and a soft light hover, and the name a matching hover, none of it red or salmon", () => {
+  it("gives the gear and the name a soft light hover, none of it red or salmon, no underline", () => {
     render(
       <AppShell user={USER}>
         <p>page body</p>
@@ -235,13 +236,13 @@ describe("AppShell", () => {
     );
 
     const card = screen.getByRole("region", { name: "Your profile" });
-    const data = within(card).getByRole("link", { name: "Your data" });
-    expect(data.querySelector("svg[aria-hidden='true']")).not.toBeNull();
-    expect(data).toHaveClass("hover:bg-white/15", "focus-visible:bg-white/15");
+    const gear = within(card).getByRole("link", { name: "Your data" });
+    expect(gear.querySelector("svg[aria-hidden='true']")).not.toBeNull();
     const name = within(card).getByRole("link", { name: "Amir" });
-    expect(name).toHaveClass("hover:bg-white/15", "focus-visible:bg-white/15");
-    for (const link of [data, name]) expect(link.className).not.toMatch(/danger|red|pop/);
-    for (const link of [data, name]) expect(link.className).not.toContain("underline");
+    for (const link of [gear, name]) {
+      expect(link).toHaveClass("hover:bg-white/15", "focus-visible:bg-white/15");
+      expect(link.className).not.toMatch(/danger|red|pop|underline/);
+    }
   });
 
   it("makes the name on the card a link to Settings, where the intro can be played again (ADR D-66)", () => {

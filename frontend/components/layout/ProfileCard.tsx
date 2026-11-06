@@ -17,22 +17,22 @@ export function initials(name: string): string {
 // A soft light lift on hover and keyboard focus, no underline. Not salmon and not red: those
 // are kept for Log out, so each action on the card looks like what it does.
 const HOVER = "hover:bg-white/15 focus-visible:bg-white/15";
-const TEXT_LINK = `inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[13px] font-semibold text-sidebar-ink transition-colors ${HOVER}`;
-const NAME_LINK = `flex items-center gap-3 rounded-lg p-1 -m-1 transition-colors ${HOVER}`;
+const GEAR_LINK = `flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sidebar-ink transition-colors ${HOVER}`;
+const NAME_LINK = `flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1 transition-colors ${HOVER}`;
 
 // Quiet until it is about to be used: the brand salmon on hover and focus, never red (leaving is
 // not dangerous; you just sign back in). Salmon on the sidebar is audited in themeDark.test.ts.
 const LOGOUT =
   "inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[13px] font-semibold text-sidebar-ink transition-colors hover:bg-pop-fill/15 hover:text-pop-fill focus-visible:bg-pop-fill/15 focus-visible:text-pop-fill";
 
-/** Decorative: the word beside an icon carries the meaning. */
-function Icon({ children }: { children: ReactNode }) {
+/** Decorative: the word or the link's name beside it carries the meaning. */
+function Icon({ children, size = 15 }: { children: ReactNode; size?: number }) {
   return (
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      width="15"
-      height="15"
+      width={size}
+      height={size}
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -55,11 +55,12 @@ function LogoutIcon() {
   );
 }
 
-/** Three sliders: settings and your own data. */
-function DataIcon() {
+/** A cog: settings, and your own data. */
+function GearIcon() {
   return (
-    <Icon>
-      <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6" />
+    <Icon size={19}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </Icon>
   );
 }
@@ -72,22 +73,29 @@ function DataIcon() {
 export function ProfileCard({ user, onLogout }: { user: Session["user"]; onLogout: () => void }) {
   return (
     <section aria-label="Your profile" className="relative rounded-2xl bg-white/10 p-3">
-      <Link href="/settings" className={NAME_LINK}>
-        <span
-          aria-hidden
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sidebar-ink font-display text-[15px] font-bold text-sidebar"
-        >
-          {initials(user.display_name)}
-        </span>
-        <span className="min-w-0 truncate text-[15px] font-bold text-sidebar-ink">
-          {user.display_name}
-        </span>
-      </Link>
-      <div className="mt-3 flex items-center justify-between gap-2">
-        <Link href="/settings" data-tour="settings" className={TEXT_LINK}>
-          <DataIcon />
-          Your data
+      <div className="flex items-center gap-1">
+        <Link href="/settings" className={NAME_LINK}>
+          <span
+            aria-hidden
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sidebar-ink font-display text-[15px] font-bold text-sidebar"
+          >
+            {initials(user.display_name)}
+          </span>
+          <span className="min-w-0 truncate text-[15px] font-bold text-sidebar-ink">
+            {user.display_name}
+          </span>
         </Link>
+        <Link
+          href="/settings"
+          data-tour="settings"
+          aria-label="Your data"
+          title="Your data and settings"
+          className={GEAR_LINK}
+        >
+          <GearIcon />
+        </Link>
+      </div>
+      <div className="mt-2 flex">
         <button type="button" onClick={onLogout} className={LOGOUT}>
           <LogoutIcon />
           Log out
