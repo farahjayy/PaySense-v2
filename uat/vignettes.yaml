@@ -2,7 +2,7 @@
 #
 # `risk_rank` orders the options of one vignette by how much new commitment they put on the
 # student in the next few months (higher = more). It is a judgement written down here so the
-# analysis can say "safer" or "riskier" from the same file the facilitator reads the options from.
+# analysis can say "safer" or "riskier" from the same file the form text is checked against.
 # The ordering is the same in every vignette: buy as planned > spread it longer > cheaper item >
 # wait > do not buy. Spreading the same price over more instalments lowers each payment but keeps
 # the full price owed, so it ranks above buying something cheaper.

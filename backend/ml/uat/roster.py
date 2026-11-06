@@ -9,6 +9,7 @@ from app.db.users import PERSONAS, USERNAME_PATTERN
 from ml.uat.load import UatDataError, clean_row
 
 COLUMNS = ["participant", "username", "display", "persona"]
+TEMPLATE_PATH = Path(__file__).resolve().parents[3] / "uat" / "testers.template.csv"
 # Login takes only a username, so a predictable one lets a stranger sign in as that tester.
 GUESSABLE = re.compile(r"^(tester|user|test|participant|p)[-_.]?\d+$", re.IGNORECASE)
 
@@ -55,3 +56,15 @@ def load_roster(path: Path) -> list[Tester]:
     if not testers:
         raise UatDataError(f"{path.name}: no testers listed")
     return testers
+
+
+def refuse_example_usernames(testers: list[Tester]) -> None:
+    """Refuse the usernames written in the committed template. The repository is public, so anyone
+    can read them and sign in as that tester; a real roster needs its own random characters."""
+    examples = {t.username.lower() for t in load_roster(TEMPLATE_PATH)}
+    used = sorted(t.username for t in testers if t.username.lower() in examples)
+    if used:
+        raise UatDataError(
+            f"{', '.join(used)} is an example from the public template; make a new username "
+            "with random characters of your own"
+        )

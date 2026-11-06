@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from ml.uat.load import UatDataError
-from ml.uat.roster import load_roster
+from ml.uat.roster import load_roster, refuse_example_usernames
 
 ROOT = Path(__file__).resolve().parents[4]
 HEAD = "participant,username,display,persona\n"
@@ -55,6 +55,16 @@ def test_wrong_header_is_rejected(tmp_path):
 def test_guessable_usernames_are_refused(tmp_path, name):
     with pytest.raises(UatDataError, match="guessable"):
         load_roster(roster(tmp_path, f"P01,{name},Amir,frequent_bnpl\n"))
+
+
+def test_the_templates_example_usernames_are_refused_for_a_real_roster(tmp_path):
+    # the template is committed to a public repository, so its names are known to everyone
+    template = load_roster(ROOT / "uat" / "testers.template.csv")
+    with pytest.raises(UatDataError, match="example"):
+        refuse_example_usernames(template)
+
+    fresh = load_roster(roster(tmp_path, "P01,amir-q8w2ze,Amir,frequent_bnpl\n"))
+    assert refuse_example_usernames(fresh) is None
 
 
 def test_comment_lines_are_ignored_and_a_ragged_row_is_named(tmp_path):

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PaySense practice session — {{participant}}</title>
+<style>
+  :root { --ink:#16313a; --muted:#51656c; --line:#cfdde0; --soft:#eef6f6; --accent:#0d6e6e; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.55 system-ui, "Segoe UI", sans-serif; color:var(--ink); background:#fff; }
+  main { max-width:44rem; margin:0 auto; padding:1.25rem 1rem 4rem; }
+  h1 { font-size:1.75rem; margin:.2rem 0 .3rem; }
+  h2 { font-size:1.25rem; margin:2.2rem 0 .5rem; padding-top:.4rem; border-top:2px solid var(--line); }
+  h3 { font-size:1.05rem; margin:0 0 .4rem; }
+  a { color:var(--accent); font-weight:600; }
+  .lead { color:var(--muted); margin:0 0 1rem; }
+  .you { background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:.9rem 1rem; }
+  .you dl, .card dl { margin:0; display:grid; gap:.35rem; }
+  .you dl div, .card dl div { display:flex; flex-wrap:wrap; gap:.25rem .75rem; }
+  dt { min-width:8.5rem; color:var(--muted); }
+  dd { margin:0; font-weight:600; word-break:break-word; }
+  .card { border:1px solid var(--line); border-radius:12px; padding:.9rem 1rem; margin:.8rem 0; }
+  .step { counter-increment:step; margin:1.4rem 0 0; }
+  .step h3::before { content:"Step " counter(step) " — "; color:var(--accent); }
+  .steps { counter-reset:step; }
+  details { margin:.5rem 0; border:1px solid var(--line); border-radius:8px; padding:.35rem .75rem; }
+  summary { cursor:pointer; font-weight:600; }
+  .note { color:var(--muted); font-size:.95rem; }
+  ul { padding-left:1.2rem; }
+  @media print { details { break-inside:avoid; } details > * { display:block; } a { color:inherit; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>PaySense practice session</h1>
+  <p class="lead">A short study of a student money website. About 40 minutes, on your own, on a laptop or a phone.</p>
+
+  <section class="you" aria-label="Your details">
+    <dl>
+      <div><dt>Your code</dt><dd>{{participant}}</dd></div>
+      <div><dt>Website</dt><dd><a href="{{app_url}}">{{app_url}}</a></dd></div>
+      <div><dt>Your username</dt><dd>{{username}}</dd></div>
+      <div><dt>Password</dt><dd>none: the username is all you need</dd></div>
+      <div><dt>Your file</dt><dd>{{statement_link}} (select it to download)</dd></div>
+      <div><dt>Form A</dt><dd><a href="{{form_a_url}}">Before you start</a></dd></div>
+      <div><dt>Form B</dt><dd><a href="{{form_b_url}}">While you go, and at the end</a></dd></div>
+    </dl>
+    <p class="note">Your username works like a password for this practice account. Please do not share it.</p>
+  </section>
+
+  <h2>What this is</h2>
+  <p>PaySense is a student project: a website that helps a student think about whether a &ldquo;buy now, pay later&rdquo; (BNPL) purchase is a good idea. We want to find out whether it is easy to use and whether it makes sense to the people who use it.</p>
+  <p><strong>This is a test of the website, not of you.</strong> There are no right or wrong answers, and nothing you do can break anything. Please do not ask anyone for help or look up how it works. If something is unclear, that is exactly what we want to hear about, so say so in Form B.</p>
+  <p><strong>Everything here is made up.</strong> Use only the details on this page. Please do not type in any of your own bank, e-wallet or BNPL details.</p>
+  <p class="note">You can stop at any time and skip any question. To have your answers removed, tell the project author your code ({{participant}}) before the report is written. Your name is never written next to your answers.</p>
+
+  <h2>The imaginary student</h2>
+  <p>For this session you are looking after the money of an imaginary student. Everything you do is for that student, using the practice account and the file above. You do not need to be like them: just do what they would need to do.</p>
+
+  <h2>What to do</h2>
+  <p>Keep Form B open in a second tab or window as you go, and answer its questions when a step tells you to. Submit it at the end.</p>
+
+  <div class="steps">
+    <div class="step">
+      <h3>Before you open the website</h3>
+      <p>Open <a href="{{form_a_url}}">Form A</a>, answer it, and submit it. It asks what you think about a purchase before you have seen the website. Then come back here.</p>
+    </div>
+
+    <div class="step">
+      <h3>Sign in</h3>
+      <p>Open the website and sign in as the student, with the username above.</p>
+    </div>
+
+    <div class="step">
+      <h3>Get the student&rsquo;s history in</h3>
+      <p>Download the file {{statement_link}}. It is a few months of this student&rsquo;s bank statement. Get it into PaySense.</p>
+      <p class="note">This practice history stays up to date until <strong>{{last_day}}</strong>. After that day the website will say the history is out of date, so please finish by then.</p>
+    </div>
+
+    <div class="step">
+      <h3>See what PaySense says about the student&rsquo;s money</h3>
+      <p>Look at what PaySense tells you about this student&rsquo;s money over the next few months. Take your time and look at whatever you like. Then, in Form B, say in your own words what you make of it.</p>
+    </div>
+
+    <div class="step">
+      <h3>Tell PaySense about the regular monthly payments</h3>
+      <p>Like most people, this student has payments that repeat every month. Make sure PaySense knows about them: where it suggests a repeating payment, <strong>confirm every suggestion</strong>.</p>
+    </div>
+
+    <div class="step">
+      <h3>Tell PaySense the student&rsquo;s BNPL limit</h3>
+      <p>The student has a {{provider}} account with a limit of <strong>{{limit}}</strong>. Tell PaySense about this limit.</p>
+    </div>
+
+    <div class="step">
+      <h3>Check three purchases</h3>
+      <p>The student is thinking about the {{card_count}} purchases below, one after another and in this order. For each one, find out with PaySense whether it is a good idea. Type in exactly what is on the card.</p>
+      {{cards}}
+      <p>After each purchase, answer its questions in Form B: what PaySense told you, why you think it said that, and what you would do. After the first one, Form B also takes you back to the scenario from Form A.</p>
+      <p>If a purchase did not come out as clearly fine, see whether PaySense offers a way to make it safer. If it does, try it, and tell us in Form B what you think of it.</p>
+    </div>
+
+    <div class="step">
+      <h3>Look around (optional, about 5 minutes)</h3>
+      <p>Look at anything else in PaySense that interests you. In Form B, tell us if anything caught your eye or confused you.</p>
+    </div>
+
+    <div class="step">
+      <h3>Finish Form B</h3>
+      <p>Answer the last questions about what it was like to use PaySense, then submit Form B. Thank you for your time.</p>
+    </div>
+  </div>
+
+  <h2>If you get stuck</h2>
+  <p>Try for a couple of minutes first. If you are still stuck, open the hint for that step. Each hint gives a little more than the one before. Using a hint is completely fine; Form B asks which ones you used so we know where the website was hard to follow.</p>
+
+  <details>
+    <summary>Sign in</summary>
+    <p><strong>Hint 1.</strong> The sign-in page asks only for a username. There is no password.</p>
+    <p><strong>Hint 2.</strong> Type the username exactly as written above, then continue.</p>
+  </details>
+  <details>
+    <summary>Get the history in</summary>
+    <p><strong>Hint 1.</strong> Look for a way to bring in a file of transactions.</p>
+    <p><strong>Hint 2.</strong> It is called Import. You can reach it from the menu, and from the Transactions page. On a phone the extra pages sit in a row under the top bar.</p>
+  </details>
+  <details>
+    <summary>See what PaySense says about the money</summary>
+    <p><strong>Hint 1.</strong> The first page after signing in is the dashboard. If it says it is locked, the history is not in yet.</p>
+    <p><strong>Hint 2.</strong> Once the file is in, go back to the dashboard and look at everything on it, including anything you can open for more detail.</p>
+  </details>
+  <details>
+    <summary>Regular monthly payments</summary>
+    <p><strong>Hint 1.</strong> Repeating payments have a page of their own.</p>
+    <p><strong>Hint 2.</strong> It is called Recurring, in the menu. On a phone it is in the row under the top bar.</p>
+  </details>
+  <details>
+    <summary>The BNPL limit</summary>
+    <p><strong>Hint 1.</strong> Limits are kept with the student&rsquo;s BNPL plans.</p>
+    <p><strong>Hint 2.</strong> Open Plans in the menu and look for a box about limits.</p>
+  </details>
+  <details>
+    <summary>Checking a purchase</summary>
+    <p><strong>Hint 1.</strong> The menu has a section about buy now, pay later.</p>
+    <p><strong>Hint 2.</strong> Open Risk check there, fill in the purchase, and ask it to check.</p>
+  </details>
+  <details>
+    <summary>Anything else</summary>
+    <p>If something is not working at all (a page will not load, or you cannot sign in), tell the project author. Say your code, {{participant}}, and what you were doing.</p>
+  </details>
+</main>
+</body>
+</html>
