@@ -4,7 +4,7 @@ Names travel in the body or the query string, never in the path: "Drink/Dessert"
 """
 
 import logging
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, ConfigDict
@@ -13,10 +13,12 @@ from app.api.deps import CurrentUser, DbDep, rate_limited
 from app.api.schemas import CONFLICT_RESPONSE, NOT_FOUND_RESPONSE, PROTECTED_RESPONSES, ApiModel
 from app.api.types import text
 from app.core.errors import conflict, not_found, unprocessable
-from app.db import categories, transactions
+from app.db import categories, category_styles, transactions
 from app.db.client import Database
 from app.domain.categories import (
     CHANGES_THE_MATHS,
+    COLOURS,
+    ICONS,
     MAX_NAME_LENGTH,
     CategoryEntry,
     build_listing,
@@ -33,10 +35,26 @@ NameQuery = Annotated[str, Query(min_length=1, max_length=200)]
 WRITE_LIMIT = rate_limited("categories-write", 20, 60)
 
 
+# The looks a person may choose (ADR D-64). Literals, so the schema the frontend is generated from
+# lists exactly these keys and anything else is a 422 before it reaches the database.
+IconKey = Literal[*ICONS]
+ColourKey = Literal[*COLOURS]
+
+
 class CategoryIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: text(MAX_NAME_LENGTH)
+    icon: IconKey | None = None
+    colour: ColourKey | None = None
+
+
+class CategoryStyleIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: text(200)
+    icon: IconKey | None = None
+    colour: ColourKey | None = None
 
 
 class CategoryRenameIn(BaseModel):
@@ -53,6 +71,8 @@ class CategoryOut(ApiModel):
     assignable: bool
     note: str | None
     transaction_count: int
+    icon: IconKey | None
+    colour: ColourKey | None
 
 
 class CategoryListOut(ApiModel):
@@ -73,7 +93,11 @@ def _out(entry: CategoryEntry) -> CategoryOut:
 
 
 def _listing(db: Database, user_id: str) -> list[CategoryEntry]:
-    return build_listing(categories.names(db, user_id), transactions.category_counts(db, user_id))
+    return build_listing(
+        categories.names(db, user_id),
+        transactions.category_counts(db, user_id),
+        category_styles.styles(db, user_id),
+    )
 
 
 def _entry(db: Database, user_id: str, name: str) -> CategoryEntry:
@@ -133,7 +157,26 @@ def add_category(body: CategoryIn, user: CurrentUser, db: DbDep) -> CategoryOut:
         categories.add(db, user.id, name)
     except categories.DuplicateCategory as err:
         raise _exists() from err
+    category_styles.set_style(db, user.id, name, body.icon, body.colour)
     return _out(_entry(db, user.id, name))
+
+
+@router.put(
+    "/style",
+    response_model=CategoryOut,
+    responses=NOT_FOUND_RESPONSE,
+    dependencies=[WRITE_LIMIT],
+)
+def set_category_style(body: CategoryStyleIn, user: CurrentUser, db: DbDep) -> CategoryOut:
+    """Give any category, built in or the person's own, a colour and an icon from the fixed set.
+    Choosing nothing for both puts the default look back. A built-in category keeps its name."""
+    entries = _listing(db, user.id)
+    folded = body.name.strip().casefold()
+    current = next((e for e in entries if e.name.casefold() == folded), None)
+    if current is None:
+        raise not_found("category_not_found", "You have no category with that name.")
+    category_styles.set_style(db, user.id, current.name, body.icon, body.colour)
+    return _out(_entry(db, user.id, current.name))
 
 
 def _undo_name(db: Database, user_id: str, old: str, new: str, had_row: bool) -> None:
@@ -175,6 +218,7 @@ def rename_category(body: CategoryRenameIn, user: CurrentUser, db: DbDep) -> Cat
     except Exception:
         _undo_name(db, user.id, current.name, new_name, had_row)
         raise
+    category_styles.move(db, user.id, current.name, new_name)  # its look follows the name
     return CategoryChangeOut(category=_out(_entry(db, user.id, new_name)), moved=moved)
 
 
@@ -216,4 +260,5 @@ def delete_category(
             )
         moved = transactions.recategorise(db, user.id, current.name, target.name)
     categories.remove(db, user.id, current.name)
+    category_styles.clear(db, user.id, current.name)
     return CategoryDeleteOut(moved=moved)

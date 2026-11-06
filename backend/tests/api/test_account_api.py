@@ -287,3 +287,17 @@ class TestExport:
 
         assert codes[:5] == [200] * 5
         assert 429 in codes[5:]
+
+
+def test_clearing_my_own_categories_clears_the_looks_given_to_categories(api, amir, fake_db):
+    from app.db import category_styles
+
+    uid = api.get("/api/auth/me", headers=amir).json()["id"]
+    category_styles.set_style(fake_db, uid, "Food", "drink", "plum")
+
+    res = api.post(
+        "/api/account/reset", json={"scopes": ["categories"], "confirm": "RESET"}, headers=amir
+    )
+
+    assert res.status_code == 200, res.text
+    assert category_styles.styles(fake_db, uid) == {}

@@ -11,7 +11,7 @@ that fails partway can simply be run again; clearing what is already gone remove
 from collections.abc import Sequence
 from typing import Any
 
-from app.db import categories, provider_limits, recurring_items, user_settings
+from app.db import categories, category_styles, provider_limits, recurring_items, user_settings
 from app.db import plans as plans_repo
 from app.db.base import ScopedTable, require_user_id
 from app.db.client import Database
@@ -77,6 +77,7 @@ def erase(
         removed["limits"] = provider_limits.delete_all(db, uid)
     if "categories" in wanted:
         removed["categories"] = ScopedTable(db, _CATEGORIES).delete_all(uid)
+        category_styles.delete_all(db, uid)  # their looks go with them
     if reset_onboarding:
         user_settings.set_onboarding_state(db, uid, "new")
     return removed

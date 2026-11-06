@@ -74,6 +74,8 @@ def test_the_list_counts_transactions_and_includes_categories_only_a_file_carrie
         "assignable": True,
         "note": None,
         "transaction_count": 1,
+        "icon": None,
+        "colour": None,
     }
 
 
@@ -414,3 +416,104 @@ def test_changing_categories_too_quickly_is_slowed_down(api, amir):
 
     assert codes[0] == 201
     assert 429 in codes
+
+
+# ------------------------------------------------------------------ looks (ADR D-64)
+def set_look(api, headers, name, icon=None, colour=None):
+    return api.put(
+        "/api/categories/style",
+        json={"name": name, "icon": icon, "colour": colour},
+        headers=headers,
+    )
+
+
+def test_a_category_has_no_chosen_look_until_the_person_picks_one(api, amir):
+    entries = listing(api, amir)
+
+    assert all(c["icon"] is None and c["colour"] is None for c in entries.values())
+
+
+def test_a_person_can_give_their_own_category_a_look(api, amir):
+    add(api, amir, "Gym")
+
+    res = set_look(api, amir, "Gym", "drink", "plum")
+
+    assert res.status_code == 200, res.text
+    assert (res.json()["icon"], res.json()["colour"]) == ("drink", "plum")
+    assert (listing(api, amir)["Gym"]["icon"], listing(api, amir)["Gym"]["colour"]) == (
+        "drink",
+        "plum",
+    )
+
+
+def test_a_person_can_change_the_look_of_a_built_in_category_but_not_its_name(api, amir):
+    res = set_look(api, amir, "Food", None, "coral")
+
+    assert res.status_code == 200, res.text
+    assert listing(api, amir)["Food"]["colour"] == "coral"
+    assert code(rename(api, amir, "Food", "Meals")) == "category_locked"
+
+
+def test_a_category_that_only_exists_on_transactions_can_be_given_a_look(api, amir):
+    spend(api, amir, "Boyfriend Tax")
+
+    assert set_look(api, amir, "Boyfriend Tax", "tag", "berry").status_code == 200
+    assert listing(api, amir)["Boyfriend Tax"]["colour"] == "berry"
+
+
+def test_choosing_nothing_puts_the_default_look_back(api, amir):
+    set_look(api, amir, "Food", "drink", "plum")
+
+    res = set_look(api, amir, "Food")
+
+    assert res.status_code == 200
+    assert (listing(api, amir)["Food"]["icon"], listing(api, amir)["Food"]["colour"]) == (
+        None,
+        None,
+    )
+
+
+@pytest.mark.parametrize(
+    ("icon", "colour"), [("rocket", None), (None, "#ff0000"), ("tag", "red;background:url(x)")]
+)
+def test_an_icon_or_colour_outside_the_palette_is_refused(api, amir, icon, colour):
+    res = set_look(api, amir, "Food", icon, colour)
+
+    assert res.status_code == 422
+    assert listing(api, amir)["Food"]["colour"] is None
+
+
+def test_a_look_for_a_category_the_person_does_not_have_is_not_found(api, amir):
+    res = set_look(api, amir, "Nothing Like This", "tag", "sky")
+
+    assert res.status_code == 404
+    assert code(res) == "category_not_found"
+
+
+def test_a_new_category_can_be_added_with_its_look_in_one_request(api, amir):
+    res = api.post(
+        "/api/categories",
+        json={"name": "Gym", "icon": "drink", "colour": "plum"},
+        headers=amir,
+    )
+
+    assert res.status_code == 201, res.text
+    assert (res.json()["icon"], res.json()["colour"]) == ("drink", "plum")
+
+
+def test_a_renamed_category_keeps_its_look_and_a_deleted_one_loses_it(api, amir):
+    add(api, amir, "Gym")
+    set_look(api, amir, "Gym", "drink", "plum")
+
+    assert rename(api, amir, "Gym", "Fitness").status_code == 200
+    assert listing(api, amir)["Fitness"]["colour"] == "plum"
+
+    assert delete(api, amir, "Fitness").status_code == 200
+    add(api, amir, "Fitness")
+    assert listing(api, amir)["Fitness"]["colour"] is None
+
+
+def test_one_persons_look_is_not_seen_by_another(api, amir, siti):
+    set_look(api, amir, "Food", "drink", "plum")
+
+    assert listing(api, siti)["Food"]["colour"] is None

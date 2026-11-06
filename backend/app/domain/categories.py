@@ -31,6 +31,41 @@ APP_ASSIGNED = (BNPL,)  # logged by a BNPL plan; never chosen by hand
 LOCKED = BUILT_IN + APP_ASSIGNED
 MAX_NAME_LENGTH = 40
 
+# The looks a person may choose from (ADR D-64): keys only. The colours and glyphs themselves live
+# in the frontend (lib/categoryStyle.ts), which is typed against these lists, so a key added here
+# without a drawing there fails its typecheck.
+COLOURS = (
+    "ocean",
+    "teal",
+    "plum",
+    "olive",
+    "amber",
+    "iris",
+    "coral",
+    "sky",
+    "stone",
+    "forest",
+    "clay",
+    "berry",
+    "moss",
+    "rust",
+    "slate",
+)
+ICONS = (
+    "food",
+    "drink",
+    "transport",
+    "rent",
+    "shopping",
+    "bills",
+    "entertainment",
+    "education",
+    "savings",
+    "income",
+    "other",
+    "tag",
+)
+
 NOTES = {
     REFUND: "Money back for a purchase. It is taken off your spending, not counted as income.",
     TRANSFER: "A move between your own accounts. It is left out of income and spending.",
@@ -80,12 +115,27 @@ class CategoryEntry:
     assignable: bool  # can be chosen on a transaction
     note: str | None
     transaction_count: int
+    icon: str | None = None  # the person's choice; None is the default look
+    colour: str | None = None
 
 
-def build_listing(custom_names: Iterable[str], counts: Mapping[str, int]) -> list[CategoryEntry]:
+Look = tuple[str | None, str | None]  # (icon, colour)
+
+
+def build_listing(
+    custom_names: Iterable[str],
+    counts: Mapping[str, int],
+    styles: Mapping[str, Look] | None = None,
+) -> list[CategoryEntry]:
     """Built-in categories first, then the person's own: those added by hand and every other
     category their transactions carry, once each and in alphabetical order."""
     own = {name for name in custom_names} | {name for name in counts if name not in LOCKED}
+    looks = {name.casefold(): look for name, look in (styles or {}).items()}
+
+    def look(name: str) -> dict[str, str | None]:
+        icon, colour = looks.get(name.casefold(), (None, None))
+        return {"icon": icon, "colour": colour}
+
     entries = [
         CategoryEntry(
             name=name,
@@ -94,6 +144,7 @@ def build_listing(custom_names: Iterable[str], counts: Mapping[str, int]) -> lis
             assignable=name not in APP_ASSIGNED,
             note=NOTES.get(name),
             transaction_count=counts.get(name, 0),
+            **look(name),
         )
         for name in LOCKED
     ]
@@ -105,6 +156,7 @@ def build_listing(custom_names: Iterable[str], counts: Mapping[str, int]) -> lis
             assignable=True,
             note=None,
             transaction_count=counts.get(name, 0),
+            **look(name),
         )
         for name in sorted(own, key=lambda n: (n.casefold(), n))
     )

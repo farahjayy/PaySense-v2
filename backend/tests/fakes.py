@@ -32,6 +32,7 @@ UNIQUE_KEYS: dict[str, list[tuple[str, ...]]] = {
     "bnpl_installments": [("plan_id", "seq")],
     "provider_limits": [("user_id", "provider")],
     "user_categories": [("user_id", "name")],
+    "user_category_styles": [("user_id", "name")],
     "transactions": [("bnpl_installment_id",)],  # partial unique index: NULLs never collide
 }
 # table -> defaults applied on insert (callables are invoked per row)
@@ -68,6 +69,7 @@ HAS_CREATED_AT = {
     "bnpl_plans",
     "transactions",
     "user_categories",
+    "user_category_styles",
 }
 
 # child table -> [(child column, parent table)]: composite (column, user_id) -> (id, user_id)

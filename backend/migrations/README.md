@@ -8,6 +8,7 @@ The backend never runs migrations itself.
 | `0001_init.sql` | All tables, composite `(id, user_id)` foreign keys, RLS on with no policies, anon/authenticated privileges revoked. Requires Postgres 15+ (Supabase default). |
 | `0002_user_categories.sql` | `user_categories`: the categories a person adds themselves (the twelve built-in ones live in code). RLS on with no policies, privileges revoked. Apply after 0001, then run `check_rls.py`. |
 | `0003_user_roles.sql` | `users.role`: `user` (default) or `admin`, read on every request. Until it is applied everyone reads as `user`. Then give yourself admin with `uv run python scripts/set_role.py --username <name> --role admin`. |
+| `0004_category_styles.sql` | `user_category_styles`: the colour and icon a person chose for a category, built in or their own (ADR D-64). RLS on with no policies, privileges revoked. Apply after 0003, then run `check_rls.py`. Until it is applied the categories list fails, so apply it before starting the new backend. |
 
 Rules:
 - A DB column or table change = a **new** numbered file plus the repository function and the Pydantic schema, in the same commit. Never edit an applied migration.

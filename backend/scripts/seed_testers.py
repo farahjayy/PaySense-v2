@@ -18,7 +18,7 @@ from app.core.settings import MissingSettingsError, load_settings
 from app.db.client import build_client
 from app.seed import seed_user
 from ml.uat.load import UatDataError
-from ml.uat.roster import load_roster
+from ml.uat.roster import load_roster, refuse_example_usernames
 
 
 def main() -> int:
@@ -28,6 +28,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         testers = load_roster(args.roster)
+        refuse_example_usernames(testers)
     except (UatDataError, FileNotFoundError) as err:
         print(f"Invalid roster: {err}", file=sys.stderr)
         return 2

@@ -103,3 +103,28 @@ def test_reserved_categories_say_what_they_do():
 
     assert entries[REFUND].note and entries[TRANSFER].note and entries[BNPL].note
     assert entries["Food"].note is None
+
+
+# ------------------------------------------------------------ looks (ADR D-64)
+def test_the_palette_is_fifteen_colours_and_twelve_icons_with_no_repeats():
+    from app.domain.categories import COLOURS, ICONS
+
+    assert (len(COLOURS), len(ICONS)) == (15, 12)
+    assert len(set(COLOURS)) == 15 and len(set(ICONS)) == 12
+
+
+def test_an_entry_carries_the_persons_chosen_look_or_none():
+    entries = {
+        e.name: e
+        for e in build_listing(["Gym"], {}, {"Gym": ("drink", "plum"), "Food": (None, "coral")})
+    }
+
+    assert (entries["Gym"].icon, entries["Gym"].colour) == ("drink", "plum")
+    assert (entries["Food"].icon, entries["Food"].colour) == (None, "coral")
+    assert (entries["Rent"].icon, entries["Rent"].colour) == (None, None)
+
+
+def test_a_look_is_found_whatever_the_case_of_the_name():
+    entries = {e.name: e for e in build_listing(["Gym"], {}, {"gym": ("tag", "rust")})}
+
+    assert (entries["Gym"].icon, entries["Gym"].colour) == ("tag", "rust")
