@@ -9,7 +9,9 @@ import type { Band } from "@/lib/format";
 export const metadata: Metadata = { title: "Welcome" };
 
 // Each element's entrance waits its turn; reduced motion shows the finished page.
-const after = (seconds: number): CSSProperties => ({ animationDelay: `${seconds}s` });
+const after = (seconds: number): CSSProperties => ({
+  animationDelay: `${seconds}s`,
+});
 
 const BANDS: readonly { band: Band; key: BandKey }[] = [
   { band: "Safe", key: "safe" },
@@ -35,8 +37,16 @@ const STEPS = [
 ] as const;
 
 const ANSWERS: readonly { key: BandKey; band: Band; text: string }[] = [
-  { key: "safe", band: "Safe", text: "The instalments fit the months ahead, with room to spare." },
-  { key: "caution", band: "Caution", text: "It fits, but leaves little room. You see the reasons." },
+  {
+    key: "safe",
+    band: "Safe",
+    text: "The instalments fit the months ahead, with room to spare.",
+  },
+  {
+    key: "caution",
+    band: "Caution",
+    text: "It fits, but leaves little room. You see the reasons.",
+  },
   {
     key: "risk",
     band: "At Risk",
@@ -155,7 +165,7 @@ export default function WelcomePage() {
           <h2 id="how-title" className="wl-reveal">
             How it works
           </h2>
-          <ol className="wl-steps">
+          <ol className="wl-steps" aria-labelledby="how-title">
             {STEPS.map((step, i) => (
               <li key={step.title} className="wl-step wl-reveal">
                 <span className="wl-step-n" aria-hidden="true">
@@ -166,13 +176,10 @@ export default function WelcomePage() {
               </li>
             ))}
           </ol>
-        </section>
-
-        <section aria-labelledby="answers-title" className="wl-section">
-          <h2 id="answers-title" className="wl-reveal">
-            One of three answers
-          </h2>
-          <ul className="wl-steps">
+          <h3 id="answers-title" className="wl-sub wl-reveal">
+            Every check ends in one of three answers
+          </h3>
+          <ul className="wl-steps" aria-labelledby="answers-title">
             {ANSWERS.map(({ key, band, text }) => (
               <li key={key} className="wl-step wl-reveal">
                 <span className={`lg-chip lg-chip-${key}`}>{band}</span>
@@ -180,11 +187,7 @@ export default function WelcomePage() {
               </li>
             ))}
           </ul>
-        </section>
-
-        <section aria-labelledby="providers-title" className="wl-section wl-reveal">
-          <h2 id="providers-title">Knows the plans students use</h2>
-          <p className="wl-copy">
+          <p className="wl-copy wl-note wl-reveal">
             SPayLater, TikTok PayLater and Atome are built in, with their own billing rules. On any
             other provider, you enter the dates and amounts from your checkout.
           </p>

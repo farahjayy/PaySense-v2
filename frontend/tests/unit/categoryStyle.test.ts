@@ -4,7 +4,9 @@ import {
   BUILT_IN_STYLES,
   categoryGlyph,
   categoryColour,
+  COLOUR_HEX,
   groupSmallCategories,
+  ICON_GLYPH,
   OWN_COLOURS,
 } from "@/lib/categoryStyle";
 
@@ -24,7 +26,11 @@ const CARD = "#fffef6";
 const WHITE = "#ffffff";
 
 describe("category colours", () => {
-  const all = [...Object.values(BUILT_IN_STYLES).map((s) => s.colour), ...OWN_COLOURS];
+  const all = [
+    ...Object.values(BUILT_IN_STYLES).map((s) => s.colour),
+    ...OWN_COLOURS,
+    ...Object.values(COLOUR_HEX),
+  ];
 
   it.each(all)("%s is visible on a card and carries a white glyph (3:1)", (colour) => {
     expect(contrast(colour, CARD)).toBeGreaterThanOrEqual(3);
@@ -45,6 +51,28 @@ describe("category colours", () => {
   it("gives a category of the person's own a colour from the own palette and a generic glyph", () => {
     expect(OWN_COLOURS).toContain(categoryColour("Self Care"));
     expect(categoryGlyph("Self Care")).toBe(categoryGlyph("Something Else"));
+  });
+});
+
+describe("a look the person chose (ADR D-64)", () => {
+  it("offers fifteen colours and twelve icons, none repeated", () => {
+    expect(new Set(Object.values(COLOUR_HEX)).size).toBe(15);
+    expect(new Set(Object.values(ICON_GLYPH)).size).toBe(12);
+  });
+
+  it("overrides the default colour and icon, for a built-in category too", () => {
+    expect(categoryColour("Food", { colour: "plum" })).toBe(COLOUR_HEX.plum);
+    expect(categoryGlyph("Food", { icon: "drink" })).toBe(ICON_GLYPH.drink);
+  });
+
+  it("keeps the default for whichever part was not chosen", () => {
+    expect(categoryColour("Food", { icon: "drink", colour: null })).toBe(categoryColour("Food"));
+    expect(categoryGlyph("Food", { icon: null, colour: "plum" })).toBe(categoryGlyph("Food"));
+  });
+
+  it("gives a category of the person's own the tile they chose", () => {
+    expect(categoryColour("Gym", { colour: "sky" })).toBe(COLOUR_HEX.sky);
+    expect(categoryGlyph("Gym", { icon: "food" })).toBe(ICON_GLYPH.food);
   });
 });
 

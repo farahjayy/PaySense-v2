@@ -18,7 +18,11 @@ test("the welcome page explains the product, and every way in leads to the login
   await page.getByRole("link", { name: "See how it works" }).click();
   await expect(page).toHaveURL(/\/welcome#how$/);
   await expect(page.getByRole("heading", { name: "How it works" })).toBeInViewport();
-  await expect(page.getByRole("heading", { name: "One of three answers" })).toBeAttached();
+  await expect(
+    page.getByRole("heading", {
+      name: "Every check ends in one of three answers",
+    }),
+  ).toBeAttached();
 
   // the closing button leads to the login too
   await page.getByRole("link", { name: "Sign in" }).last().click();

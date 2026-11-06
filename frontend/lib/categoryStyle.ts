@@ -6,7 +6,13 @@
  * is always written next to the icon, so colour is never the only signal.
  */
 
+import type { Category } from "@/lib/api/queries";
+
 type Style = { colour: string; glyph: string };
+export type ColourKey = NonNullable<Category["colour"]>;
+export type IconKey = NonNullable<Category["icon"]>;
+/** What the person chose for a category (ADR D-64); a part left null keeps its default. */
+export type Look = { icon?: IconKey | null; colour?: ColourKey | null };
 
 const GLYPH = {
   food: "M7 3v7a2 2 0 0 0 4 0V3M9 12v9M17 3c-2.2 1.6-3 4-3 7h3v11",
@@ -46,13 +52,51 @@ export const BUILT_IN_STYLES: Readonly<Record<string, Style>> = {
   savings: { colour: "#2f7d5b", glyph: GLYPH.savings },
 };
 
-/** For a category of the person's own, in turn by name. */
+/**
+ * The colours a person may give a category (ADR D-64), by the key the server stores. Typed against
+ * the generated API, so a key added on the server without a colour here fails the typecheck.
+ */
+export const COLOUR_HEX: Readonly<Record<ColourKey, string>> = {
+  ocean: "#105666",
+  teal: "#43998a",
+  plum: "#7b5e92",
+  olive: "#7b8c4b",
+  amber: "#a87b20",
+  iris: "#7373ab",
+  coral: "#c0705f",
+  sky: "#4b86b4",
+  stone: "#8a8876",
+  forest: "#2f7d5b",
+  clay: "#c27f5a",
+  berry: "#9a5a78",
+  moss: "#4f8a6b",
+  rust: "#b0653f",
+  slate: "#5c7fa0",
+};
+
+/** The icons a person may give a category, by key. */
+export const ICON_GLYPH: Readonly<Record<IconKey, string>> = {
+  food: GLYPH.food,
+  drink: GLYPH.drink,
+  transport: GLYPH.transport,
+  rent: GLYPH.rent,
+  shopping: GLYPH.shopping,
+  bills: GLYPH.bills,
+  entertainment: GLYPH.entertainment,
+  education: GLYPH.education,
+  savings: GLYPH.savings,
+  income: GLYPH.income,
+  other: GLYPH.other,
+  tag: GLYPH.tag,
+};
+
+/** For a category of the person's own that they have not styled, in turn by name. */
 export const OWN_COLOURS: readonly string[] = [
-  "#c27f5a",
-  "#9a5a78",
-  "#4f8a6b",
-  "#b0653f",
-  "#5c7fa0",
+  COLOUR_HEX.clay,
+  COLOUR_HEX.berry,
+  COLOUR_HEX.moss,
+  COLOUR_HEX.rust,
+  COLOUR_HEX.slate,
 ];
 
 function stableIndex(name: string, modulo: number): number {
@@ -61,7 +105,7 @@ function stableIndex(name: string, modulo: number): number {
   return hash % modulo;
 }
 
-function styleOf(category: string): Style {
+function defaultStyle(category: string): Style {
   return (
     BUILT_IN_STYLES[category.trim().toLowerCase()] ?? {
       colour: OWN_COLOURS[stableIndex(category, OWN_COLOURS.length)],
@@ -70,8 +114,19 @@ function styleOf(category: string): Style {
   );
 }
 
-export const categoryColour = (category: string): string => styleOf(category).colour;
-export const categoryGlyph = (category: string): string => styleOf(category).glyph;
+/** The tile for a category: what the person chose, else the default for that name. */
+export function styleOf(category: string, look?: Look): Style {
+  const base = defaultStyle(category);
+  return {
+    colour: look?.colour ? COLOUR_HEX[look.colour] : base.colour,
+    glyph: look?.icon ? ICON_GLYPH[look.icon] : base.glyph,
+  };
+}
+
+export const categoryColour = (category: string, look?: Look): string =>
+  styleOf(category, look).colour;
+export const categoryGlyph = (category: string, look?: Look): string =>
+  styleOf(category, look).glyph;
 
 const SMALL_SHARE = 0.03;
 

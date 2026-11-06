@@ -146,6 +146,50 @@ describe("DashboardScreen", () => {
     expect(screen.queryByTestId("margin-fan")).not.toBeInTheDocument();
   });
 
+  it("keeps the forecast's place on the page, locked and with no numbers, for the tour to point at", async () => {
+    respond({
+      ...OK,
+      status: "locked",
+      simulation: null,
+      band: null,
+      health_score: null,
+      months_of_history: 0,
+      lock_reason: "needs_four_months",
+    });
+    render(<DashboardScreen />, { wrapper });
+
+    expect(await screen.findByText(/unlocks with four months/i)).toBeInTheDocument();
+    const card = document.querySelector<HTMLElement>('[data-tour="forecast"]');
+    expect(card).not.toBeNull();
+    expect(card).toHaveTextContent(/financial health/i);
+    expect(card).toHaveTextContent(/unlocks with four months/i);
+    // the picture is a shape only: no score, no band, no chart data
+    expect(screen.queryByRole("img", { name: /score/i })).toBeNull();
+    expect(card?.textContent).not.toMatch(/\d{2,}/);
+    expect(screen.queryByTestId("margin-fan")).not.toBeInTheDocument();
+  });
+
+  it("draws the locked card with a Locked badge and no empty chart box below it", async () => {
+    respond({
+      ...OK,
+      status: "locked",
+      simulation: null,
+      band: null,
+      health_score: null,
+      months_of_history: 0,
+      lock_reason: "needs_four_months",
+    });
+    render(<DashboardScreen />, { wrapper });
+
+    await screen.findByText(/unlocks with four months/i);
+    const card = document.querySelector<HTMLElement>('[data-tour="forecast"]') as HTMLElement;
+    expect(card).toHaveTextContent("Locked");
+    expect(
+      screen.queryByText(/how much money you would have left over/i),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/chart appears here/i)).not.toBeInTheDocument();
+  });
+
   it("puts data-quality warnings beside the number", async () => {
     respond({ ...OK, is_stale: true, stale_days: 30, data_through: "2026-09-09" });
     render(<DashboardScreen />, { wrapper });

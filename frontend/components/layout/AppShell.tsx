@@ -5,11 +5,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
 
+import { NotificationBell } from "@/components/layout/NotificationBell";
 import { ProfileCard } from "@/components/layout/ProfileCard";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
-import { replayIntro } from "@/lib/introTour";
 import { isActive } from "@/lib/nav";
 import { clearSession, type Session } from "@/lib/session";
 import { setViewAsUser, useViewingAsUser } from "@/lib/viewAs";
@@ -28,7 +28,8 @@ type NavGroup = { label?: string; items: readonly NavItem[] };
 
 // Grouped by what the student is doing (ADR D-61). `daily` marks the pages used every day: they
 // fill the phone's bottom bar. The rest sit in the "More pages" row under the header on a phone.
-// Categories has no entry of its own: it is a button on Transactions (ADR D-49). `icon` is an SVG
+// Categories has no entry of its own: it is a button on Transactions (ADR D-49). Notifications is
+// the bell in the top bar, with a count (ADR D-65), not a sidebar item. `icon` is an SVG
 // path (24x24, stroked).
 const NAV_GROUPS: readonly NavGroup[] = [
   {
@@ -39,12 +40,6 @@ const NAV_GROUPS: readonly NavGroup[] = [
         label: "Dashboard",
         icon: "M4 13h6V4H4zM14 20h6v-9h-6zM14 4h6v4h-6zM4 20h6v-3H4z",
         daily: true,
-      },
-      {
-        href: "/notifications",
-        label: "Notifications",
-        icon: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
-        daily: false,
       },
     ],
   },
@@ -101,10 +96,6 @@ const NAV_GROUPS: readonly NavGroup[] = [
         daily: false,
         tour: "model",
       },
-    ],
-  },
-  {
-    items: [
       {
         href: "/admin",
         label: "Admin",
@@ -162,13 +153,11 @@ function Sidebar({
   groups,
   user,
   onLogout,
-  onIntro,
 }: {
   pathname: string;
   groups: readonly NavGroup[];
   user: Session["user"];
   onLogout: () => void;
-  onIntro: () => void;
 }) {
   return (
     <aside className="sticky top-0 hidden h-screen w-62 shrink-0 flex-col gap-5 overflow-hidden bg-sidebar px-4 pb-5 pt-7 text-sidebar-ink md:flex">
@@ -222,7 +211,7 @@ function Sidebar({
           </div>
         ))}
       </nav>
-      <ProfileCard user={user} onLogout={onLogout} onIntro={onIntro} />
+      <ProfileCard user={user} onLogout={onLogout} />
     </aside>
   );
 }
@@ -306,11 +295,6 @@ export function AppShell({ user, children }: Props) {
     router.replace("/login");
   }
 
-  function handleIntro() {
-    replayIntro(user.id);
-    router.push("/"); // the tour's first stop, the forecast, is on the dashboard
-  }
-
   return (
     <div className="flex min-h-screen">
       <a
@@ -319,13 +303,7 @@ export function AppShell({ user, children }: Props) {
       >
         Skip to content
       </a>
-      <Sidebar
-        pathname={pathname}
-        groups={groups}
-        user={user}
-        onLogout={handleLogout}
-        onIntro={handleIntro}
-      />
+      <Sidebar pathname={pathname} groups={groups} user={user} onLogout={handleLogout} />
       <div className="flex min-w-0 flex-1 flex-col">
         {isAdminAccount && viewingAsUser && <ViewingAsUserBar />}
         <header className="flex h-14 items-center justify-between gap-3 border-b border-line bg-surface px-4 sm:px-6">
@@ -334,11 +312,15 @@ export function AppShell({ user, children }: Props) {
             <Wordmark />
           </Link>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <NotificationBell userId={user.id} pathname={pathname} />
             <ThemeToggle />
             {/* the sidebar's profile card does these jobs from a laptop up */}
-            <span className="hidden max-w-[10rem] truncate text-[13px] font-medium text-ink sm:inline md:hidden">
+            <Link
+              href="/settings"
+              className="hidden max-w-[10rem] truncate text-[13px] font-medium text-ink underline-offset-2 hover:underline sm:inline md:hidden"
+            >
               {user.display_name}
-            </span>
+            </Link>
             <Link
               href="/settings"
               data-tour="settings"
@@ -369,13 +351,6 @@ export function AppShell({ user, children }: Props) {
                 {item.label}
               </Link>
             ))}
-          <button
-            type="button"
-            onClick={handleIntro}
-            className="py-1 text-accent underline-offset-2 hover:underline"
-          >
-            Show the intro again
-          </button>
         </nav>
         <main
           id="main"

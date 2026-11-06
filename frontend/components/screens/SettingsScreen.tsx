@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 
 import { ResetDialog } from "@/components/settings/ResetDialog";
@@ -17,6 +18,8 @@ import {
 import { restoreGettingStarted } from "@/lib/checklistStore";
 import { saveBlob } from "@/lib/download";
 import { todayIso } from "@/lib/format";
+import { replayIntro } from "@/lib/introTour";
+import { useAuth } from "@/lib/session";
 import { clearedSentence, SCOPE_LABEL, SCOPE_NOTE, SCOPES } from "@/lib/settings";
 
 const TEMPLATE_HREF = "/paysense-import-template.csv";
@@ -27,6 +30,8 @@ type Dialogue = "clear" | "factory" | null;
 
 /** Your own data and a few small preferences. Nothing here is a daily page. */
 export function SettingsScreen() {
+  const router = useRouter();
+  const auth = useAuth();
   const summary = useAccountSummary();
   const reset = useResetAccount();
   const exportData = useExportData();
@@ -37,6 +42,17 @@ export function SettingsScreen() {
   const inFlight = useRef(false); // a second Enter before the first request shows as pending
 
   const chosen = SCOPES.filter((s) => ticked.has(s));
+
+  function handleIntro() {
+    if (auth.status !== "authenticated") return;
+    replayIntro(auth.session.user.id);
+    router.push("/"); // the tour's first stop, the forecast, is on the dashboard
+  }
+
+  function handleChecklist() {
+    restoreGettingStarted();
+    router.push("/"); // the checklist is a dashboard card, so take them to it
+  }
 
   function toggle(scope: AccountScope) {
     setTicked((current) => {
@@ -204,8 +220,11 @@ export function SettingsScreen() {
       <Card>
         <CardTitle>Other</CardTitle>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={restoreGettingStarted}>
+          <Button variant="secondary" onClick={handleChecklist}>
             Show the getting started checklist again
+          </Button>
+          <Button variant="secondary" onClick={handleIntro}>
+            Show the intro again
           </Button>
           <Link href="/categories" className={LINK_BUTTON}>
             Manage categories

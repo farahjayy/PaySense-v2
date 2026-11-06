@@ -54,6 +54,7 @@ const TEXT_PAIRS: [string, string, number][] = [
   ["danger", "danger-bg", 4.5],
   ["sidebar-ink", "sidebar", 7],
   ["sidebar-muted", "sidebar", 4.5],
+  ["pop-fill", "sidebar", 4.5], // Log out on hover and focus, on the sidebar card
   ["on-accent", "accent", 4.5],
   ["on-accent", "danger", 4.5],
   ["page", "ink", 7], // the label on a solid ink button
@@ -135,11 +136,20 @@ describe("no fixed text colour on a themed background", () => {
   });
 });
 
-
 describe("the faces keep their bright look in both modes (ADR D-58)", () => {
   // Safe / Caution / At Risk are characters, drawn as pastel tiles with a dark face. In dark they
   // first took the dark result shades and looked burnt; they keep the same pastel in both modes.
-  const FACE = ["face-safe", "face-safe-bg", "face-caution", "face-caution-bg", "face-risk", "face-risk-bg", "face-ink"];
+  const FACE = [
+    "face-safe",
+    "face-safe-bg",
+    "face-caution",
+    "face-caution-bg",
+    "face-risk",
+    "face-risk-bg",
+    "face-ink",
+    "face-locked",
+    "face-locked-bg",
+  ];
 
   it.each(FACE)("%s is the same colour in light and dark", (name) => {
     expect(light[name]).toBeDefined();
@@ -151,9 +161,66 @@ describe("the faces keep their bright look in both modes (ADR D-58)", () => {
     ["face-caution", "face-caution-bg"],
     ["face-risk", "face-risk-bg"],
     ["face-ink", "rosy"],
+    ["face-locked", "face-locked-bg"],
   ])("%s reads on %s at 4.5:1", (fg, bg) => {
     expect(contrast(dark[fg], dark[bg])).toBeGreaterThanOrEqual(4.5);
   });
+
+  it("makes the salmon button from the brand's own dusty pink, the same in both modes", () => {
+    expect(light["pop-fill"].toLowerCase()).toBe(light.rosy.toLowerCase());
+    expect(dark["pop-fill"]).toBe(light["pop-fill"]);
+    expect(dark["on-pop"]).toBe(light["on-pop"]);
+    expect(contrast(light["on-pop"], light["pop-fill"])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("makes the highlight button the sidebar teal in light and the brand salmon in dark", () => {
+    expect(light.highlight.toLowerCase()).toBe(light.sidebar.toLowerCase());
+    expect(dark.highlight.toLowerCase()).toBe(dark.rosy.toLowerCase());
+  });
+
+  it.each([
+    ["light", light],
+    ["dark", dark],
+  ] as const)("the highlight button's label reads on its fill in %s", (_m, t) => {
+    expect(contrast(t["on-highlight"], t.highlight)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each([
+    ["light", light],
+    ["dark", dark],
+  ] as const)("the salmon reads as words on its own tint, a card and the page in %s", (_m, t) => {
+    expect(contrast(t.pop, t["pop-bg"])).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(t.pop, t.surface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(t.pop, t.page)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each([
+    ["light", light],
+    ["dark", dark],
+  ] as const)(
+    "the income green reads as words on its own tint, a card and the page in %s",
+    (_m, t) => {
+      expect(contrast(t.income, t["income-bg"])).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(t.income, t.surface)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(t.income, t.page)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+
+  it("makes the light income green visibly greener than the olive result colour", () => {
+    expect(light.income.toLowerCase()).not.toBe(light.success.toLowerCase());
+  });
+
+  it.each([
+    ["light", light],
+    ["dark", dark],
+  ] as const)(
+    "the locked slate reads on a card and on the page in %s, and is not the button teal",
+    (_m, t) => {
+      expect(contrast(t.locked, t.surface)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(t.locked, t.page)).toBeGreaterThanOrEqual(4.5);
+      expect(t.locked.toLowerCase()).not.toBe(t.accent.toLowerCase());
+    },
+  );
 
   it("draws the faces from those tokens, not from colours that change with the theme", () => {
     const source = readFileSync(path.join(ROOT, "components", "ui", "Face.tsx"), "utf8");
@@ -163,7 +230,6 @@ describe("the faces keep their bright look in both modes (ADR D-58)", () => {
     expect(source).toMatch(/face-risk/);
   });
 });
-
 
 describe("the danger line and the divider in dark (contrast audit)", () => {
   it("use the audited colours", () => {
@@ -183,19 +249,34 @@ describe("the danger line and the divider in dark (contrast audit)", () => {
 
   it("leaves every other token as it was, so only the audited three changed", () => {
     const unchanged: Record<string, string> = {
-      page: "#0e1f1d", surface: "#142a27", "surface-2": "#19332f", field: "#7da39b",
-      ink: "#eef4ee", "ink-secondary": "#b7cbc4", "ink-muted": "#9cb5ad", accent: "#6cc4d3",
-      "accent-bg": "#14414a", "on-accent": "#06262d", success: "#8fd16a", "success-bg": "#1f3519",
-      warning: "#f2b865", "warning-bg": "#3b2a10", danger: "#f59a9a", "danger-bg": "#43201f",
-      sidebar: "#0a2f37", "sidebar-ink": "#f1eecf", "sidebar-muted": "#b9d1cb", rosy: "#d3968c",
-      "chart-blue": "#2b6672", "chart-edge": "#5fb4c4",
+      page: "#0e1f1d",
+      surface: "#142a27",
+      "surface-2": "#19332f",
+      field: "#7da39b",
+      ink: "#eef4ee",
+      "ink-secondary": "#b7cbc4",
+      "ink-muted": "#9cb5ad",
+      accent: "#6cc4d3",
+      "accent-bg": "#14414a",
+      "on-accent": "#06262d",
+      success: "#8fd16a",
+      "success-bg": "#1f3519",
+      warning: "#f2b865",
+      "warning-bg": "#3b2a10",
+      danger: "#f59a9a",
+      "danger-bg": "#43201f",
+      sidebar: "#0a2f37",
+      "sidebar-ink": "#f1eecf",
+      "sidebar-muted": "#b9d1cb",
+      rosy: "#d3968c",
+      "chart-blue": "#2b6672",
+      "chart-edge": "#5fb4c4",
     };
     for (const [name, value] of Object.entries(unchanged)) {
       expect(dark[name].toLowerCase(), name).toBe(value);
     }
   });
 });
-
 
 describe("the danger lines the charts actually draw, in dark (they use --color-danger)", () => {
   it("are at least 3:1 against the chart band and the card", () => {

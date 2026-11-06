@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 
 import { AlertLine } from "@/components/dashboard/AlertLine";
 import { GettingStarted } from "@/components/dashboard/GettingStarted";
+import { LockedOutlook } from "@/components/dashboard/LockedOutlook";
 import { BillsDue } from "@/components/forecast/BillsDue";
 import { Notices } from "@/components/forecast/Notices";
 import { RecentMonths } from "@/components/forecast/RecentMonths";
@@ -12,7 +13,7 @@ import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
 import { Face } from "@/components/ui/Face";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ScoreRing } from "@/components/ui/ScoreRing";
-import { ErrorState, LockedNote, Skeleton } from "@/components/ui/States";
+import { ErrorState, Skeleton } from "@/components/ui/States";
 import { useBills, useForecast, useMonthSummary } from "@/lib/api/queries";
 import { formatMonth } from "@/lib/format";
 import { notices, OUTLOOK_LINE, shortfallLine } from "@/lib/forecast";
@@ -56,7 +57,7 @@ function Outlook() {
   }
   const data = forecast.data;
   if (data.status === "locked" || !data.simulation || !data.band || data.health_score === null) {
-    return <LockedNote reason={data.lock_reason} monthsOfHistory={data.months_of_history} />;
+    return <LockedOutlook reason={data.lock_reason} monthsOfHistory={data.months_of_history} />;
   }
   const sim = data.simulation;
   const chance = shortfallLine(sim.p_shortfall, sim.months.length);

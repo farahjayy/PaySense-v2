@@ -293,8 +293,10 @@ test("a first sign-in plays the welcome slides and the tour, and an admin can la
   await page.getByRole("button", { name: "Skip", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
-  // ...and anyone can play it again from "Show the intro again" (ADR D-61)
-  await page.getByRole("button", { name: "Show the intro again" }).first().click();
+  // ...and anyone can play it again from Settings (ADR D-66); the name on the card links there too
+  await page.getByRole("link", { name: "Your data" }).first().click();
+  await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
+  await page.getByRole("button", { name: "Show the intro again" }).click();
   await expect(page.getByRole("dialog", { name: /welcome to paysense/i })).toBeVisible();
   await page.getByRole("button", { name: "Skip", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);

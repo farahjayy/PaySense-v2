@@ -237,6 +237,27 @@ export interface paths {
         patch: operations["rename_category"];
         trace?: never;
     };
+    "/api/categories/style": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Category Style
+         * @description Give any category, built in or the person's own, a colour and an icon from the fixed set.
+         *     Choosing nothing for both puts the default look back. A built-in category keeps its name.
+         */
+        put: operations["set_category_style"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/summary/months": {
         parameters: {
             query?: never;
@@ -726,6 +747,10 @@ export interface components {
         CategoryIn: {
             /** Name */
             name: string;
+            /** Icon */
+            icon?: ("food" | "drink" | "transport" | "rent" | "shopping" | "bills" | "entertainment" | "education" | "savings" | "income" | "other" | "tag") | null;
+            /** Colour */
+            colour?: ("ocean" | "teal" | "plum" | "olive" | "amber" | "iris" | "coral" | "sky" | "stone" | "forest" | "clay" | "berry" | "moss" | "rust" | "slate") | null;
         };
         /** CategoryListOut */
         CategoryListOut: {
@@ -746,6 +771,10 @@ export interface components {
             note: string | null;
             /** Transaction Count */
             transaction_count: number;
+            /** Icon */
+            icon: ("food" | "drink" | "transport" | "rent" | "shopping" | "bills" | "entertainment" | "education" | "savings" | "income" | "other" | "tag") | null;
+            /** Colour */
+            colour: ("ocean" | "teal" | "plum" | "olive" | "amber" | "iris" | "coral" | "sky" | "stone" | "forest" | "clay" | "berry" | "moss" | "rust" | "slate") | null;
         };
         /** CategoryRenameIn */
         CategoryRenameIn: {
@@ -764,6 +793,15 @@ export interface components {
             count: number;
             /** Share */
             share: number;
+        };
+        /** CategoryStyleIn */
+        CategoryStyleIn: {
+            /** Name */
+            name: string;
+            /** Icon */
+            icon?: ("food" | "drink" | "transport" | "rent" | "shopping" | "bills" | "entertainment" | "education" | "savings" | "income" | "other" | "tag") | null;
+            /** Colour */
+            colour?: ("ocean" | "teal" | "plum" | "olive" | "amber" | "iris" | "coral" | "sky" | "stone" | "forest" | "clay" | "berry" | "moss" | "rust" | "slate") | null;
         };
         /** CategorySummaryOut */
         CategorySummaryOut: {
@@ -2559,6 +2597,57 @@ export interface operations {
             };
             /** @description The request conflicts with the current state */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description The request body or parameters are invalid */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    set_category_style: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryStyleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOut"];
+                };
+            };
+            /** @description Not logged in, or the session is invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description No such record for this user */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

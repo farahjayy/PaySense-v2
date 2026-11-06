@@ -8,10 +8,11 @@ import type { Band } from "@/lib/format";
  * turning into muddy dark shades.
  */
 
-export type FaceKind = Band | "Hello";
+export type FaceKind = Band | "Hello" | "Locked";
 
 const TONE = {
   Hello: "text-face-ink",
+  Locked: "text-face-locked",
   Safe: "text-face-safe",
   Caution: "text-face-caution",
   "At Risk": "text-face-risk",
@@ -19,6 +20,7 @@ const TONE = {
 
 const TILE = {
   Hello: "fill-rosy",
+  Locked: "fill-face-locked-bg",
   Safe: "fill-face-safe-bg",
   Caution: "fill-face-caution-bg",
   "At Risk": "fill-face-risk-bg",
@@ -34,6 +36,25 @@ const SHAPES: Record<FaceKind, ReactNode> = {
         fill="none"
         stroke="currentColor"
         strokeWidth="5.5"
+        strokeLinecap="round"
+      />
+    </>
+  ),
+  // X_X: nothing to read yet, so no band face. Crossed-out eyes and a flat mouth.
+  Locked: (
+    <>
+      <path
+        d="M27 36l15 15M42 36L27 51M58 36l15 15M73 36L58 51"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M36 70h28"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="5"
         strokeLinecap="round"
       />
     </>

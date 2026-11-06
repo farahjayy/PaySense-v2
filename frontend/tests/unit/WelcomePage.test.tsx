@@ -29,32 +29,37 @@ describe("WelcomePage (ADR D-55)", () => {
     expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual([
       "Small instalments add up",
       "How it works",
-      "One of three answers",
-      "Knows the plans students use",
       "You stay in control",
       "Ready when you are",
     ]);
   });
 
-  it("explains how it works in three steps and gives the three answers", () => {
+  it("explains how it works in three steps, then the three answers a check can give", () => {
     render(<WelcomePage />);
 
     const how = screen.getByRole("region", { name: "How it works" });
-    expect(within(how).getAllByRole("listitem")).toHaveLength(3);
-    const answers = screen.getByRole("region", { name: "One of three answers" });
-    expect(within(answers).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+    const steps = within(how).getByRole("list", { name: "How it works" });
+    expect(within(steps).getAllByRole("listitem")).toHaveLength(3);
+    const answers = within(how).getByRole("list", {
+      name: "Every check ends in one of three answers",
+    });
+    expect(
+      within(answers)
+        .getAllByRole("listitem")
+        .map((li) => li.textContent),
+    ).toEqual([
       expect.stringMatching(/^Safe/),
       expect.stringMatching(/^Caution/),
       expect.stringMatching(/^At Risk/),
     ]);
   });
 
-  it("names the providers it really knows", () => {
+  it("names the providers it really knows, inside how it works", () => {
     render(<WelcomePage />);
 
-    const section = screen.getByRole("region", { name: "Knows the plans students use" });
+    const how = screen.getByRole("region", { name: "How it works" });
     for (const name of ["SPayLater", "TikTok PayLater", "Atome"]) {
-      expect(section).toHaveTextContent(name);
+      expect(how).toHaveTextContent(name);
     }
   });
 
@@ -71,7 +76,9 @@ describe("WelcomePage (ADR D-55)", () => {
   it("promises nothing the app does not do: no account to create, no email, no assistant", () => {
     const { container } = render(<WelcomePage />);
 
-    expect(container.textContent).not.toMatch(/create (a free |your )?account|sign up|email|assistant/i);
+    expect(container.textContent).not.toMatch(
+      /create (a free |your )?account|sign up|email|assistant/i,
+    );
   });
 
   it("has no accessibility violations", async () => {

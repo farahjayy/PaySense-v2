@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "secondary" | "danger" | "dangerSoft" | "positive" | "accent";
+type Variant =
+  "primary" | "secondary" | "danger" | "dangerSoft" | "positive" | "accent" | "highlight";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: Variant;
@@ -17,6 +18,8 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   // An action that completes something (Mark paid): green.
   positive: "bg-surface text-success border-success/60 hover:border-success hover:bg-success-bg",
   accent: "bg-accent text-on-accent border-transparent hover:bg-accent/90",
+  // A one-off highlight: the sidebar teal in light mode, the brand's dusty salmon in dark mode.
+  highlight: "bg-highlight text-on-highlight border-transparent hover:bg-highlight/85",
 };
 
 export function Button({ variant = "primary", size = "md", className = "", ...rest }: Props) {

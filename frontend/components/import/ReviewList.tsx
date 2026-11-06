@@ -1,5 +1,7 @@
 "use client";
 
+import { CatIcon } from "@/components/ui/CatIcon";
+import type { Look } from "@/lib/categoryStyle";
 import { formatDate } from "@/lib/format";
 import { type ReviewRow, type RowType } from "@/lib/import";
 import { formatRm } from "@/lib/money";
@@ -10,6 +12,8 @@ type Props = {
   /** Everything a row's category can be set to: the app's list plus the file's own categories. */
   categories: readonly string[];
   onChange: (row: number, patch: Patch) => void;
+  /** The look the person gave a category (ADR D-64); absent means every category's default. */
+  lookOf?: (name: string) => Look | undefined;
 };
 
 const TYPES: readonly { value: RowType; label: string }[] = [
@@ -21,8 +25,20 @@ const TYPES: readonly { value: RowType; label: string }[] = [
 const SELECT =
   "h-9 w-full rounded-lg border border-field bg-surface px-2 text-[13px] text-ink hover:border-ink-muted";
 
+// The type choice and the amount take the colour of what they are, so a statement reads at a glance.
+const TYPE_SELECT: Record<RowType, string> = {
+  expense: "border-pop/60 bg-pop-bg text-pop font-semibold",
+  income: "border-income/60 bg-income-bg text-income font-semibold",
+  savings: "border-accent/60 bg-accent-bg text-accent font-semibold",
+};
+const AMOUNT: Record<RowType, string> = {
+  expense: "text-ink",
+  income: "text-income",
+  savings: "text-accent",
+};
+
 /** One line per statement row: a card on a phone, a table-like row from tablet width up. */
-export function ReviewList({ rows, categories, onChange }: Props) {
+export function ReviewList({ rows, categories, onChange, lookOf }: Props) {
   return (
     <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
       {rows.map((r) => (
@@ -49,21 +65,26 @@ export function ReviewList({ rows, categories, onChange }: Props) {
               </p>
             )}
           </div>
-          <select
-            aria-label={`Category for row ${r.row}`}
-            className={SELECT}
-            value={r.category}
-            onChange={(event) => onChange(r.row, { category: event.target.value })}
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2">
+              <CatIcon category={r.category} size={24} look={lookOf?.(r.category)} />
+            </span>
+            <select
+              aria-label={`Category for row ${r.row}`}
+              className={`${SELECT} pl-9`}
+              value={r.category}
+              onChange={(event) => onChange(r.row, { category: event.target.value })}
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
           <select
             aria-label={`Type for row ${r.row}`}
-            className={SELECT}
+            className={`${SELECT} ${TYPE_SELECT[r.type]}`}
             value={r.type}
             onChange={(event) => onChange(r.row, { type: event.target.value as RowType })}
           >
@@ -73,7 +94,9 @@ export function ReviewList({ rows, categories, onChange }: Props) {
               </option>
             ))}
           </select>
-          <span className="text-[14px] font-semibold tabular-nums md:text-right">
+          <span
+            className={`text-[14px] font-semibold tabular-nums md:text-right ${AMOUNT[r.type]}`}
+          >
             {formatRm(r.amountSen)}
           </span>
         </li>

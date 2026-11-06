@@ -44,6 +44,15 @@ describe("AdminScreen (ADR D-57)", () => {
     expect(screen.getByRole("button", { name: "Launch the quick tour" })).toBeInTheDocument();
   });
 
+  it("shows the launch button in the brand salmon, so it stands out from the teal around it", () => {
+    signInAs("admin");
+    render(<AdminScreen />);
+
+    expect(screen.getByRole("button", { name: "Launch the quick tour" })).toHaveClass(
+      "bg-highlight",
+    );
+  });
+
   it("plays the intro from the first slide and goes to the dashboard when launched", async () => {
     signInAs("admin");
     render(<AdminScreen />);

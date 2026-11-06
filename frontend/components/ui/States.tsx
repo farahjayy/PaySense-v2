@@ -60,23 +60,29 @@ export function ErrorState({ message, onRetry }: ErrorProps) {
   );
 }
 
-type LockedProps = {
+export type LockedProps = {
   reason: "needs_four_months" | "no_usable_history" | null;
   monthsOfHistory: number;
 };
+
+/** The one sentence that says why the forecast is locked and how far off it is. */
+export function lockedText({ reason, monthsOfHistory }: LockedProps): string {
+  const shown = Math.min(monthsOfHistory, MONTHS_NEEDED);
+  if (reason === "no_usable_history") {
+    return "There is nothing to forecast from yet. Add your everyday spending and income.";
+  }
+  if (monthsOfHistory >= MONTHS_NEEDED) {
+    return "Almost there: the forecast needs a few more complete weeks of history.";
+  }
+  return `Your forecast unlocks with four months of history (${shown} of ${MONTHS_NEEDED} logged).`;
+}
 
 /**
  * The one-line version of the locked state, for the dashboard and the risk check (ADR D-62). The
  * full box, with its progress bar, lives on Transactions, where the missing history is put right.
  */
-export function LockedNote({ reason, monthsOfHistory }: LockedProps) {
-  const shown = Math.min(monthsOfHistory, MONTHS_NEEDED);
-  const text =
-    reason === "no_usable_history"
-      ? "There is nothing to forecast from yet. Add your everyday spending and income."
-      : monthsOfHistory >= MONTHS_NEEDED
-        ? "Almost there: the forecast needs a few more complete weeks of history."
-        : `Your forecast unlocks with four months of history (${shown} of ${MONTHS_NEEDED} logged).`;
+export function LockedNote(props: LockedProps) {
+  const text = lockedText(props);
   return (
     <div
       role="status"
@@ -93,6 +99,31 @@ export function LockedNote({ reason, monthsOfHistory }: LockedProps) {
   );
 }
 
+/** A padlock on a tile, the size of the face tiles: the locked state reads as locked at a glance. */
+function LockTile({ size = 48 }: { size?: number }) {
+  return (
+    <span
+      aria-hidden="true"
+      data-testid="lock-tile"
+      className="inline-flex items-center justify-center bg-face-locked-bg text-face-locked"
+      style={{ width: size, height: size, borderRadius: Math.round(size * 0.32) }}
+    >
+      <svg
+        width={Math.round(size * 0.5)}
+        height={Math.round(size * 0.5)}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z" />
+      </svg>
+    </span>
+  );
+}
+
 /**
  * The forecast needs about four months of history. This is a normal first-run state, not an error:
  * it says what is missing and where to fix it.
@@ -105,7 +136,7 @@ export function LockedState({ reason, monthsOfHistory }: LockedProps) {
   return (
     <div className="rounded-card border border-line bg-surface px-5 py-6 sm:px-7">
       <div className="mb-3">
-        <Face band="Hello" size={48} />
+        <LockTile />
       </div>
       <p className="text-sm font-semibold text-ink">
         {noUsable

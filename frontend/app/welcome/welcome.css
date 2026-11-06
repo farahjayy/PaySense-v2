@@ -333,6 +333,17 @@
 .login-theme .wl-step .wl-answer {
   margin-top: 14px;
 }
+.login-theme .wl-sub {
+  margin: 40px 0 16px;
+  font-family: var(--lg-font-display);
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.625rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.login-theme .wl-note {
+  margin-top: 20px;
+}
 .login-theme .wl-control {
   display: grid;
   gap: 10px;

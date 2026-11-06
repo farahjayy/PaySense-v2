@@ -104,6 +104,7 @@ const TXN = {
 
 const DATA: Record<string, unknown> = {
   "/api/forecast": FORECAST,
+  "/api/alerts": { items: [{ rule: "overdue", title: "Overdue", detail: "x", severity: "high", href: "/plans" }] },
   "/api/bills": {
     months: [
       {

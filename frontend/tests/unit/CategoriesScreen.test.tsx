@@ -10,12 +10,14 @@ const get = vi.fn();
 const post = vi.fn();
 const patch = vi.fn();
 const del = vi.fn();
+const put = vi.fn();
 vi.mock("@/lib/api/client", () => ({
   api: {
     GET: (...a: unknown[]) => get(...a),
     POST: (...a: unknown[]) => post(...a),
     PATCH: (...a: unknown[]) => patch(...a),
     DELETE: (...a: unknown[]) => del(...a),
+    PUT: (...a: unknown[]) => put(...a),
   },
 }));
 
@@ -32,6 +34,8 @@ function entry(name: string, over: Record<string, unknown> = {}) {
     assignable: true,
     note: null,
     transaction_count: 0,
+    icon: null,
+    colour: null,
     ...over,
   };
 }
@@ -57,7 +61,7 @@ function fail(status: number, code: string, message: string) {
 
 describe("CategoriesScreen", () => {
   beforeEach(() => {
-    for (const m of [get, post, patch, del]) m.mockReset();
+    for (const m of [get, post, patch, del, put]) m.mockReset();
     get.mockResolvedValue(ok(LIST));
   });
 
@@ -92,7 +96,12 @@ describe("CategoriesScreen", () => {
     const rows = within(builtIn).getAllByRole("listitem");
     expect(rows).toHaveLength(5);
     for (const row of rows) {
-      expect(within(row).queryByRole("button")).not.toBeInTheDocument();
+      // the name is fixed: the only thing a built-in row offers is a change of look (ADR D-64)
+      expect(
+        within(row)
+          .getAllByRole("button")
+          .map((b) => b.getAttribute("aria-label")),
+      ).toEqual([expect.stringMatching(/^Change look of /)]);
       expect(within(row).getByText("Fixed")).toBeInTheDocument();
     }
     expect(within(builtIn).getByText(/taken off your spending/i)).toBeInTheDocument();
@@ -200,7 +209,9 @@ describe("CategoriesScreen", () => {
     await userEvent.click(screen.getByRole("button", { name: /delete boyfriend tax/i }));
     const dialog = await screen.findByRole("dialog");
     const choose = within(dialog).getByLabelText(/move its 2 transactions to/i);
-    const options = within(choose).getAllByRole("option").map((o) => o.textContent);
+    const options = within(choose)
+      .getAllByRole("option")
+      .map((o) => o.textContent);
     // Refund and Transfer change how a row counts, so spending is never moved into them
     expect(options).toEqual(["Choose a category…", "Food", "Other", "Gym"]);
     expect(within(dialog).getByRole("button", { name: /^delete$/i })).toBeDisabled();
@@ -227,5 +238,106 @@ describe("CategoriesScreen", () => {
 
     expect(await screen.findByText("Something went wrong on our side.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
+  });
+
+  // ---------------------------------------------------------------- looks (ADR D-64)
+  it("shows every category's tile beside its name, built in or not", async () => {
+    render(<CategoriesScreen />, { wrapper });
+
+    const own = await screen.findByRole("list", { name: /your categories/i });
+    const builtIn = screen.getByRole("list", { name: /built-in categories/i });
+    const rows = [
+      ...within(own).getAllByRole("listitem"),
+      ...within(builtIn).getAllByRole("listitem"),
+    ];
+    for (const row of rows) {
+      expect(within(row).getByTestId("category-tile")).toBeInTheDocument();
+    }
+  });
+
+  it("draws a category in the colour the person chose for it", async () => {
+    get.mockResolvedValue(
+      ok({
+        categories: [
+          entry("Food"),
+          entry("Gym", { builtin: false, locked: false, icon: "drink", colour: "plum" }),
+        ],
+      }),
+    );
+    render(<CategoriesScreen />, { wrapper });
+
+    const own = await screen.findByRole("list", { name: /your categories/i });
+    expect(within(own).getByTestId("category-tile")).toHaveStyle({ background: "#7b5e92" });
+  });
+
+  it("changes the look of a built-in category without letting its name change", async () => {
+    put.mockResolvedValue(ok(entry("Food", { colour: "coral" })));
+    render(<CategoriesScreen />, { wrapper });
+    await screen.findByRole("list", { name: /built-in categories/i });
+    expect(screen.queryByRole("button", { name: /rename food/i })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /change look of food/i }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Coral" }));
+    await userEvent.click(within(dialog).getByRole("button", { name: /save look/i }));
+
+    await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
+    expect(put.mock.calls[0]).toEqual([
+      "/api/categories/style",
+      { body: { name: "Food", icon: null, colour: "coral" } },
+    ]);
+  });
+
+  it("changes the look of the person's own category: a colour and an icon", async () => {
+    put.mockResolvedValue(ok(entry("Gym", { builtin: false, locked: false })));
+    render(<CategoriesScreen />, { wrapper });
+    await screen.findByRole("list", { name: /your categories/i });
+
+    await userEvent.click(screen.getByRole("button", { name: /change look of gym/i }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Plum" }));
+    await userEvent.click(within(dialog).getByRole("button", { name: "Drink" }));
+    await userEvent.click(within(dialog).getByRole("button", { name: /save look/i }));
+
+    await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
+    expect(put.mock.calls[0]).toEqual([
+      "/api/categories/style",
+      { body: { name: "Gym", icon: "drink", colour: "plum" } },
+    ]);
+  });
+
+  it("puts the default look back with one button", async () => {
+    get.mockResolvedValue(ok({ categories: [entry("Food", { icon: "drink", colour: "plum" })] }));
+    put.mockResolvedValue(ok(entry("Food")));
+    render(<CategoriesScreen />, { wrapper });
+    await screen.findByRole("list", { name: /built-in categories/i });
+
+    await userEvent.click(screen.getByRole("button", { name: /change look of food/i }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.click(within(dialog).getByRole("button", { name: /use the default look/i }));
+
+    await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
+    expect(put.mock.calls[0]).toEqual([
+      "/api/categories/style",
+      { body: { name: "Food", icon: null, colour: null } },
+    ]);
+  });
+
+  it("lets a new category be given its look when it is added", async () => {
+    post.mockResolvedValue(ok(entry("Pets", { builtin: false, locked: false }), 201));
+    render(<CategoriesScreen />, { wrapper });
+    await screen.findByRole("list", { name: /your categories/i });
+
+    await userEvent.click(screen.getAllByRole("button", { name: /^add category$/i })[0]);
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText(/^name$/i), "Pets");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Moss" }));
+    await userEvent.click(within(dialog).getByRole("button", { name: /^add category$/i }));
+
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    expect(post.mock.calls[0]).toEqual([
+      "/api/categories",
+      { body: { name: "Pets", colour: "moss" } },
+    ]);
   });
 });

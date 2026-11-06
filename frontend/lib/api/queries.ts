@@ -473,10 +473,30 @@ function useInvalidateCategories() {
     );
 }
 
+export type CategoryLook = { icon: Category["icon"]; colour: Category["colour"] };
+
 export function useAddCategory() {
   const invalidate = useInvalidateCategories();
   return useMutation({
-    mutationFn: async (name: string) => unwrap(api.POST("/api/categories", { body: { name } })),
+    // The look is optional: left out, the category has its default look until the person picks one.
+    mutationFn: async ({ name, icon, colour }: { name: string } & Partial<CategoryLook>) =>
+      unwrap(
+        api.POST("/api/categories", {
+          body: { name, ...(icon && { icon }), ...(colour && { colour }) },
+        }),
+      ),
+    onSuccess: () => {
+      void invalidate();
+    },
+  });
+}
+
+/** Give any category, built in or the person's own, a colour and an icon; both null is the default. */
+export function useSetCategoryStyle() {
+  const invalidate = useInvalidateCategories();
+  return useMutation({
+    mutationFn: async ({ name, icon, colour }: { name: string } & CategoryLook) =>
+      unwrap(api.PUT("/api/categories/style", { body: { name, icon, colour } })),
     onSuccess: () => {
       void invalidate();
     },

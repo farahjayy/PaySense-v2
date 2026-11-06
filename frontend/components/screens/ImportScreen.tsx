@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatTile } from "@/components/ui/StatTile";
 import { ApiError, useImportConfirm, useImportPreview } from "@/lib/api/queries";
 import { useAssignableCategories } from "@/lib/categories";
+import { useCategoryLooks } from "@/lib/categoryLooks";
 import { plural } from "@/lib/format";
 import {
   fileProblem,
@@ -185,6 +186,7 @@ function Review({
   networkLost,
 }: ReviewProps) {
   const sums = totals(rows);
+  const lookOf = useCategoryLooks();
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -229,7 +231,7 @@ function Review({
           Only ticked rows are saved. Untick a row to leave it out.
         </p>
       </div>
-      <ReviewList rows={rows} categories={categories} onChange={onChange} />
+      <ReviewList rows={rows} categories={categories} onChange={onChange} lookOf={lookOf} />
       {saveError && (
         <Banner
           tone="danger"

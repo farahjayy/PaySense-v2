@@ -18,6 +18,15 @@ describe("Button colours carry meaning", () => {
     expect(screen.getByRole("button", { name: "Mark paid" }).className).toContain("text-success");
   });
 
+  it("offers a one-off highlight in the mode's own contrast colour, not the plain accent", () => {
+    render(<Button variant="highlight">Launch</Button>);
+    const className = screen.getByRole("button", { name: "Launch" }).className;
+
+    expect(className).toContain("bg-highlight");
+    expect(className).toContain("text-on-highlight");
+    expect(className).not.toContain("bg-accent");
+  });
+
   it("keeps the main action in the brand teal and everything else neutral", () => {
     render(
       <>

@@ -94,6 +94,22 @@ describe("states", () => {
     );
   });
 
+  it("shows a padlock, not a face, so it reads as locked at a glance", () => {
+    render(<LockedState reason="needs_four_months" monthsOfHistory={0} />);
+
+    expect(screen.getByTestId("lock-tile")).toBeInTheDocument();
+    expect(screen.getByTestId("lock-tile")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("colours the padlock apart from the button below it, so it does not look clickable", () => {
+    render(<LockedState reason="needs_four_months" monthsOfHistory={0} />);
+
+    const tile = screen.getByTestId("lock-tile");
+    expect(tile).not.toHaveClass("bg-accent");
+    expect(tile).toHaveClass("text-face-locked");
+    expect(screen.getByRole("link", { name: "Import a statement" })).toHaveClass("bg-accent");
+  });
+
   it("caps the months shown at four and says something different when nothing is usable", () => {
     const { rerender } = render(<LockedState reason="needs_four_months" monthsOfHistory={9} />);
     expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "4");
@@ -111,7 +127,9 @@ describe("LockedNote", () => {
   it("is one line with the months so far and a link to import, and no progress bar", () => {
     render(<LockedNote reason="needs_four_months" monthsOfHistory={2} />);
 
-    expect(screen.getByText(/unlocks with four months of history \(2 of 4 logged\)/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/unlocks with four months of history \(2 of 4 logged\)/i),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Import" })).toHaveAttribute("href", "/import");
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });

@@ -39,7 +39,7 @@ export function AdminScreen() {
             </CardCaption>
             <div className="mt-3">
               <Button
-                variant="accent"
+                variant="highlight"
                 onClick={() => {
                   replayIntro(userId);
                   router.push("/");

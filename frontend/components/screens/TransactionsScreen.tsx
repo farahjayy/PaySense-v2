@@ -28,6 +28,8 @@ import {
   type TransactionInput,
 } from "@/lib/api/queries";
 import { useAssignableCategories } from "@/lib/categories";
+import { useCategoryLooks } from "@/lib/categoryLooks";
+import type { Look } from "@/lib/categoryStyle";
 import { focusPageHeading } from "@/lib/focus";
 import { formatDate, formatMonth, plural } from "@/lib/format";
 import { formatRm } from "@/lib/money";
@@ -76,6 +78,7 @@ function Ledger({ initialMonth, firstMonth, lastMonth }: LedgerProps) {
     ...(category && { category }),
   });
   const spending = useCategorySummary(month);
+  const lookOf = useCategoryLooks();
   const plans = usePlans();
   const forecast = useForecast();
   const categories = useAssignableCategories([
@@ -234,6 +237,7 @@ function Ledger({ initialMonth, firstMonth, lastMonth }: LedgerProps) {
                     key={t.id}
                     txn={t}
                     plan={t.bnpl_plan_id ? planById.get(t.bnpl_plan_id) : undefined}
+                    look={lookOf(t.category)}
                     onEdit={() => setDialogue({ kind: "edit", txn: t })}
                     onDelete={() => setDialogue({ kind: "delete", txn: t })}
                   />
@@ -250,6 +254,7 @@ function Ledger({ initialMonth, firstMonth, lastMonth }: LedgerProps) {
             error={spending.isError ? spending.error.message : null}
             selected={category}
             onSelect={setCategory}
+            lookOf={lookOf}
           />
         </aside>
       </div>
@@ -318,16 +323,17 @@ function Ledger({ initialMonth, firstMonth, lastMonth }: LedgerProps) {
 type RowProps = {
   txn: Transaction;
   plan: Plan | undefined;
+  look: Look | undefined;
   onEdit: () => void;
   onDelete: () => void;
 };
 
-function Row({ txn, plan, onEdit, onDelete }: RowProps) {
+function Row({ txn, plan, look, onEdit, onDelete }: RowProps) {
   const sign = txn.type === "income" ? "+" : "";
   const label = txn.description ?? txn.category;
   return (
     <li className="flex flex-wrap items-center gap-x-3.5 gap-y-2 px-5 py-3.5">
-      <CatIcon category={txn.category} size={42} />
+      <CatIcon category={txn.category} look={look} size={42} />
       <div className="min-w-[10rem] flex-1">
         <p className="break-words text-[14px] font-bold text-ink">{label}</p>
         <p className="text-[12px] text-ink-secondary">

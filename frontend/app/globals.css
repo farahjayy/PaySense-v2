@@ -39,6 +39,26 @@
   --color-face-risk: #a32d2d;
   --color-face-risk-bg: #fcebeb;
   --color-face-ink: #0a3323;
+  /* "no data yet": a cool slate, deliberately not the teal of the buttons, so a locked thing never
+     looks clickable. The face is a sticker (same in both modes); the plain colour is themed. */
+  --color-face-locked: #3d4f60;
+  --color-face-locked-bg: #e3e9ef;
+  --color-locked: #4a6076;
+  /* The brand's dusty salmon (the "Sense" in the wordmark, the smiley tile), as a contrast against
+     the teal. The fill is the brand pink itself with dark ink on it, the same in both modes; the
+     deeper salmon is for words and outlines, where the brand pink alone is too pale (2.2:1). */
+  --color-pop-fill: #d3968c;
+  --color-on-pop: #0a3323;
+  /* A one-off highlight button that suits the mode: the sidebar teal on the cream page, the salmon
+     on the dark page, where it can be seen from across the room. */
+  --color-highlight: #105666;
+  --color-on-highlight: #ffffff;
+  --color-pop: #9b4636;
+  --color-pop-bg: #f8e6e1;
+  /* Income and money coming in: a clearer green than the olive result colour, which is audited
+     for 4.5:1 and so reads almost black on a cream card. */
+  --color-income: #2a7a3a;
+  --color-income-bg: #e8f5e6;
   /* the theme switch's thumb and the word on it: the same black pill in light and dark */
   --color-switch-thumb: #0b0f0e;
   --color-on-switch: #ffffff;
@@ -93,6 +113,17 @@
   --color-face-risk: #a32d2d;
   --color-face-risk-bg: #fcebeb;
   --color-face-ink: #0a3323;
+  --color-face-locked: #3d4f60;
+  --color-face-locked-bg: #e3e9ef;
+  --color-locked: #a9bccd;
+  --color-pop-fill: #d3968c;
+  --color-on-pop: #0a3323;
+  --color-highlight: #d3968c;
+  --color-on-highlight: #0a3323;
+  --color-pop: #eaa99d;
+  --color-pop-bg: #3f2521;
+  --color-income: #8fd16a;
+  --color-income-bg: #1f3519;
   /* the theme switch's thumb and the word on it: the same black pill in light and dark */
   --color-switch-thumb: #0b0f0e;
   --color-on-switch: #ffffff;

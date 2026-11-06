@@ -6,7 +6,11 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SettingsScreen } from "@/components/screens/SettingsScreen";
+import { forgetForTests, markIntroSeen, markTourSeen, stageFor } from "@/lib/introTour";
 import { saveSession } from "@/lib/session";
+
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
 const get = vi.fn();
 const post = vi.fn();
@@ -185,7 +189,7 @@ describe("SettingsScreen", () => {
     expect(await within(dialog).findByText(/already running/i)).toBeInTheDocument();
   });
 
-  it("holds no admin content for anyone: the quick tour lives on the Admin page (ADR D-57)", async () => {
+  it("holds no admin content for anyone, but the intro replay is there for everyone (ADR D-57, D-66)", async () => {
     for (const role of ["admin", "user", undefined]) {
       saveSession({
         token: "t",
@@ -196,13 +200,15 @@ describe("SettingsScreen", () => {
       await screen.findByText(/download my data/i);
 
       expect(screen.queryByRole("heading", { name: /^admin$/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: /intro again|quick tour/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /quick tour/i })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Show the intro again" })).toBeInTheDocument();
       view.unmount();
     }
   });
 
-  it("can bring the getting started checklist back", async () => {
+  it("brings the getting started checklist back and goes to the dashboard, where it shows", async () => {
     window.localStorage.setItem("paysense.gettingStarted.hidden", "1");
+    push.mockReset();
     await open();
 
     await userEvent.click(
@@ -210,6 +216,27 @@ describe("SettingsScreen", () => {
     );
 
     expect(window.localStorage.getItem("paysense.gettingStarted.hidden")).toBeNull();
+    expect(push).toHaveBeenCalledWith("/");
+  });
+
+  it("lets anyone play the intro and tour again from here, then goes to the dashboard (ADR D-66)", async () => {
+    saveSession({
+      token: "t",
+      expiresAt: Date.now() + 60_000,
+      user: { id: "u1", username: "amir", display_name: "Amir", persona: null },
+    });
+    forgetForTests();
+    markIntroSeen("u1");
+    markTourSeen("u1");
+    expect(stageFor("u1")).toBe("done");
+    push.mockReset();
+    await open();
+
+    await userEvent.click(screen.getByRole("button", { name: "Show the intro again" }));
+
+    expect(stageFor("u1")).toBe("intro");
+    expect(push).toHaveBeenCalledWith("/");
+    forgetForTests();
   });
 
   it("links to Categories and the import template, where they now live", async () => {

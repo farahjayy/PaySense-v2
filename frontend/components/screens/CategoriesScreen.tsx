@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 
+import { StylePicker } from "@/components/categories/StylePicker";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
+import { CatIcon } from "@/components/ui/CatIcon";
 import { Dialog } from "@/components/ui/Dialog";
 import { TextField } from "@/components/ui/fields";
 import { BackLink } from "@/components/ui/BackLink";
@@ -14,13 +16,20 @@ import {
   useCategories,
   useDeleteCategory,
   useRenameCategory,
+  useSetCategoryStyle,
   type Category,
+  type CategoryLook,
 } from "@/lib/api/queries";
 import { focusPageHeading } from "@/lib/focus";
 import { plural } from "@/lib/format";
 
 type Dialogue =
-  { kind: "add" } | { kind: "rename"; category: Category } | { kind: "delete"; category: Category };
+  | { kind: "add" }
+  | { kind: "rename"; category: Category }
+  | { kind: "look"; category: Category }
+  | { kind: "delete"; category: Category };
+
+const lookOf = (c: Category): CategoryLook => ({ icon: c.icon, colour: c.colour });
 
 // Moving spending into these would change how it counts (the server refuses it too).
 const MOVE_NOT_ALLOWED = new Set(["Refund", "Transfer", "BNPL"]);
@@ -37,6 +46,7 @@ export function CategoriesScreen() {
   const add = useAddCategory();
   const rename = useRenameCategory();
   const remove = useDeleteCategory();
+  const style = useSetCategoryStyle();
   const [dialogue, setDialogue] = useState<Dialogue | null>(null);
 
   function close() {
@@ -44,6 +54,7 @@ export function CategoriesScreen() {
     add.reset();
     rename.reset();
     remove.reset();
+    style.reset();
   }
 
   // A renamed or deleted row is gone (or re-keyed), so the dialog cannot hand focus back to it.
@@ -61,7 +72,7 @@ export function CategoriesScreen() {
       <BackLink href="/transactions">Back to transactions</BackLink>
       <PageHeader
         title="Categories"
-        intro="The labels on your transactions. The built-in ones are fixed, because the forecast depends on a few of them (refunds, transfers, BNPL). The ones you add are yours to rename or delete."
+        intro="The labels on your transactions. The built-in names are fixed, because the forecast depends on a few of them (refunds, transfers, BNPL), but every category's colour and icon is yours to change. The ones you add you can also rename or delete."
         actions={
           <>
             <a href={TEMPLATE_HREF} download className={LINK_BUTTON}>
@@ -99,11 +110,20 @@ export function CategoriesScreen() {
                     key={c.name}
                     className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3"
                   >
+                    <CatIcon category={c.name} look={lookOf(c)} size={40} />
                     <div className="min-w-[10rem] flex-1">
                       <p className="break-words text-[14px] font-medium text-ink">{c.name}</p>
                       <p className="text-[12px] text-ink-secondary">{usage(c.transaction_count)}</p>
                     </div>
                     <div className="flex gap-1">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        aria-label={`Change look of ${c.name}`}
+                        onClick={() => setDialogue({ kind: "look", category: c })}
+                      >
+                        Look
+                      </Button>
                       <Button
                         variant="secondary"
                         size="sm"
@@ -136,7 +156,8 @@ export function CategoriesScreen() {
               className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface"
             >
               {builtIn.map((c) => (
-                <li key={c.name} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
+                <li key={c.name} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
+                  <CatIcon category={c.name} look={lookOf(c)} size={40} />
                   <div className="min-w-[10rem] flex-1">
                     <p className="text-[14px] font-medium text-ink">{c.name}</p>
                     <p className="text-[12px] text-ink-secondary">
@@ -144,9 +165,19 @@ export function CategoriesScreen() {
                       {usage(c.transaction_count)}
                     </p>
                   </div>
-                  <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-[11px] font-medium text-ink-secondary">
-                    Fixed
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-[11px] font-medium text-ink-secondary">
+                      Fixed
+                    </span>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      aria-label={`Change look of ${c.name}`}
+                      onClick={() => setDialogue({ kind: "look", category: c })}
+                    >
+                      Look
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -166,10 +197,11 @@ export function CategoriesScreen() {
             submitLabel="Add category"
             reason="Type a name for the category."
             initial=""
+            withLook
             pending={add.isPending}
             error={add.error?.message ?? null}
             onCancel={close}
-            onSubmit={(name) => add.mutate(name, { onSuccess: close })}
+            onSubmit={(name, look) => add.mutate({ name, ...look }, { onSuccess: close })}
           />
         )}
       </Dialog>
@@ -195,6 +227,25 @@ export function CategoriesScreen() {
                 { name: dialogue.category.name, newName },
                 { onSuccess: closeAndFocusHeading },
               )
+            }
+          />
+        )}
+      </Dialog>
+
+      <Dialog
+        open={dialogue?.kind === "look"}
+        title="Change look"
+        onClose={close}
+        dismissible={!style.isPending}
+      >
+        {dialogue?.kind === "look" && (
+          <LookForm
+            category={dialogue.category}
+            pending={style.isPending}
+            error={style.error?.message ?? null}
+            onCancel={close}
+            onSave={(look) =>
+              style.mutate({ name: dialogue.category.name, ...look }, { onSuccess: close })
             }
           />
         )}
@@ -235,10 +286,12 @@ type NameFormProps = {
   reason: string;
   initial: string;
   note?: string;
+  /** Offer a colour and an icon too (when adding a category). */
+  withLook?: boolean;
   pending: boolean;
   error: string | null;
   onCancel: () => void;
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string, look: CategoryLook) => void;
 };
 
 function NameForm({
@@ -247,12 +300,14 @@ function NameForm({
   reason,
   initial,
   note,
+  withLook = false,
   pending,
   error,
   onCancel,
   onSubmit,
 }: NameFormProps) {
   const [name, setName] = useState(initial);
+  const [look, setLook] = useState<CategoryLook>({ icon: null, colour: null });
   const trimmed = name.trim();
   const valid = trimmed !== "" && trimmed !== initial;
   return (
@@ -260,7 +315,7 @@ function NameForm({
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        if (valid) onSubmit(trimmed);
+        if (valid) onSubmit(trimmed, look);
       }}
     >
       <TextField
@@ -271,6 +326,9 @@ function NameForm({
         onChange={(event) => setName(event.target.value)}
       />
       {note && <p className="text-[12px] text-ink-secondary">{note}</p>}
+      {withLook && (
+        <StylePicker name={trimmed} icon={look.icon} colour={look.colour} onChange={setLook} />
+      )}
       {error && (
         <Banner tone="danger" title="Not saved">
           {error}
@@ -295,6 +353,53 @@ function NameForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+type LookFormProps = {
+  category: Category;
+  pending: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onSave: (look: CategoryLook) => void;
+};
+
+function LookForm({ category, pending, error, onCancel, onSave }: LookFormProps) {
+  const initial = lookOf(category);
+  const [look, setLook] = useState<CategoryLook>(initial);
+  const changed = look.icon !== initial.icon || look.colour !== initial.colour;
+  const hasChoice = initial.icon !== null || initial.colour !== null;
+  return (
+    <div className="space-y-4">
+      <StylePicker name={category.name} icon={look.icon} colour={look.colour} onChange={setLook} />
+      {category.builtin && (
+        <p className="text-[12px] text-ink-secondary">
+          The name {category.name} is fixed; only how it looks changes.
+        </p>
+      )}
+      {error && (
+        <Banner tone="danger" title="Not saved">
+          {error}
+        </Banner>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Button
+          variant="secondary"
+          onClick={() => onSave({ icon: null, colour: null })}
+          disabled={!hasChoice || pending}
+        >
+          Use the default look
+        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={onCancel} disabled={pending}>
+            Cancel
+          </Button>
+          <Button variant="accent" onClick={() => onSave(look)} disabled={!changed || pending}>
+            {pending ? "Saving…" : "Save look"}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
