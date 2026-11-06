@@ -226,3 +226,16 @@ def test_forecast_file_names_that_could_leave_the_folder_are_refused(tmp_path, n
     label = metadata(b"")["label"] | {"served_model_files": {name: "0" * 64}}
     with pytest.raises(ArtefactError, match="file name"):
         load_engine2(write(tmp_path / "v1", label=label))
+
+
+MODELS_ROOT = Path(__file__).resolve().parents[2] / "models"
+
+
+def test_model_metadata_is_stored_with_unix_line_endings_so_every_checkout_hashes_alike():
+    for path in MODELS_ROOT.rglob("*.json"):
+        assert b"\r" not in path.read_bytes(), f"{path} has CRLF line endings"
+
+
+def test_the_committed_risk_model_loads_against_the_committed_forecast_files():
+    folder = MODELS_ROOT / "engine2" / ARTEFACT_VERSION
+    assert load_engine2(folder) is not None

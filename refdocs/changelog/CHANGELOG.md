@@ -28,6 +28,15 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-11-06 — First Render deploy: the API refused to start on a line-ending mismatch
+- **Reported:** Render's first deploy of `paysense-api` showed "Failed deploy"; the log ended "The risk model cannot be served: the forecast settings (window, horizon, scaling) differ from those the labels were made with" and exit status 2.
+- **Diagnosed:** the Docker image built fine (the P8 "Dockerfile never built" risk is cleared). The D-40 loader hashes `models/engine1/v1/metadata.json` and compares it with `label.engine1_metadata_sha256` in the engine 2 metadata. On this Windows machine `core.autocrlf=true` checks that file out with CRLF (1126 bytes, 49 CR) and the hash had been recorded from that copy (`db1a7635...`); git stores it with LF (1077 bytes) and Render's Linux checkout gets LF (`4efc39de...`). Proved by hashing the working file, the `git show HEAD:` blob and the recorded value; the three `.onnx` files matched in all three places (binary).
+- **Changed:** `.gitattributes` pins `backend/models/**/*.json` to LF; the local `engine1/v1/metadata.json` was rewritten with LF (git already held LF); `engine2/v1/metadata.json` records the LF hash. Two tests added to `tests/engines/test_artefact.py`: model JSON has no CR bytes (failed first), and the committed risk model loads against the committed forecast files.
+- **Deviations:** the recorded hash was edited by hand rather than re-exported (the export needs the full training run). The content hashed is byte-identical apart from line endings, so what the guard protects (the forecast settings) is unchanged.
+- **Verified:** `cd backend && uv run pytest tests/engines tests/api -q` -> 797 passed; `uv run ruff check .` clean; `ruff format --check` on the test file clean. Nothing run on Render yet.
+- **Noted, not changed:** `reports/engine1/selection.json` and a few `reports/uat` files are also CRLF in the working tree on this machine; nothing hashes them at serving time.
+- **Known issues / next steps:** the author pushes; redeploy on Render; then Vercel and the smoke script.
+
 ### 2026-11-06 — The self-guided UAT pack, and "Show the intro again" moves into Settings (D-66, D-67)
 - **Reported:** the author asked whether giving testers instructions and "what they should see" tells them the answer in a study of usability and perceived usefulness of the explainable AI; then that the intro replay should sit in Settings, opened by clicking the name on the profile card; then to build the booklet, with "everything" reconciled, not only the dates.
 - **Diagnosed:** yes, a feature walkthrough would inflate SUS and turn explanation clarity into a test of the pack (D-67). Also found: the persona files end on 24 October, so for a pack handed out on 8 November they need a two-week shift (the forecast flags a ledger stale after 14 days); the roster the author showed used the template's own example usernames, which are public; `uat/task-script.md` was a facilitator script.

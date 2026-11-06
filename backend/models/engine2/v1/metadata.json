@@ -48,7 +48,7 @@
   ],
   "feature_schema_hash": "2066b37e13182a5e",
   "label": {
-    "engine1_metadata_sha256": "db1a7635c57b74859811f45c31d15839943af7a067262016416345ea4ed36266",
+    "engine1_metadata_sha256": "4efc39de7b0f3b2b86cd3020413a62f1c18e769e0b95b29a50b660e3856daa4e",
     "horizon_max_weeks": 180,
     "label_version": "2",
     "paths": 1000,
