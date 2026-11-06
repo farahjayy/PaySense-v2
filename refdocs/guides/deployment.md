@@ -2,6 +2,19 @@
 
 > For the author. Nothing in the repository deploys itself: every step below is yours to run, and each one that costs money or makes something public says so. Variable names and where to get them are in `env_setup.md`; this file is the order of operations and the checks.
 
+## Where it lives now (2026-11-06)
+
+| Part | Where | Notes |
+|---|---|---|
+| Website | Vercel project `paysense-v2`, `https://paysense-v2.vercel.app` | Root directory `frontend`; `NEXT_PUBLIC_API_BASE_URL` is baked in at build, so changing it needs a redeploy |
+| API | Render `paysense-api`, `https://paysense-api-9aft.onrender.com` | Docker from `render.yaml`, free plan, **manual deploys**: after a push use Manual Deploy → Deploy latest commit; an environment change offers "Save and deploy" (no rebuild needed) |
+| Database | Supabase `paysense-v2` (Singapore), migrations applied | Accounts are in the `users` table; `admin` has role `admin` |
+
+- `CORS_ORIGINS` on Render is the Vercel URL, no trailing slash. Until it matched, the login page said "Can't reach the server" because the browser blocked the call.
+- Smoke test passed 7 of 7 on 2026-11-06 (`scripts/smoke_live.py --api <render> --origin <vercel> --username admin`).
+- **Lesson from the first deploy:** the API refused to start because `models/engine1/v1/metadata.json` was hashed with Windows line endings but stored with Unix ones. Model JSON is now pinned to LF in `.gitattributes`; see the CHANGELOG entry of 2026-11-06 before re-exporting any model on Windows.
+- The free plan sleeps after about 15 minutes without requests; the first request afterwards is slow. Pick a keep-alive option below before testers arrive.
+
 ## What was and was not verified before you start
 
 | Verified here | How |
