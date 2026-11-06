@@ -28,6 +28,12 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-11-06 — P8 live checklist reported done; P8 marked Done
+- **Changed:** `STATUS.md` only (P8 row to ✅, "Right now", one ledger row).
+- **Verified:** nothing run by Claude this entry. The author ran the live functional checklist from `deployment.md` and told Claude it was done; no per-item results, phone check or Render memory figure were passed on, so the ledger row says "author-reported only".
+- **Deviations:** P8 is marked ✅ on the author's word for the checklist; the earlier entry's caution about not rounding up applies to anything beyond that.
+- **Known issues / next steps:** still open and not part of the checklist: the keep-alive choice before testers arrive, the `FORWARDED_ALLOW_IPS` check, the guessable-username decision. Then P9 (the UAT sessions).
+
 ### 2026-11-06 — P8: the app is deployed (Render API, Vercel site), smoke test 7 of 7
 - **Changed:** nothing in the app code (the one code-adjacent fix is the entry below). Deployed through the hosts' own tools: Render Blueprint from `render.yaml` (service `paysense-api`, Docker, Singapore, free plan, manual deploys) and a Vercel project `paysense-v2` created from `farahjayy/PaySense-v2` with root directory `frontend` and `NEXT_PUBLIC_API_BASE_URL=https://paysense-api-9aft.onrender.com` on Production, Preview and Development before the first build. `STATUS.md` and `refdocs/guides/deployment.md` updated.
 - **Decided:** no new ADR. Followed D-15 (Vercel for the Next.js site, Render for the Python API; the API needs a long-running process, ONNX models and a single-worker rate limiter). Vercel Authentication was left at its default (production domain open, per-deployment URLs may be protected).
