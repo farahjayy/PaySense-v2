@@ -28,7 +28,7 @@ Rules that shaped it:
 - **Per person, per browser.** Keys are `paysense.intro.seen.<userId>` and `paysense.tour.seen.<userId>` so testers sharing a device each get their own.
 - **Nothing is drawn before hydration.** The server snapshot is "done", so a person who has seen it never gets a flash of the slides.
 - **Storage can fail** (private window, blocked cookies). Every read and write is in try/catch, and what was marked is also kept in memory so the slides never show twice in one visit.
-- **Replay is a first-class action.** `replayIntro(userId)` clears both flags; the gate, subscribed to the store, shows the slides again. In PaySense it is a link in the profile card ("Show the intro again") and a button on the admin page.
+- **Replay is a first-class action.** `replayIntro(userId)` clears both flags; the gate, subscribed to the store, shows the slides again. In PaySense it is a button in Settings ("Show the intro again", reached by clicking the name on the profile card, ADR D-66) and a button on the admin page.
 
 ## 3. Step by step
 

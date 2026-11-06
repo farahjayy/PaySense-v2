@@ -14,7 +14,7 @@ A person who opens the app today lands on a username box. A UAT tester, a superv
 ## 3. Scope
 
 **In**
-1. `/welcome`, a public page (outside the signed-in layout): top bar with a Sign in button; a hero ("Think before you split", one sentence, **Get started** and **See how it works**) with an animated forecast-and-faces picture; "Small instalments add up"; **How it works** (three steps); **One of three answers** (Safe, Caution, At Risk); **Knows the plans students use**; **You stay in control**; a closing "Ready when you are" with a Sign in button.
+1. `/welcome`, a public page (outside the signed-in layout): top bar with a Sign in button; a hero ("Think before you split", one sentence, **Get started** and **See how it works**) with an animated forecast-and-faces picture; "Small instalments add up"; **How it works** (three steps, then "Every check ends in one of three answers" (Safe, Caution, At Risk) and one line on the built-in providers, all inside the same section: revised 2026-11-05, the page had too many sections); **You stay in control**; a closing "Ready when you are" with a Sign in button.
 2. **Routing:** a signed-out visitor who opens `/` is sent to `/welcome`; any other signed-in page still sends a signed-out visitor to `/login`, and logging out still ends on `/login`. Every button on the page leads to `/login`.
 3. Motion: the hero entrance plays once; the sections below reveal on scroll where the browser supports scroll-driven animation and are simply shown elsewhere; reduced motion shows everything finished.
 

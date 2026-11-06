@@ -274,6 +274,11 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-61 | The shell follows v3: labelled sidebar sections, Import back in the sidebar (and on Transactions), a profile card (name only, intro replay for everyone), a "Why?" toggle and 32px titles, a long-or-short Getting started, a View-as-a-user switch. Amends D-49 and D-56 |
 | D-62 | Month notices merge into one per month with an Import link and a close button; a Notifications page lists all, with Restore; the "four months" box moves to Transactions. Closed state is browser-only |
 | D-63 | Personas and purchase cards are judged on the band the tester is shown (not the simulation); each persona gets a given provider limit and three purchase cards; testers confirm every Recurring suggestion | The two bands can disagree sharply and the suggestions change some answers a lot; a given limit keeps real data out and results comparable |
+| D-64 | Every category has a colour and icon the person can change (from a fixed set); built-in names stay locked | The Categories page was plain next to Transactions; a fixed set keeps contrast and meaning, locked names keep the engines safe |
+| D-65 | Notifications is a bell with a count in the top bar; "no data yet" gets its own slate colour and X_X face | A notification is something to notice, not a page to visit; a locked thing in the button colour looks clickable |
+| D-66 | "Show the intro again" moves into Settings (everyone), reached by clicking the name on the profile card | Still there for a tester who forgot what an item is for, but one deliberate step away so it is not replayed mid-task |
+| D-67 | The self-guided UAT pack gives context and goals, never explanations or expected results; two forms; understanding measured in the tester's own words | A pack that teaches the answer would inflate SUS and make explanation clarity a test of the pack |
+| D-68 | UAT accounts use the testers' own names as username and display name; forms and reports use participant codes only | Names are easy to remember and the data is synthetic; typed names would not match exactly in the forms |
 
 ---
 

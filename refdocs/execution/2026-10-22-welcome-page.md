@@ -14,7 +14,7 @@
 ## Phase B — the page
 ### B1. Content and structure
 - **Files:** `frontend/app/welcome/{layout,page}.tsx`, `welcome.css`, `frontend/tests/unit/WelcomePage.test.tsx`.
-- **Verify:** one `h1`; the section headings in order (small instalments, how it works, three answers, plans, control, ready); exactly three steps and three answers; every button and link goes to `/login` or an in-page anchor; no text mentions an account, email or sign-up; "See how it works" targets the `#how` section; axe finds no violations.
+- **Verify:** one `h1`; the section headings in order (small instalments, how it works, control, ready; the three answers and the providers line sit inside how it works, 2026-11-05); exactly three steps and three answers; every button and link goes to `/login` or an in-page anchor; no text mentions an account, email or sign-up; "See how it works" targets the `#how` section; axe finds no violations.
 
 ### B2. Look and motion
 - **Verify:** the stylesheet gives reduced-motion users finished content (a test reads the CSS); screenshots at 375, 768 and 1440 px reviewed by the author; the production build serves it with no CSP violation (Playwright watches the console).

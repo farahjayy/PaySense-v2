@@ -52,7 +52,7 @@ Run it as one of the seeded testers, on the live URL, in a private window.
 
 - [ ] The login page loads; the wrong username shows an error and stays; the right one lands on the dashboard.
 - [ ] The dashboard says the forecast is locked and why (no history yet).
-- [ ] Import: choose a persona CSV (use `data/personas/budget_conscious.csv`; see "Persona dates" in `uat/README.md`), review, add. The count in the success message matches the preview.
+- [ ] Import: choose a persona CSV (use a file shifted to the session date, for example `student-statement.csv` from `ml.uat.booklet`, not `data/personas/budget_conscious.csv` itself, which is by now out of date; see "Persona dates" in `uat/README.md`), review, add. The count in the success message matches the preview.
 - [ ] The dashboard now shows a score, a band, the chart and "Show the numbers". Reload: still signed in.
 - [ ] Transactions: add one, edit it, delete it. A plan payment (once any exists) says it is managed in Plans.
 - [ ] Recurring: confirm one suggestion; the forecast refreshes.
