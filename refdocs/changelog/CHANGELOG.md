@@ -28,6 +28,12 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-11-06 — Guessable usernames on the live site: accepted by the author
+- **Decided:** the author accepts username-only login (D-54) with the accounts already seeded, including `admin` and simple tester names, on the public site ("no one will want to try login to my account"). No new ADR: it applies D-54's accepted trade-off to the deployed site. New testers still get unguessable usernames under the roster rule.
+- **Changed:** `STATUS.md` only (Known gaps entry reworded from "decide before testers arrive" to "accepted"; the P8 row and "Right now" no longer list it as open).
+- **Verified:** nothing run.
+- **Known issues / next steps:** keep-alive choice and the `FORWARDED_ALLOW_IPS` check remain open on the deployment.
+
 ### 2026-11-06 — P8 live checklist reported done; P8 marked Done
 - **Changed:** `STATUS.md` only (P8 row to ✅, "Right now", one ledger row).
 - **Verified:** nothing run by Claude this entry. The author ran the live functional checklist from `deployment.md` and told Claude it was done; no per-item results, phone check or Render memory figure were passed on, so the ledger row says "author-reported only".
