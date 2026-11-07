@@ -107,11 +107,52 @@ def test_a_link_that_is_not_http_is_refused(bad):
         Links(app_url=bad, form_a_url=LINKS.form_a_url, form_b_url=LINKS.form_b_url)
 
 
-def test_a_pack_says_the_last_day_the_practice_data_stays_current():
+def test_a_pack_does_not_hold_the_tester_to_a_finish_by_date():
+    """The author asks testers to finish as soon as they can, so the page states no last day."""
     last = date(2026, 11, 7)
     html = render_pack(TESTERS[0], CARDS["frequent_bnpl"], LINKS, last, STATEMENT)
 
-    assert (last + timedelta(days=STALE_AFTER_DAYS)).strftime("%d %B %Y") in html
+    assert (last + timedelta(days=STALE_AFTER_DAYS)).strftime("%d %B %Y") not in html
+    assert "stays up to date" not in html
+
+
+def test_the_box_at_the_top_has_a_title_and_no_password_row():
+    html = page(TESTERS[0])
+
+    assert "What you need before you start" in html
+    assert "<dt>Password</dt>" not in html
+
+
+def test_the_two_form_links_say_when_to_use_each_form():
+    html = page(TESTERS[0])
+
+    assert f'<a href="{LINKS.form_a_url}">Fill this in before you start the UAT' in html
+    assert (
+        f'<a href="{LINKS.form_b_url}">Keep this open in another tab while you do the UAT' in html
+    )
+
+
+def test_each_step_names_the_page_to_go_to_without_saying_how_to_use_it():
+    text = re.sub(r"<[^>]+>", " ", page(TESTERS[0]))
+
+    for page_name in ("Dashboard", "Recurring", "Plans", "Risk check"):
+        assert f"Go to the {page_name}" in re.sub(r"\s+", " ", text), page_name
+    assert "import this file into PaySense" in text
+    assert "confirm every suggestion" in text
+
+
+def test_the_purchase_step_says_what_to_do_after_each_check_before_it_shows_the_cards():
+    html = page(TESTERS[0])
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
+    cards_start = text.index("Purchase 1 of")
+
+    for instruction in (
+        "read the result and analyse it",
+        "take the suggestion and try it",
+        "go to Form B and answer its questions for that purchase",
+        "Do not add any of them to Plans",
+    ):
+        assert text.index(instruction) < cards_start, instruction
 
 
 def test_each_tester_gets_a_page_and_a_statement_ending_the_day_before_the_session(tmp_path):
@@ -125,7 +166,6 @@ def test_each_tester_gets_a_page_and_a_statement_ending_the_day_before_the_sessi
         ends = max(datetime.strptime(r["Date"], "%d/%m/%Y").date() for r in rows)
         assert SESSION - timedelta(days=8) <= ends < SESSION
         html = (folder / f"PaySense-UAT-{tester.participant}.html").read_text(encoding="utf-8")
-        assert (ends + timedelta(days=STALE_AFTER_DAYS)).strftime("%d %B %Y") in html
         embedded = re.search(r'href="data:text/csv;base64,([^"]+)"', html)
         statement = (folder / "student-statement.csv").read_bytes()
         assert embedded and base64.b64decode(embedded.group(1)) == statement

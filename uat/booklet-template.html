@@ -15,6 +15,7 @@
   a { color:var(--accent); font-weight:600; }
   .lead { color:var(--muted); margin:0 0 1rem; }
   .you { background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:.9rem 1rem; }
+  .you h2 { margin:0 0 .6rem; padding:0; border:0; font-size:1.1rem; }
   .you dl, .card dl { margin:0; display:grid; gap:.35rem; }
   .you dl div, .card dl div { display:flex; flex-wrap:wrap; gap:.25rem .75rem; }
   dt { min-width:8.5rem; color:var(--muted); }
@@ -35,15 +36,15 @@
   <h1>PaySense practice session</h1>
   <p class="lead">A short study of a student money website. About 40 minutes, on your own, on a laptop or a phone.</p>
 
-  <section class="you" aria-label="Your details">
+  <section class="you" aria-label="What you need before you start">
+    <h2>What you need before you start</h2>
     <dl>
       <div><dt>Your code</dt><dd>{{participant}}</dd></div>
       <div><dt>Website</dt><dd><a href="{{app_url}}">{{app_url}}</a></dd></div>
       <div><dt>Your username</dt><dd>{{username}}</dd></div>
-      <div><dt>Password</dt><dd>none: the username is all you need</dd></div>
       <div><dt>Your file</dt><dd>{{statement_link}} (select it to download)</dd></div>
-      <div><dt>Form A</dt><dd><a href="{{form_a_url}}">Before you start</a></dd></div>
-      <div><dt>Form B</dt><dd><a href="{{form_b_url}}">While you go, and at the end</a></dd></div>
+      <div><dt>Form A</dt><dd><a href="{{form_a_url}}">Fill this in before you start the UAT on the website</a></dd></div>
+      <div><dt>Form B</dt><dd><a href="{{form_b_url}}">Keep this open in another tab while you do the UAT, and finish it when you are done</a></dd></div>
     </dl>
     <p class="note">Your username works like a password for this practice account. Please do not share it.</p>
   </section>
@@ -73,31 +74,49 @@
 
     <div class="step">
       <h3>Get the student&rsquo;s history in</h3>
-      <p>Download the file {{statement_link}}. It is a few months of this student&rsquo;s bank statement. Get it into PaySense.</p>
-      <p class="note">This practice history stays up to date until <strong>{{last_day}}</strong>. After that day the website will say the history is out of date, so please finish by then.</p>
+      <ul>
+        <li>Download the file {{statement_link}}. It contains a few months of this student&rsquo;s bank statement.</li>
+        <li>Now go back to the PaySense website, and import this file into PaySense.</li>
+        <li>After that, review the student&rsquo;s transactions in PaySense.</li>
+      </ul>
     </div>
 
     <div class="step">
       <h3>See what PaySense says about the student&rsquo;s money</h3>
-      <p>Look at what PaySense tells you about this student&rsquo;s money over the next few months. Take your time and look at whatever you like. Then, in Form B, say in your own words what you make of it.</p>
+      <ul>
+        <li>Go to the <strong>Dashboard</strong> in PaySense and explore it: look at what it tells you about this student&rsquo;s money over the next few months.</li>
+        <li>When you have finished exploring, open <strong>Form B</strong> and write, in your own words, what you got from the dashboard.</li>
+      </ul>
     </div>
 
     <div class="step">
       <h3>Tell PaySense about the regular monthly payments</h3>
-      <p>Like most people, this student has payments that repeat every month. Make sure PaySense knows about them: where it suggests a repeating payment, <strong>confirm every suggestion</strong>.</p>
+      <p>Like most people, this student has payments that repeat every month.</p>
+      <ul>
+        <li>Go to the <strong>Recurring</strong> page in PaySense and <strong>confirm every suggestion</strong> it makes.</li>
+      </ul>
     </div>
 
     <div class="step">
       <h3>Tell PaySense the student&rsquo;s BNPL limit</h3>
-      <p>The student has a {{provider}} account with a limit of <strong>{{limit}}</strong>. Tell PaySense about this limit.</p>
+      <p>The student has a {{provider}} account with a limit of <strong>{{limit}}</strong>.</p>
+      <ul>
+        <li>Go to the <strong>Plans</strong> page in PaySense and tell it about this limit.</li>
+      </ul>
     </div>
 
     <div class="step">
       <h3>Check three purchases</h3>
-      <p>The student is thinking about the {{card_count}} purchases below. They are separate &ldquo;what if&rdquo; questions, not a shopping trip: the student would make only one of them, never several, so treat each on its own. For each one, use PaySense to see how much risk the student would be taking on if they made that purchase, before they commit to anything. Nothing is being bought, so you do not need to add a purchase as a plan. Go in the order shown, and type in exactly what is on the card.</p>
+      <p>The student is thinking about the {{card_count}} purchases below. Check each one on its own, as if it were the only purchase the student is making. Go in the order shown.</p>
+      <ul>
+        <li>Go to the <strong>Risk check</strong> page in PaySense.</li>
+        <li>For each purchase, type in exactly what is on the card.</li>
+        <li>After every risk check, <strong>read the result and analyse it</strong>: what PaySense tells you, and why.</li>
+        <li>If PaySense suggests a way to make the purchase safer, <strong>take the suggestion and try it</strong>.</li>
+        <li>Then go to <strong>Form B</strong> and answer its questions for that purchase: what PaySense told you, why you think it said that, what you would do, and what you think of the suggestion. After the first purchase, Form B will also take you back to the scenario from Form A.</li>
+        <li><strong>Do not add any of them to Plans.</strong> Nothing is being bought.</li>
+      </ul>
       {{cards}}
-      <p>After each purchase, answer its questions in Form B: what PaySense told you, why you think it said that, and what you would do. After the first one, Form B also takes you back to the scenario from Form A.</p>
-      <p>If a purchase did not come out as clearly fine, see whether PaySense offers a way to make it safer. If it does, try it, and tell us in Form B what you think of it.</p>
     </div>
 
     <div class="step">

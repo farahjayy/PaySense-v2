@@ -24,7 +24,7 @@ Text to paste into a form tool (Microsoft Forms or Google Forms). **Build two se
 |---|---|---|---|
 | `A-CODE` | Your code (it is at the top of your page, for example P03) | Short text | Yes |
 | `A-CONSENT` | I have read the above and I am happy to take part. | Choice: Yes | Yes |
-| `A-SCEN` | Which item is **Purchase 1** on your page? | Choice: Wireless headphones / Laptop repair / Shoes | Yes |
+| `A-SCEN` | Which item is **Purchase 1** on your page? (Help text: Open the HTML file you were sent and find Step 7, 'Check three purchases'. Which item is shown as 'Purchase 1 of 3'?) | Choice: Wireless headphones / Laptop repair / Shoes | Yes |
 
 Then three blocks, one per scenario, using the form's **branching**: each choice of `A-SCEN` goes to its own block, and each block goes on to the end of the form. A tester sees only their own block, so every question in the blocks is required.
 
@@ -111,7 +111,7 @@ Repeat this block three times, with the questions' codes starting `P1-`, `P2-` a
 
 | Code | Question | Type | Required |
 |---|---|---|---|
-| `B-SCEN` | Which item was **Purchase 1** on your page? | Choice: Wireless headphones / Laptop repair / Shoes | Yes |
+| `B-SCEN` | Which item was **Purchase 1** on your page? (Help text: In your HTML file, Step 7: which item was 'Purchase 1 of 3'?) | Choice: Wireless headphones / Laptop repair / Shoes | Yes |
 
 Then the three scenario blocks again, each worded exactly as in Form A, again by branching: each choice of `B-SCEN` goes to its own block, and each block goes on to Part 4. Every question in the blocks is required, so each tester has a before and an after answer. Use the same options, with the same letters. Introduce each block with **"Think back to this scenario and answer again. It is fine if your answer has not changed."**, followed by that scenario's paragraph exactly as in Form A, so the tester sees the numbers again and any change in their answer is not just forgetting.
 

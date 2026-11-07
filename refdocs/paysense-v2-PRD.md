@@ -279,6 +279,7 @@ Canonical one-line list. Load-bearing entries are expanded as ADRs in `changelog
 | D-66 | "Show the intro again" moves into Settings (everyone), reached by clicking the name on the profile card | Still there for a tester who forgot what an item is for, but one deliberate step away so it is not replayed mid-task |
 | D-67 | The self-guided UAT pack gives context and goals, never explanations or expected results; two forms; understanding measured in the tester's own words | A pack that teaches the answer would inflate SUS and make explanation clarity a test of the pack |
 | D-68 | UAT accounts use the testers' own names as username and display name; forms and reports use participant codes only | Names are easy to remember and the data is synthetic; typed names would not match exactly in the forms |
+| D-69 | The UAT pack names the page to visit and one bounded job there, never how to use it or what the result should be; no finish-by date on the page | Goal-only steps left testers stuck on the pack, not the app; where a page is is not what is being measured |
 
 ---
 
