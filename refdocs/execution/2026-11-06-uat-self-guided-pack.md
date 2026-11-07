@@ -16,7 +16,7 @@
 
 ### Task U3 — Forms text
 - **Files:** `uat/forms.md`.
-- **Steps:** Form A (consent, code, which scenario, then three optional blocks, one per scenario, each marked "answer only the block for your Purchase 1 item"; no branching, so it works in any form tool), Form B (per-card own-words questions, post vignette, C1-C4, usefulness items, S1-S10, debrief, hints used). Question titles start with a code; every column of `templates/sus.csv`, `clarity.csv` and `vignettes.csv` has a source question.
+- **Steps:** Form A (consent, code, which scenario, then three required blocks, one per scenario, reached by branching on the scenario choice so a tester sees only their own; as built in Microsoft Forms on 2026-11-07, the same in Form B's "after" blocks), Form B (per-card own-words questions, post vignette, C1-C4, usefulness items, S1-S10, debrief, hints used). Question titles start with a code; every column of `templates/sus.csv`, `clarity.csv` and `vignettes.csv` has a source question.
 - **Files (also):** `backend/tests/ml/uat/test_forms_doc.py`.
 - **Verify:** `test_forms_doc.py` checks that every SUS and clarity column has a coded question, each vignette has pre, post and confidence codes, the scenario and option text and the SUS and clarity wording match `vignettes.yaml` and `instruments.md`, the scenario choice names the item on each scenario card, and no `risk_rank` or `expected_band` appears; it failed first (no `forms.md`), then 117 passed with the rest of `tests/ml/uat`.
 - [x]
