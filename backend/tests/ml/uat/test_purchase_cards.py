@@ -167,3 +167,14 @@ def test_the_answer_key_shows_the_score_the_screen_shows(cards, measured):
     text = render_report(cards, measured)
     one = measured["frequent_bnpl"]["F1"].confirmed
     assert f"score {health_score(one.high)}" in text
+
+
+def test_the_key_writes_a_chance_the_way_the_screen_does():
+    from ml.uat.purchase_cards import _chance, _percent
+
+    assert _percent(0.003) == "under 1%"
+    assert _percent(0.0) == "0%"
+    assert _percent(0.07) == "7%"
+    assert _chance(0.003, 0.004) == "under 1%"
+    assert _chance(0.003, 0.03) == "under 1% to 3%"
+    assert _chance(0.11, 0.16) == "11-16%"

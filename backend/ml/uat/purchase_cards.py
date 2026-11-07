@@ -13,6 +13,7 @@ key for us; testers never see an expected result.
 import argparse
 import csv
 import io
+import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -249,8 +250,21 @@ def _band_text(result: PathResult) -> str:
     return " / ".join(b for b in BANDS if b in result.bands)
 
 
-def _span(low: int, high: int, unit: str = "") -> str:
-    return f"{low}{unit}" if low == high else f"{low}-{high}{unit}"
+def _span(low: int, high: int) -> str:
+    return f"{low}" if low == high else f"{low}-{high}"
+
+
+def _percent(probability: float) -> str:
+    """The chance as the screen writes it (`formatPercent` in frontend/lib/format.ts)."""
+    percent = math.floor(probability * 100 + 0.5)
+    return "under 1%" if probability > 0 and percent == 0 else f"{percent}%"
+
+
+def _chance(low: float, high: float) -> str:
+    first, last = _percent(low), _percent(high)
+    if first == last:
+        return first
+    return f"{first} to {last}" if "under" in first else f"{first[:-1]}-{last}"
 
 
 def _shown(result: PathResult, *, bold: bool) -> str:
@@ -258,7 +272,7 @@ def _shown(result: PathResult, *, bold: bool) -> str:
     running short printed under it (the score is 100 minus that chance)."""
     band = _band_text(result)
     score = _span(health_score(result.high), health_score(result.low))
-    chance = _span(round(result.low * 100), round(result.high * 100), "%")
+    chance = _chance(result.low, result.high)
     return f"{f'**{band}**' if bold else band}<br>score {score}<br>chance {chance}"
 
 
