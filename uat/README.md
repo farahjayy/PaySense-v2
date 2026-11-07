@@ -35,7 +35,7 @@ The report gives mean SUS with a 95% confidence interval, the mean of each clari
 
 ## Who is seeded
 
-Seven testers are seeded: P01-P02 `budget_conscious`, P03-P04 `frequent_bnpl`, P05-P07 `irregular_income`. The table, and what is still open for each, is in `refdocs/STATUS.md` ("P9 — UAT testers"). Names and usernames are kept out of the repository on purpose and live only in your gitignored `uat/testers.csv`. When you add or change a tester, edit that file and run the seeding command again (it skips accounts that exist). To get a tester's tour back after you have opened it yourself, delete the account in the Supabase SQL editor and seed again; nothing else is needed, since the "seen" flags are kept in the browser against the account's id.
+Eight testers are seeded: P01, P02 and P08 `budget_conscious`, P03-P04 `frequent_bnpl`, P05-P07 `irregular_income`. The table, and what is still open for each, is in `refdocs/STATUS.md` ("P9 — UAT testers"). Names and usernames are kept out of the repository on purpose and live only in your gitignored `uat/testers.csv`. When you add or change a tester, edit that file and run the seeding command again (it skips accounts that exist). To get a tester's tour back after you have opened it yourself, delete the account in the Supabase SQL editor and seed again; nothing else is needed, since the "seen" flags are kept in the browser against the account's id.
 
 ## What each tester does
 
