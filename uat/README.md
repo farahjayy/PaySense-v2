@@ -31,7 +31,7 @@ The study measures usability (SUS), how clear the explanations are, and whether 
 6. **After the answers come in,** export each form's responses to a spreadsheet and type or paste them into copies of `templates/*.csv` in `uat/data/<run>/` (gitignored). The codes in `forms.md` say which question feeds which column.
 7. `cd backend && uv run python -m ml.uat.analyse --data ../uat/data/<run> --out ../reports/uat/<run>.md`
 
-The report gives mean SUS with a 95% confidence interval, the mean of each clarity item, and a before/after table per scenario showing how many testers chose a safer, the same or a riskier option (against the ordering in `vignettes.yaml`). With five to seven testers these are descriptive only, and the report says so. It does not read `R1` (the forecast felt realistic) or `W1` (would the warning have changed your decision); report those by hand until it does. The own-words answers (`M1`, `P#-WHY`, `P#-DO`) and each tester's chosen band (`P#-BAND`, to compare with the answer key) are also read by hand.
+The report gives mean SUS with a 95% confidence interval, the mean of each clarity item, and a before/after table per scenario showing how many testers chose a safer, the same or a riskier option (against the ordering in `vignettes.yaml`). With five to eight testers these are descriptive only, and the report says so. It does not read `R1` (the forecast felt realistic) or `W1` (would the warning have changed your decision); report those by hand until it does. The own-words answers (`M1`, `P#-WHY`, `P#-DO`) and each tester's chosen band (`P#-BAND`, to compare with the answer key) are also read by hand.
 
 ## Who is seeded
 
@@ -39,7 +39,7 @@ Eight testers are seeded: P01, P02 and P08 `budget_conscious`, P03-P04 `frequent
 
 ## What each tester does
 
-One scenario each: **V1 headphones** with `frequent_bnpl`, **V2 laptop repair** with `irregular_income`, **V3 shoes** with `budget_conscious`. It is the first purchase card on their page, so their "after" answer follows the check it refers to. They answer their own scenario in Form A before opening the app and again in Form B after the first purchase; the other two scenarios are not asked of them. The order of the three purchases is fixed rather than counterbalanced (with seven testers a counterbalance would leave two or three per cell); the report should say so. The persona is never named to the tester and the statement file has a neutral name.
+One scenario each: **V1 headphones** with `frequent_bnpl`, **V2 laptop repair** with `irregular_income`, **V3 shoes** with `budget_conscious`. It is the first purchase card on their page, so their "after" answer follows the check it refers to. They answer their own scenario in Form A before opening the app and again in Form B after the first purchase; the other two scenarios are not asked of them. The order of the three purchases is fixed rather than counterbalanced (with eight testers a counterbalance would leave two or three per cell); the report should say so. The persona is never named to the tester and the statement file has a neutral name.
 
 ## Persona dates
 
