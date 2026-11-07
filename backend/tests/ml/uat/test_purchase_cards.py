@@ -1,6 +1,7 @@
 """The purchase cards (plan 2026-10-22-uat-purchase-cards): the file is valid and every card shows
 the band its answer key says, on every study day, for every seed."""
 
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,8 @@ from ml.uat.purchase_cards import (
 )
 
 VIGNETTES = Path(CARDS_PATH).parent / "vignettes.yaml"
+# the answer key is pinned to the files testers get for this session date (see purchase-cards.yaml)
+SESSION = date(2026, 11, 8)
 PERSONAS = ("frequent_bnpl", "budget_conscious", "irregular_income")
 # the provider of each persona's vignette (V1 SPayLater, V3 TikTok PayLater, V2 Atome)
 PERSONA_PROVIDERS = {
@@ -57,7 +60,7 @@ def cards():
 
 @pytest.fixture(scope="module")
 def measured(cards):
-    return {persona: measure_persona(persona, cards[persona]) for persona in PERSONAS}
+    return {persona: measure_persona(persona, cards[persona], SESSION) for persona in PERSONAS}
 
 
 def write(tmp_path: Path, text: str) -> Path:
@@ -149,11 +152,9 @@ def test_the_answer_key_says_it_is_not_for_testers_and_lists_both_paths(cards, m
 
 
 def test_a_session_key_reads_the_file_a_tester_gets_for_that_date():
-    from datetime import date
-
     from ml.uat.purchase_cards import _ledger
 
-    session = date(2026, 11, 8)
+    session = SESSION
     for persona in PERSONAS:
         last = max(row["date"] for row in _ledger(persona, session))
         # moved by whole weeks, so it ends within a week of the day before the session

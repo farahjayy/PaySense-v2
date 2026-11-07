@@ -73,7 +73,7 @@ def test_everything_the_tester_types_comes_from_the_cards_file(tester):
 def test_a_pack_holds_only_its_own_testers_cards_and_username():
     html = page(TESTERS[0])
 
-    assert "Smartwatch" not in html and "Jacket" not in html
+    assert "Smartwatch" not in html and "Phone case" not in html
     assert TESTERS[1].username not in html and TESTERS[2].username not in html
 
 

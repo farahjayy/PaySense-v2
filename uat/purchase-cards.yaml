@@ -6,9 +6,14 @@
 #
 # `expected_band` is the ANSWER KEY, for us and never for testers: the band the trained model shows
 # when the tester has confirmed every suggestion on the Recurring page (the instructed path), on
-# every study day (25-31 October 2026) and for every random seed. `ml.uat.purchase_cards` measures
-# it and `reports/uat/purchase_cards.md` lists what both paths give. Not every tester will take the
-# instructed path, so that report also shows the path where the suggestions are left alone.
+# the file a tester gets for the 8 November 2026 session (the committed persona file moved forward
+# by whole weeks, as `ml.uat.booklet` does) on every day of 8-14 November and for every random seed.
+# `ml.uat.purchase_cards --session 2026-11-08` measures it and writes
+# `reports/uat/purchase_cards_session_2026-11-08.md`, which lists what both paths give. Not every
+# tester will take the instructed path, so that report also shows the path where the suggestions are
+# left alone. For another session date, re-measure and re-pin these bands (the tests use 8 November).
+# `reports/uat/purchase_cards.md` is the same measurement on the unshifted committed files on
+# 25-31 October, kept for reference: it differs where a card sits near a band edge (B1 is Safe there).
 #
 # Limits are the assumed student medians in ml/datagen/params.yaml (limit_median_sen). How a real
 # provider counts its cap is still assumed (D-28).
@@ -50,13 +55,13 @@ personas:
         instalments: 2
         monthly_fee_pct: 0
         vignette: V3
-        expected_band: Safe
+        expected_band: Caution
       - id: B2
-        item: Jacket
-        price_rm: 400
+        item: Phone case
+        price_rm: 50
         instalments: 3
         monthly_fee_pct: 0
-        expected_band: Caution
+        expected_band: Safe
       - id: B3
         item: Tablet
         price_rm: 1000

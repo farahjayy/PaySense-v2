@@ -17,7 +17,7 @@ Measured through the same check the browser calls, with the limit applied, on ev
 | Card | Item | Price | Instalments | Fee | Provider pays / you pay now | Every suggestion confirmed | Suggestions left alone |
 |---|---|---|---|---|---|---|---|
 | B1 | Shoes (V3) | RM 250 | 2 | 0% | RM 250.00 / RM 0.00 | **Safe**<br>score 91-92<br>chance 8-9% ⚠ | Safe<br>score 93<br>chance 7% |
-| B2 | Jacket | RM 400 | 3 | 0% | RM 400.00 / RM 0.00 | **Caution**<br>score 83-84<br>chance 16-17% | Caution<br>score 87<br>chance 13% |
+| B2 | Phone case | RM 50 | 3 | 0% | RM 50.00 / RM 0.00 | **Safe**<br>score 97<br>chance 3% | Safe<br>score 97<br>chance 3% |
 | B3 | Tablet | RM 1,000 | 3 | 0% | RM 1,000.00 / RM 0.00 | **At Risk**<br>score 33-34<br>chance 66-67% | At Risk<br>score 56<br>chance 44% |
 
 ## irregular_income: record an Atome limit of RM 800
