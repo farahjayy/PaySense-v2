@@ -2,7 +2,7 @@
 
 ## What this is
 
-PaySense is a student project that helps people decide whether a "buy now, pay later" (BNPL) purchase is a good idea. It forecasts how your money is likely to look over the coming months and checks how a particular purchase would change that. We would like to see whether it is easy to use and whether its explanations make sense.
+PaySense is a student project that helps people decide whether a "buy now, pay later" (BNPL) purchase is a good idea. It forecasts how your money is likely to look over the coming months and checks how a particular purchase would change that. This session is a user acceptance test. Its purpose is to evaluate how usable the PaySense dashboard is, how useful you find it, and how well its explainable AI features (the parts that show why it gives the answer it does) make sense to you.
 
 ## What you will do
 

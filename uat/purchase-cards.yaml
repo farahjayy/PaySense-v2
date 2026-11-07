@@ -71,19 +71,19 @@ personas:
       - id: I1
         item: Backpack
         price_rm: 400
-        instalments: 4
+        instalments: 3
         monthly_fee_pct: 0
         expected_band: Safe
       - id: I2
         item: Smartwatch
         price_rm: 800
-        instalments: 4
+        instalments: 3
         monthly_fee_pct: 0
         expected_band: Caution
       - id: I3
         item: Laptop repair
         price_rm: 1200
-        instalments: 4
+        instalments: 3
         monthly_fee_pct: 0
         vignette: V2
         expected_band: At Risk

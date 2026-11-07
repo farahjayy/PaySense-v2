@@ -146,3 +146,23 @@ def test_the_answer_key_says_it_is_not_for_testers_and_lists_both_paths(cards, m
     for entry in cards.values():
         for card in entry.cards:
             assert card.id in text
+
+
+def test_a_session_key_reads_the_file_a_tester_gets_for_that_date():
+    from datetime import date
+
+    from ml.uat.purchase_cards import _ledger
+
+    session = date(2026, 11, 8)
+    for persona in PERSONAS:
+        last = max(row["date"] for row in _ledger(persona, session))
+        # moved by whole weeks, so it ends within a week of the day before the session
+        assert date(2026, 11, 1) <= last <= date(2026, 11, 7)
+
+
+def test_the_answer_key_shows_the_score_the_screen_shows(cards, measured):
+    from app.engines.forecasting.simulate import health_score
+
+    text = render_report(cards, measured)
+    one = measured["frequent_bnpl"]["F1"].confirmed
+    assert f"score {health_score(one.high)}" in text

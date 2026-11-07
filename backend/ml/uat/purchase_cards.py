@@ -11,9 +11,11 @@ key for us; testers never see an expected result.
 """
 
 import argparse
+import csv
+import io
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -23,10 +25,11 @@ import yaml
 from app.domain.csv_import import parse_csv
 from app.domain.providers import PROVIDERS
 from app.domain.schedule import MAX_INSTALMENTS, MIN_INSTALMENTS
-from app.engines.forecasting.simulate import CAUTION_BELOW, SAFE_BELOW
+from app.engines.forecasting.simulate import CAUTION_BELOW, SAFE_BELOW, health_score
 from app.engines.risk.check import RiskRequest
 from ml.datagen.personas import CHECK_DAY_OFFSETS, PERSONA_AS_OF
 from ml.uat.load import UatDataError, Vignette
+from ml.uat.shift_persona import COLUMNS, read_rows, shift_rows
 from ml.uat.shown_check import check_card, confirmed_items
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -70,7 +73,8 @@ class CardMeasure:
     confirmed: PathResult
     raw: PathResult
     financed_sen: int
-    upfront_sen: int
+    upfront_sen: int  # the part above the recorded limit, paid at checkout
+    checkout_sen: int  # all cash due on the purchase date (adds Atome's first payment)
 
 
 def _fail(path: Path, message: str) -> UatDataError:
@@ -144,8 +148,22 @@ def _engines():
     return served_forecaster(), predictor
 
 
-def _ledger(persona: str) -> list[dict[str, Any]]:
-    text = (PERSONA_DIR / f"{persona}.csv").read_text(encoding="utf-8")
+def _session_text(persona: str, session: date) -> str:
+    """The persona file moved by whole weeks to end just before `session`: what `ml.uat.booklet`
+    gives a tester for that session date."""
+    out = io.StringIO()
+    writer = csv.DictWriter(out, fieldnames=COLUMNS, lineterminator="\n")
+    writer.writeheader()
+    writer.writerows(shift_rows(read_rows(PERSONA_DIR / f"{persona}.csv"), session))
+    return out.getvalue()
+
+
+def _ledger(persona: str, session: date | None = None) -> list[dict[str, Any]]:
+    text = (
+        _session_text(persona, session)
+        if session
+        else (PERSONA_DIR / f"{persona}.csv").read_text(encoding="utf-8")
+    )
     return [
         {
             "date": r.date,
@@ -158,11 +176,17 @@ def _ledger(persona: str) -> list[dict[str, Any]]:
     ]
 
 
-def measure_persona(persona: str, entry: PersonaCards) -> dict[str, CardMeasure]:
-    """Every card of one persona on each study day, for each seed, on both paths."""
+def measure_persona(
+    persona: str, entry: PersonaCards, session: date | None = None
+) -> dict[str, CardMeasure]:
+    """Every card of one persona on each study day, for each seed, on both paths.
+
+    By default the committed persona file on the days it was built for. With `session`, the file a
+    tester gets for that session date (moved forward by whole weeks), on the week from `session`."""
     forecaster, predictor = _engines()
-    rows = _ledger(persona)
-    days = [PERSONA_AS_OF + timedelta(days=offset) for offset in CHECK_DAY_OFFSETS]
+    rows = _ledger(persona, session)
+    as_of = session - timedelta(days=1) if session else PERSONA_AS_OF
+    days = [as_of + timedelta(days=offset) for offset in CHECK_DAY_OFFSETS]
     items_by_day = {day: confirmed_items(rows, day) for day in days}
     limits = {entry.provider: entry.limit_sen}
     out: dict[str, CardMeasure] = {}
@@ -171,7 +195,7 @@ def measure_persona(persona: str, entry: PersonaCards) -> dict[str, CardMeasure]
             "confirmed": (set(), []),
             "raw": (set(), []),
         }
-        split = (0, 0)
+        split = (0, 0, 0)
         for day in days:
             request = RiskRequest(
                 provider=entry.provider,
@@ -190,12 +214,17 @@ def measure_persona(persona: str, entry: PersonaCards) -> dict[str, CardMeasure]
                         raise RuntimeError(f"{persona} {card.id}: the forecast is locked on {day}")
                     paths[path][0].add(result.band)
                     paths[path][1].append(result.probability)
-                    split = (result.proposal.financed_sen, result.proposal.upfront_sen)
+                    split = (
+                        result.proposal.financed_sen,
+                        result.proposal.upfront_sen,
+                        result.proposal.cash_at_purchase_sen,
+                    )
         out[card.id] = CardMeasure(
             confirmed=PathResult(frozenset(paths["confirmed"][0]), *_range(paths["confirmed"][1])),
             raw=PathResult(frozenset(paths["raw"][0]), *_range(paths["raw"][1])),
             financed_sen=split[0],
             upfront_sen=split[1],
+            checkout_sen=split[2],
         )
     return out
 
@@ -212,8 +241,25 @@ def _ringgit(sen: int) -> str:
     return f"RM {sen // SEN_PER_RINGGIT:,}"
 
 
+def _ringgit_sen(sen: int) -> str:
+    return f"RM {sen // SEN_PER_RINGGIT:,}.{sen % SEN_PER_RINGGIT:02d}"
+
+
 def _band_text(result: PathResult) -> str:
     return " / ".join(b for b in BANDS if b in result.bands)
+
+
+def _span(low: int, high: int, unit: str = "") -> str:
+    return f"{low}{unit}" if low == high else f"{low}-{high}{unit}"
+
+
+def _shown(result: PathResult, *, bold: bool) -> str:
+    """The result as the screen shows it: the band, the big score out of 100, and the chance of
+    running short printed under it (the score is 100 minus that chance)."""
+    band = _band_text(result)
+    score = _span(health_score(result.high), health_score(result.low))
+    chance = _span(round(result.low * 100), round(result.high * 100), "%")
+    return f"{f'**{band}**' if bold else band}<br>score {score}<br>chance {chance}"
 
 
 def _near_edge(result: PathResult) -> bool:
@@ -225,10 +271,13 @@ def _near_edge(result: PathResult) -> bool:
 
 
 def render_report(
-    cards: Mapping[str, PersonaCards], measured: Mapping[str, Mapping[str, CardMeasure]]
+    cards: Mapping[str, PersonaCards],
+    measured: Mapping[str, Mapping[str, CardMeasure]],
+    session: date | None = None,
 ) -> str:
-    days = f"{(PERSONA_AS_OF + timedelta(days=min(CHECK_DAY_OFFSETS))).isoformat()} to " + (
-        (PERSONA_AS_OF + timedelta(days=max(CHECK_DAY_OFFSETS))).isoformat()
+    as_of = session - timedelta(days=1) if session else PERSONA_AS_OF
+    days = f"{(as_of + timedelta(days=min(CHECK_DAY_OFFSETS))).isoformat()} to " + (
+        (as_of + timedelta(days=max(CHECK_DAY_OFFSETS))).isoformat()
     )
     lines = [
         "# UAT purchase cards: answer key",
@@ -242,8 +291,11 @@ def render_report(
         "Recurring "
         "suggestion confirmed. The other path leaves the suggestions alone: the forecast then "
         "does not know the standing bills or instalments, and for some cards the answer is "
-        "different. Bands: Safe below 10%, Caution below 30%, At Risk from 30% (the model's "
-        "estimate of running short). A range within 2 points of an edge is marked ⚠.",
+        "different. Each result is written as the screen shows it: the **band**, the big "
+        "**score out of 100** in the ring, and the **chance** printed under it as "
+        '"Estimated chance of running short" (the score is 100 minus the chance). Bands: Safe '
+        "below 10% chance, Caution below 30%, At Risk from 30%. A range within 2 points of an "
+        "edge is marked ⚠.",
         "",
     ]
     for persona, entry in cards.items():
@@ -251,21 +303,19 @@ def render_report(
             f"## {persona}: record {_a(PROVIDERS[entry.provider].label)} limit of "
             f"{_ringgit(entry.limit_sen)}",
             "",
-            "| Card | Item | Price | Instalments | Fee | Provider pays / at checkout | "
+            "| Card | Item | Price | Instalments | Fee | Provider pays / you pay now | "
             "Every suggestion confirmed | Suggestions left alone |",
             "|---|---|---|---|---|---|---|---|",
         ]
         for card in entry.cards:
             m = measured[persona][card.id]
             vignette = f" ({card.vignette})" if card.vignette else ""
-            confirmed = (
-                f"**{_band_text(m.confirmed)}** {m.confirmed.low:.0%}-{m.confirmed.high:.0%}"
-            )
-            raw = f"{_band_text(m.raw)} {m.raw.low:.0%}-{m.raw.high:.0%}"
+            confirmed = _shown(m.confirmed, bold=True)
+            raw = _shown(m.raw, bold=False)
             lines.append(
                 f"| {card.id} | {card.item}{vignette} | {_ringgit(card.price_sen)} | "
                 f"{card.instalments} | {card.monthly_fee_pct:g}% | "
-                f"{_ringgit(m.financed_sen)} / {_ringgit(m.upfront_sen)} | "
+                f"{_ringgit_sen(m.financed_sen)} / {_ringgit_sen(m.checkout_sen)} | "
                 f"{confirmed}{' ⚠' if _near_edge(m.confirmed) else ''} | "
                 f"{raw}{' ⚠' if _near_edge(m.raw) else ''} |"
             )
@@ -277,13 +327,29 @@ def main(argv: Sequence[str] | None = None) -> None:
     from ml.uat.load import load_vignettes
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--out", type=Path, default=DEFAULT_REPORT)
+    parser.add_argument("--out", type=Path, default=None)
+    parser.add_argument(
+        "--session",
+        type=date.fromisoformat,
+        default=None,
+        help="measure the files a tester gets for this session date (YYYY-MM-DD), on the week "
+        "from that day, instead of the committed files on 25-31 October",
+    )
     args = parser.parse_args(argv)
+    out = args.out or (
+        DEFAULT_REPORT.with_name(f"purchase_cards_session_{args.session}.md")
+        if args.session
+        else DEFAULT_REPORT
+    )
     cards = load_cards(CARDS_PATH, load_vignettes(CARDS_PATH.parent / "vignettes.yaml"))
-    measured = {persona: measure_persona(persona, entry) for persona, entry in cards.items()}
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(render_report(cards, measured) + "\n", encoding="utf-8", newline="\n")
-    print(f"wrote {args.out}")  # noqa: T201 - command-line entry point
+    measured = {
+        persona: measure_persona(persona, entry, args.session) for persona, entry in cards.items()
+    }
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(
+        render_report(cards, measured, args.session) + "\n", encoding="utf-8", newline="\n"
+    )
+    print(f"wrote {out}")  # noqa: T201 - command-line entry point
 
 
 if __name__ == "__main__":

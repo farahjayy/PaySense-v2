@@ -2,7 +2,7 @@
 
 Text to paste into a form tool (Microsoft Forms or Google Forms). **Build two separate forms, not one**, so a tester cannot go back and change their "before" answer after seeing the app. Every question starts with a **code** (the first column); put it at the front of the question title, for example `[S3] I thought the system was easy to use.` The codes are how the exported spreadsheet is turned into the three CSV files the analysis reads, so do not reword or drop them. `tests/ml/uat/test_forms_doc.py` checks this file against `vignettes.yaml`, `instruments.md` and the CSV templates.
 
-**Settings for both forms:** do not record names or email addresses; one response per person is not needed; do not show the other tester's answers; turn on a thank-you message. Options in the scenario choice questions may be shuffled, because the letters (`A.` to `E.`) are part of the option text and are what the converter reads.
+**Settings for both forms:** who can respond is "Only people in Universiti Teknologi PETRONAS" (every tester has a UTP account; anyone outside UTP could not submit, so change it to "Anyone can respond" if that ever stops being true); do not record names or email addresses; one response per person is not needed; do not show the other tester's answers; turn on a thank-you message. Options in the scenario choice questions may be shuffled, because the letters (`A.` to `E.`) are part of the option text and are what the converter reads.
 
 **Scales used below:** *agree* = 1 Strongly disagree, 2 Disagree, 3 Neither, 4 Agree, 5 Strongly agree. *sure* = 1 Not at all sure, 2, 3, 4, 5 Completely sure.
 
@@ -14,7 +14,7 @@ Text to paste into a form tool (Microsoft Forms or Google Forms). **Build two se
 
 **Description (paste in full):**
 
-> PaySense is a student project: a website that helps a student think about whether a "buy now, pay later" (BNPL) purchase is a good idea. We want to find out whether it is easy to use and whether it makes sense. This is a test of the website, not of you. There are no right or wrong answers.
+> PaySense is a student project: a website that helps a student think about whether a "buy now, pay later" (BNPL) purchase is a good idea. This session is a user acceptance test. Its purpose is to evaluate how usable the PaySense dashboard is, how useful you find it, and how well its explainable AI features (the parts that show why it gives the answer it does) make sense to you. This is a test of the website, not of you. There are no right or wrong answers.
 >
 > Everything in the session is made up. Please do not enter any of your own bank, e-wallet or BNPL details anywhere.
 >
@@ -26,7 +26,7 @@ Text to paste into a form tool (Microsoft Forms or Google Forms). **Build two se
 | `A-CONSENT` | I have read the above and I am happy to take part. | Choice: Yes | Yes |
 | `A-SCEN` | Which item is **Purchase 1** on your page? | Choice: Wireless headphones / Laptop repair / Shoes | Yes |
 
-Then three blocks, one per scenario. Put this line above each: **"Answer only the block for your Purchase 1 item. Skip the other two."** Make every question in the blocks optional.
+Then three blocks, one per scenario, using the form's **branching**: each choice of `A-SCEN` goes to its own block, and each block goes on to the end of the form. A tester sees only their own block, so every question in the blocks is required.
 
 ### Block: Wireless headphones
 
@@ -45,14 +45,14 @@ Then three blocks, one per scenario. Put this line above each: **"Answer only th
 
 ### Block: Laptop repair
 
-> Your income varies: RM 400 in a quiet month and RM 1,600 in a busy one, about RM 1,000 on average. Your fixed costs are about RM 700 a month. Your laptop needs a RM 1,200 repair. Atome offers 4 payments, the first at checkout.
+> Your income varies: RM 400 in a quiet month and RM 1,600 in a busy one, about RM 1,000 on average. Your fixed costs are about RM 700 a month. Your laptop needs a RM 1,200 repair. Atome offers 3 payments, the first at checkout.
 
 | Code | Question | Type |
 |---|---|---|
 | `V2-pre` | Which would you do? | Choice (below) |
 | `V2-pre-conf` | How sure are you of that choice? | Choice: sure, 1 to 5 |
 
-- A. Repair it on Atome in 4 payments, as offered
+- A. Repair it on Atome in 3 payments, as offered
 - B. Repair it but ask for a longer plan elsewhere
 - C. Choose a cheaper repair or a second-hand part
 - D. Borrow a laptop for a month and decide then
@@ -103,7 +103,7 @@ Repeat this block three times, with the questions' codes starting `P1-`, `P2-` a
 | `P1-WHY` | In your own words, why do you think PaySense gave that result? | Long text | Yes |
 | `P1-DO` | What would you do about this purchase now, and why? | Long text | Yes |
 | `P1-SAFER` | Did PaySense offer a way to make this purchase safer? | Choice: Yes, and I tried it / Yes, but I did not try it / No / It was not needed | Yes |
-| `P1-SAFER-NOTE` | If it did, what did you think of it? | Long text | No |
+| `P1-SAFER-NOTE` | If PaySense offered a way to make this purchase safer, what did you think of that suggestion? | Long text | No |
 
 (`P2-BAND`, `P2-WHY`, `P2-DO`, `P2-SAFER`, `P2-SAFER-NOTE` and `P3-...` are the same questions.)
 
@@ -113,7 +113,7 @@ Repeat this block three times, with the questions' codes starting `P1-`, `P2-` a
 |---|---|---|---|
 | `B-SCEN` | Which item was **Purchase 1** on your page? | Choice: Wireless headphones / Laptop repair / Shoes | Yes |
 
-Then the three scenario blocks again, each worded exactly as in Form A, with the line above them **"Answer only the block for your Purchase 1 item. Skip the other two."** Every question in the blocks is optional. Use the same options, with the same letters. Introduce each block with **"Think back to this scenario and answer again. It is fine if your answer has not changed."**
+Then the three scenario blocks again, each worded exactly as in Form A, again by branching: each choice of `B-SCEN` goes to its own block, and each block goes on to Part 4. Every question in the blocks is required, so each tester has a before and an after answer. Use the same options, with the same letters. Introduce each block with **"Think back to this scenario and answer again. It is fine if your answer has not changed."**, followed by that scenario's paragraph exactly as in Form A, so the tester sees the numbers again and any change in their answer is not just forgetting.
 
 | Code | Question | Type |
 |---|---|---|

@@ -31,9 +31,9 @@ vignettes:
     scenario: |
       Your income varies: RM 400 in a quiet month and RM 1,600 in a busy one, about RM 1,000 on
       average. Your fixed costs are about RM 700 a month. Your laptop needs a RM 1,200 repair. Atome
-      offers 4 payments, the first at checkout.
+      offers 3 payments, the first at checkout.
     options:
-      - { id: A, text: "Repair it on Atome in 4 payments, as offered", risk_rank: 4 }
+      - { id: A, text: "Repair it on Atome in 3 payments, as offered", risk_rank: 4 }
       - { id: B, text: "Repair it but ask for a longer plan elsewhere", risk_rank: 3 }
       - { id: C, text: "Choose a cheaper repair or a second-hand part", risk_rank: 2 }
       - { id: D, text: "Borrow a laptop for a month and decide then", risk_rank: 1 }
