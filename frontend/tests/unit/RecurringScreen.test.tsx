@@ -138,6 +138,97 @@ describe("RecurringScreen", () => {
     });
   });
 
+  it("asks before confirming a suggestion that is already in the list, and adds it only on a yes", async () => {
+    const netflix = {
+      ...ITEM,
+      id: "r9",
+      name: "Netflix",
+      amount_sen: 3500,
+      anchor_date: "2026-09-15",
+    };
+    serve({ items: [netflix] });
+    post.mockResolvedValue(ok({ ...netflix, id: "r10" }, 201));
+    render(<RecurringScreen />, { wrapper });
+
+    await userEvent.click(await screen.findByRole("button", { name: "Confirm Netflix" }));
+
+    const dialog = await screen.findByRole("dialog", {
+      name: /already have this/i,
+    });
+    expect(within(dialog).getByText(/Netflix/)).toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Add another" }));
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+  });
+
+  it("adds nothing when the person says they do not want another", async () => {
+    const netflix = {
+      ...ITEM,
+      id: "r9",
+      name: "Netflix",
+      amount_sen: 3500,
+      anchor_date: "2026-09-15",
+    };
+    serve({ items: [netflix] });
+    render(<RecurringScreen />, { wrapper });
+
+    await userEvent.click(await screen.findByRole("button", { name: "Confirm Netflix" }));
+    const dialog = await screen.findByRole("dialog", {
+      name: /already have this/i,
+    });
+    await userEvent.click(within(dialog).getByRole("button", { name: "Don't add" }));
+
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("takes a suggestion off the list the moment it is confirmed, so it cannot be confirmed twice", async () => {
+    serve();
+    post.mockImplementation(() => new Promise(() => {})); // the server has not answered yet
+    render(<RecurringScreen />, { wrapper });
+
+    await userEvent.click(await screen.findByRole("button", { name: "Confirm Netflix" }));
+
+    expect(screen.queryByRole("button", { name: "Confirm Netflix" })).not.toBeInTheDocument();
+    expect(post).toHaveBeenCalledTimes(1);
+  });
+
+  it("puts the suggestion back if confirming it failed", async () => {
+    serve();
+    post.mockResolvedValue({
+      data: undefined,
+      error: { detail: "nope" },
+      response: { ok: false, status: 500 },
+    });
+    render(<RecurringScreen />, { wrapper });
+
+    await userEvent.click(await screen.findByRole("button", { name: "Confirm Netflix" }));
+
+    expect(await screen.findByRole("button", { name: "Confirm Netflix" })).toBeInTheDocument();
+  });
+
+  it("asks before adding by hand an item that looks like one already listed", async () => {
+    serve({ suggestions: [] });
+    post.mockResolvedValue(ok({ ...ITEM, id: "r2" }, 201));
+    render(<RecurringScreen />, { wrapper });
+    expect(await screen.findByText("Rent")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Add an item" }));
+    const form = await screen.findByRole("dialog", {
+      name: /add a recurring item/i,
+    });
+    await userEvent.type(within(form).getByLabelText(/amount/i), "400");
+    await userEvent.type(within(form).getByLabelText(/^name/i), "Rent");
+    await userEvent.click(within(form).getByRole("button", { name: "Add" }));
+
+    const ask = await screen.findByRole("dialog", {
+      name: /already have this/i,
+    });
+    expect(post).not.toHaveBeenCalled();
+    await userEvent.click(within(ask).getByRole("button", { name: "Add another" }));
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+  });
+
   it("points out confirmed items that matched nothing in the ledger", async () => {
     serve({ suggestions: [], unmatched: ["Rent"] });
     render(<RecurringScreen />, { wrapper });

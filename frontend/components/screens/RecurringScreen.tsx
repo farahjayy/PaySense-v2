@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { DuplicateItemDialog } from "@/components/recurring/DuplicateItemDialog";
 import { CADENCE_LABEL, RecurringForm } from "@/components/recurring/RecurringForm";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
@@ -23,8 +24,11 @@ import {
 import { focusPageHeading } from "@/lib/focus";
 import { formatDate, formatPercent } from "@/lib/format";
 import { formatRm } from "@/lib/money";
+import { findSimilarItem } from "@/lib/recurring";
 
 type Dialogue = { kind: "add" } | { kind: "edit"; item: RecurringItem };
+/** An item the person is adding that looks like one already listed, held until they answer. */
+type Duplicate = { input: RecurringInput; existing: RecurringItem };
 
 export function RecurringScreen() {
   const items = useRecurringItems();
@@ -37,11 +41,13 @@ export function RecurringScreen() {
   const remove = useDeleteRecurring();
   const [dialogue, setDialogue] = useState<Dialogue | null>(null);
   const [deleting, setDeleting] = useState<RecurringItem | null>(null);
+  const [duplicate, setDuplicate] = useState<Duplicate | null>(null);
 
   const unmatched = forecast.data?.unmatched_items ?? [];
 
   function close() {
     setDialogue(null);
+    setDuplicate(null);
     create.reset();
     update.reset();
   }
@@ -57,6 +63,11 @@ export function RecurringScreen() {
         { onSuccess: close },
       );
     } else {
+      const existing = findSimilarItem(items.data ?? [], input);
+      if (existing) {
+        setDuplicate({ input, existing });
+        return;
+      }
       create.mutate(input, { onSuccess: close });
     }
   }
@@ -128,6 +139,15 @@ export function RecurringScreen() {
           />
         )}
       </Dialog>
+      <DuplicateItemDialog
+        existing={duplicate?.existing ?? null}
+        saving={create.isPending}
+        error={create.error?.message ?? null}
+        onKeep={() => setDuplicate(null)}
+        onAddAnother={() => {
+          if (duplicate) create.mutate(duplicate.input, { onSuccess: close });
+        }}
+      />
       <Dialog
         open={deleting !== null}
         title="Delete this recurring item?"
@@ -182,13 +202,46 @@ export function RecurringScreen() {
   );
 }
 
+function suggestionKey(s: Suggestion): string {
+  return `${s.kind}-${s.name}`;
+}
+
 function Suggestions() {
   const suggestions = useSuggestions();
+  const items = useRecurringItems();
   const create = useCreateRecurring();
-  if (suggestions.isPending || suggestions.isError || suggestions.data.length === 0) return null;
+  // Confirmed suggestions are taken off the list at once, until the list is fetched again: a
+  // second tap while the server is still answering (or the page is catching up) would add the same
+  // item twice and count that money twice. Keyed to the fetch the tap was made on.
+  const [confirmedOn, setConfirmedOn] = useState<Readonly<Record<string, number>>>({});
+  const [asking, setAsking] = useState<{
+    suggestion: Suggestion;
+    input: RecurringInput;
+    existing: RecurringItem;
+  } | null>(null);
+  if (suggestions.isPending || suggestions.isError) return null;
+
+  const visible = suggestions.data.filter(
+    (s) => confirmedOn[suggestionKey(s)] !== suggestions.dataUpdatedAt,
+  );
+  if (visible.length === 0 && !create.error) return null;
+
+  function send(s: Suggestion, input: RecurringInput) {
+    const key = suggestionKey(s);
+    setConfirmedOn((current) => ({
+      ...current,
+      [key]: suggestions.dataUpdatedAt,
+    }));
+    create.mutate(input, {
+      onError: () =>
+        setConfirmedOn((current) =>
+          Object.fromEntries(Object.entries(current).filter(([other]) => other !== key)),
+        ),
+    });
+  }
 
   function confirm(s: Suggestion) {
-    create.mutate({
+    const input: RecurringInput = {
       kind: s.kind,
       name: s.display_name,
       amount_sen: s.amount_sen,
@@ -197,7 +250,13 @@ function Suggestions() {
       active: true,
       origin: "detected",
       match_text: s.name,
-    });
+    };
+    const existing = findSimilarItem(items.data ?? [], input);
+    if (existing) {
+      setAsking({ suggestion: s, input, existing });
+      return;
+    }
+    send(s, input);
   }
 
   return (
@@ -206,9 +265,19 @@ function Suggestions() {
       <CardCaption>
         Confirm the ones that are real. Nothing is counted in your forecast until you do.
       </CardCaption>
+      <DuplicateItemDialog
+        existing={asking?.existing ?? null}
+        saving={false}
+        error={null}
+        onKeep={() => setAsking(null)}
+        onAddAnother={() => {
+          if (asking) send(asking.suggestion, asking.input);
+          setAsking(null);
+        }}
+      />
       <ul className="mt-3 divide-y divide-line">
-        {suggestions.data.map((s) => (
-          <li key={`${s.kind}-${s.name}`} className="flex items-center gap-3 py-2.5">
+        {visible.map((s) => (
+          <li key={suggestionKey(s)} className="flex items-center gap-3 py-2.5">
             <div className="min-w-0 flex-1">
               <p className="truncate text-[14px] font-medium text-ink">{s.display_name}</p>
               <p className="text-[12px] text-ink-secondary">
