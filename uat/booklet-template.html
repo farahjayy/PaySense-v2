@@ -27,7 +27,7 @@
   details { margin:.5rem 0; border:1px solid var(--line); border-radius:8px; padding:.35rem .75rem; }
   summary { cursor:pointer; font-weight:600; }
   .note { color:var(--muted); font-size:.95rem; }
-  ul { padding-left:1.2rem; }
+  ul, ol { padding-left:1.2rem; }
   @media print { details { break-inside:avoid; } details > * { display:block; } a { color:inherit; } }
 </style>
 </head>
@@ -107,15 +107,16 @@
 
     <div class="step">
       <h3>Check three purchases</h3>
-      <p>The student is thinking about the {{card_count}} purchases below. Check each one on its own, as if it were the only purchase the student is making. Go in the order shown.</p>
-      <ul>
-        <li>Go to the <strong>Risk check</strong> page in PaySense.</li>
-        <li>For each purchase, type in exactly what is on the card.</li>
-        <li>After every risk check, <strong>read the result and analyse it</strong>: what PaySense tells you, and why.</li>
-        <li>If PaySense suggests a way to make the purchase safer, <strong>take the suggestion and try it</strong>.</li>
-        <li>Then go to <strong>Form B</strong> and answer its questions for that purchase: what PaySense told you, why you think it said that, what you would do, and what you think of the suggestion. After the first purchase, Form B will also take you back to the scenario from Form A.</li>
-        <li><strong>Do not add any of them to Plans.</strong> Nothing is being bought.</li>
-      </ul>
+      <p>The student is thinking about the {{card_count}} purchases below. Check each one on its own, as if it were the only purchase the student is making. Go in the order shown, <strong>one purchase at a time</strong>: finish all the steps below for one purchase, including Form B, before you start the next.</p>
+      <p>For each purchase:</p>
+      <ol>
+        <li>Go to the <strong>Risk check</strong> page in PaySense (not the Plans page).</li>
+        <li>Type in exactly what is on the card. <strong>Do not add it to Plans</strong>, because nothing is being bought. If you add one by mistake, delete it from Plans before checking the next purchase.</li>
+        <li>Read the result and analyse it: what PaySense tells you, and why.</li>
+        <li>If PaySense suggests a way to make the purchase safer, take the suggestion and try it.</li>
+        <li>Go to <strong>Form B</strong> and answer its questions for this purchase: what PaySense told you, why you think it said that, what you would do, and what you think of the suggestion. After the first purchase, Form B will also take you back to the scenario from Form A.</li>
+        <li><strong>Repeat steps 1 to 5 for the next purchase</strong>, until you have done all {{card_count}}.</li>
+      </ol>
       {{cards}}
     </div>
 

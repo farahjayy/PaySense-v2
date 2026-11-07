@@ -141,18 +141,23 @@ def test_each_step_names_the_page_to_go_to_without_saying_how_to_use_it():
     assert "confirm every suggestion" in text
 
 
-def test_the_purchase_step_says_what_to_do_after_each_check_before_it_shows_the_cards():
+def test_the_purchase_step_is_a_numbered_procedure_that_comes_before_the_cards():
     html = page(TESTERS[0])
     text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
     cards_start = text.index("Purchase 1 of")
 
     for instruction in (
-        "read the result and analyse it",
+        "one purchase at a time",
+        "Go to the Risk check page in PaySense (not the Plans page)",
+        "Do not add it to Plans",
+        "delete it from Plans before checking the next purchase",
+        "Read the result and analyse it",
         "take the suggestion and try it",
-        "go to Form B and answer its questions for that purchase",
-        "Do not add any of them to Plans",
+        "Go to Form B and answer its questions for this purchase",
+        "Repeat steps 1 to 5 for the next purchase",
     ):
         assert text.index(instruction) < cards_start, instruction
+    assert "<ol>" in html  # numbered, so "steps 1 to 5" means something
 
 
 def test_each_tester_gets_a_page_and_a_statement_ending_the_day_before_the_session(tmp_path):
