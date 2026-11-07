@@ -420,13 +420,15 @@ describe("RiskResult explanation of the two numbers", () => {
       simulated_probability: 0.35,
       simulated_band: "At Risk",
     });
-    expect(screen.getByText(/different bands/i)).toBeInTheDocument();
-    expect(screen.getByText(/close to the line/i)).toBeInTheDocument();
+    expect(screen.getByText(/two checks disagree/i)).toBeInTheDocument();
+    expect(screen.getByText(/risk model rates it Safe/i)).toBeInTheDocument();
+    expect(screen.getByText(/simulation .* rates it At Risk/i)).toBeInTheDocument();
+    expect(screen.getByText(/extra care/i)).toBeInTheDocument();
   });
 
   it("does not raise that notice when they agree", async () => {
     await show({});
-    expect(screen.queryByText(/different bands/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/two checks disagree/i)).not.toBeInTheDocument();
   });
 
   it("says when waiting was judged by the simulation because the model cannot see timing", async () => {

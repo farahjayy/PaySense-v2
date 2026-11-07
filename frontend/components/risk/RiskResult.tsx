@@ -148,9 +148,10 @@ export function RiskResult({ check, onTrySuggestion, busy, stale = false, footer
         </div>
       </Card>
       {check.simulated_band && check.simulated_band !== check.band && (
-        <Banner tone="info" title="The two methods put this in different bands">
-          The estimate says {check.band} and the direct simulation says {check.simulated_band}. The
-          band above is the estimate&apos;s; treat this purchase as close to the line.
+        <Banner tone="info" title="Two checks disagree on this purchase">
+          PaySense&apos;s risk model rates it {check.band}. A separate simulation of your own recent
+          income and spending, with this purchase added, rates it {check.simulated_band}. The band
+          above is the model&apos;s. Because the two disagree, treat this result with extra care.
         </Banner>
       )}
       <Notices items={riskNotices(check)} />
