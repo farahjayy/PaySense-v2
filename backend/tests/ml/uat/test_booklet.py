@@ -190,3 +190,16 @@ def test_a_roster_that_keeps_a_template_example_username_is_refused(tmp_path):
 
     with pytest.raises(UatDataError, match="example"):
         build_packs(template, tmp_path, SESSION, LINKS)
+
+
+def test_the_page_says_form_b_returns_to_the_scenario_after_all_the_purchases_not_after_the_first():
+    html = page(TESTERS[0])
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
+
+    assert "After the first purchase, Form B will also take you back" not in text
+    closing = (
+        "When you have finished all 3 purchases, Form B will take you back to the scenario "
+        "from Form A for Purchase 1 and ask what you would do now."
+    )
+    assert text.index(closing) > text.index("Purchase 3 of 3")
+    assert "It is fine if your answer has not changed" in text

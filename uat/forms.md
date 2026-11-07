@@ -107,7 +107,9 @@ Repeat this block three times, with the questions' codes starting `P1-`, `P2-` a
 
 (`P2-BAND`, `P2-WHY`, `P2-DO`, `P2-SAFER`, `P2-SAFER-NOTE` and `P3-...` are the same questions.)
 
-### Part 3 — Back to the scenario (right after Purchase 1)
+### Part 3 — Back to the scenario (after all 3 purchases)
+
+Section text: **"Now that you have checked all 3 purchases, think back to Purchase 1."**
 
 | Code | Question | Type | Required |
 |---|---|---|---|
