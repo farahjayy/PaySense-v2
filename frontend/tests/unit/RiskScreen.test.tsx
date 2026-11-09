@@ -195,8 +195,11 @@ describe("RiskScreen", () => {
       await screen.findByRole("img", { name: /score 58 out of 100, at risk/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/about 40% of your monthly income/i)).toBeInTheDocument();
-    expect(screen.getByText(/estimated chance of running short: 42%/i)).toBeInTheDocument();
-    expect(screen.getByText(/a direct simulation of this purchase gives 45%/i)).toBeInTheDocument();
+    // the card carries one number; the second check shows only when it changes the story (banner)
+    expect(screen.getByText("Chance of running short: 42%.")).toBeInTheDocument();
+    expect(screen.queryByText(/direct test of this purchase/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/according to the risk model/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/direct simulation/i)).not.toBeInTheDocument();
     expect(screen.getByText("Spread it over 6 instalments")).toBeInTheDocument();
     // the chart and the repayment note are one tap away, each closed with its figure showing
     expect(screen.queryByTestId("with-without-chart")).not.toBeInTheDocument();
@@ -408,8 +411,8 @@ describe("RiskResult explanation of the two numbers", () => {
   it("explains what the second number is and which one decides the band", async () => {
     await show({});
     await userEvent.click(screen.getByRole("button", { name: /how the two numbers differ/i }));
-    expect(screen.getByText(/the estimate decides the band/i)).toBeInTheDocument();
-    expect(screen.getByText(/slower, direct calculation/i)).toBeInTheDocument();
+    expect(screen.getByText(/the risk model's estimate decides the band/i)).toBeInTheDocument();
+    expect(screen.getByText(/the direct test uses your own income and spending/i)).toBeInTheDocument();
   });
 
   it("says plainly when the two methods put the purchase in different bands", async () => {
@@ -420,15 +423,30 @@ describe("RiskResult explanation of the two numbers", () => {
       simulated_probability: 0.35,
       simulated_band: "At Risk",
     });
-    expect(screen.getByText(/two checks disagree/i)).toBeInTheDocument();
-    expect(screen.getByText(/risk model rates it Safe/i)).toBeInTheDocument();
-    expect(screen.getByText(/simulation .* rates it At Risk/i)).toBeInTheDocument();
-    expect(screen.getByText(/extra care/i)).toBeInTheDocument();
+    expect(screen.getByText("There's a contradiction in the results")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /testing this purchase against your own income and spending gives a 35% chance of running short\./i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/the result above follows the risk model \(7%\), which says otherwise, so decide with care/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/separate simulation/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/take it with care/i)).not.toBeInTheDocument();
   });
 
   it("does not raise that notice when they agree", async () => {
     await show({});
-    expect(screen.queryByText(/two checks disagree/i)).not.toBeInTheDocument();
+    expect(screen.queryByText("There's a contradiction in the results")).not.toBeInTheDocument();
+  });
+
+  it("describes what the purchase adds in plain words, with no simulated futures", async () => {
+    await show({});
+    expect(screen.getByText(/a direct test of your coming months/i)).toBeInTheDocument();
+    expect(screen.getByText(/across the many ways we tried your coming months/i)).toBeInTheDocument();
+    expect(screen.queryByText(/futures/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/direct simulation/i)).not.toBeInTheDocument();
   });
 
   it("says when waiting was judged by the simulation because the model cannot see timing", async () => {
@@ -460,6 +478,23 @@ describe("RiskReportScreen by report type", () => {
     expect(screen.getByText(/only the instalments still left to pay/i)).toBeInTheDocument();
   });
 
+  it("asks about the plans, not a purchase, when there is no new purchase to judge", async () => {
+    get.mockResolvedValue(ok(result({ check_type: "current_state", suggestion: null })));
+    render(<RiskReportScreen id="abc" />, { wrapper });
+
+    expect(
+      await screen.findByRole("heading", { name: "Are your current BNPL plans safe for you?" }),
+    ).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Is this purchase safe for you?" })).not.toBeInTheDocument();
+  });
+
+  it("asks about the purchase on a saved check taken before a purchase", async () => {
+    get.mockResolvedValue(ok(result({ check_type: "before_purchase" })));
+    render(<RiskReportScreen id="abc" />, { wrapper });
+
+    expect(await screen.findByRole("heading", { name: "Is this purchase safe for you?" })).toBeVisible();
+  });
+
   it("keeps the ordinary title for a check taken before a purchase", async () => {
     get.mockResolvedValue(ok(result({ check_type: "before_purchase" })));
     render(<RiskReportScreen id="abc" />, { wrapper });
@@ -485,6 +520,13 @@ describe("RiskResult layers (ADR D-52)", () => {
     await screen.findByRole("img", { name: /out of 100/i });
     return user;
   }
+
+  it("titles the verdict card for what it judges: this purchase, not your financial health", async () => {
+    await show();
+
+    expect(screen.getByRole("heading", { name: "Is this purchase safe for you?" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: /your financial health/i })).not.toBeInTheDocument();
+  });
 
   it("shows what the purchase adds up front, and the working in six closed folds", async () => {
     await show();
@@ -517,7 +559,7 @@ describe("RiskResult layers (ADR D-52)", () => {
       "3 instalments, total cost RM 600.00",
     );
     expect(screen.getByRole("button", { name: /how the two numbers differ/i })).toHaveTextContent(
-      "Estimate 42%, direct simulation 45%",
+      "Risk model 42%, direct test 45%",
     );
   });
 

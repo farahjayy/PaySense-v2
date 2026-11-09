@@ -17,6 +17,7 @@ import { ScoreRing } from "@/components/ui/ScoreRing";
 import { LockedNote, Skeleton } from "@/components/ui/States";
 import type { PlanInput, RiskCheck } from "@/lib/api/queries";
 import { BAND_COPY, formatPercent, plural } from "@/lib/format";
+import { chanceOf } from "@/lib/forecast";
 import { formatRm } from "@/lib/money";
 import { riskNotices } from "@/lib/risk";
 import { exposureSummary, stackSummary } from "@/lib/secondOpinion";
@@ -98,12 +99,12 @@ function sections(check: RiskCheck): Section[] {
     out.push({
       id: "numbers",
       title: "How the two numbers differ",
-      summary: `Estimate ${formatPercent(check.probability)}, direct simulation ${formatPercent(check.simulated_probability)}`,
+      summary: `Risk model ${formatPercent(check.probability)}, direct test ${formatPercent(check.simulated_probability)}`,
       body: (
         <p className="text-[13px] leading-relaxed text-ink-secondary">
-          The estimate decides the band. It comes from a model trained on many simulations like
-          this one; the simulation is the slower, direct calculation of this exact purchase, shown
-          so you can see how close they are.
+          The risk model&apos;s estimate decides the band. It was trained on many simulated
+          students. The direct test uses your own income and spending with this purchase added; it
+          is shown so you can see how close the two are.
         </p>
       ),
     });
@@ -117,6 +118,7 @@ export function RiskResult({ check, onTrySuggestion, busy, stale = false, footer
     return <LockedNote reason={check.lock_reason} monthsOfHistory={check.months_of_history} />;
   }
   const copy = BAND_COPY[check.band];
+  const started = check.check_type === "current_state";
   const folds = sections(check);
   const allOpen = folds.every((f) => open.has(f.id));
   const toggle = (id: string) =>
@@ -127,39 +129,37 @@ export function RiskResult({ check, onTrySuggestion, busy, stale = false, footer
     });
   return (
     <div className={`space-y-4 ${stale ? "opacity-60" : ""}`} aria-busy={stale}>
-      <Card className="flex flex-col items-center gap-5 sm:flex-row sm:gap-8">
-        <ScoreRing score={check.score} band={check.band} caption="out of 100" />
-        <div className="text-center sm:text-left">
-          <div className="flex items-center justify-center gap-3 sm:justify-start">
-            <Face band={check.band} size={56} />
-            <BandBadge band={check.band} large />
+      <Card>
+        <CardTitle>
+          {started ? "Are your current BNPL plans safe for you?" : "Is this purchase safe for you?"}
+        </CardTitle>
+        <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row sm:gap-8">
+          <ScoreRing score={check.score} band={check.band} caption="out of 100" />
+          <div className="text-center sm:text-left">
+            <div className="flex items-center justify-center gap-3 sm:justify-start">
+              <Face band={check.band} size={56} />
+              <BandBadge band={check.band} large />
+            </div>
+            <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink">{copy.line}</p>
+            <p className="mt-2 text-[13px] text-ink-secondary">
+              Chance of running short: {formatPercent(check.probability)}.
+            </p>
           </div>
-          <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink">{copy.line}</p>
-          <p className="mt-2 text-[13px] text-ink-secondary">
-            Estimated chance of running short: {formatPercent(check.probability)}.
-            {check.simulated_probability !== null && (
-              <>
-                {" "}
-                A direct simulation of this purchase gives{" "}
-                {formatPercent(check.simulated_probability)}.
-              </>
-            )}
-          </p>
         </div>
       </Card>
-      {check.simulated_band && check.simulated_band !== check.band && (
-        <Banner tone="info" title="Two checks disagree on this purchase">
-          PaySense&apos;s risk model rates it {check.band}. A separate simulation of your own recent
-          income and spending, with this purchase added, rates it {check.simulated_band}. The band
-          above is the model&apos;s. Because the two disagree, treat this result with extra care.
-        </Banner>
-      )}
+      {check.simulated_band &&
+        check.simulated_band !== check.band &&
+        check.simulated_probability !== null && (
+          <Banner tone="info" title="There's a contradiction in the results">
+            Testing this purchase against your own income and spending gives{" "}
+            {chanceOf(check.simulated_probability)} of running short. The result above follows the
+            risk model ({formatPercent(check.probability)}), which says otherwise, so decide with
+            care.
+          </Banner>
+        )}
       <Notices items={riskNotices(check)} />
       {check.second_opinion && (
-        <AddsCard
-          opinion={check.second_opinion}
-          started={check.check_type === "current_state"}
-        />
+        <AddsCard opinion={check.second_opinion} started={started} />
       )}
       <Card>
         <CardTitle>Why</CardTitle>

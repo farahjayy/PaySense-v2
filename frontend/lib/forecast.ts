@@ -154,30 +154,28 @@ export function notices(forecast: Forecast): Notice[] {
 /**
  * The chance of running short, in the words a student would use (the engine calls it the shortfall
  * probability: the share of simulated futures in which the running margin is below RM 0 at any
- * month-end). The figure is the server's `p_shortfall`; only its wording is made here. The detail
- * says what was counted and quotes no number of runs, because the response carries none.
+ * month-end). The figure is the server's `p_shortfall`; only its wording is made here. There is no
+ * method note under it: the chart card below says what "short" means (start from RM 0, below RM 0).
  */
-export function shortfallLine(
-  pShortfall: number,
-  months: number,
-): { headline: string; detail: string } {
+export function shortfallLine(pShortfall: number, months: number): { headline: string } {
   const span = plural(months, "month");
-  const detail =
-    "We played your recent income and spending forward many times and counted how often your running total, starting from RM 0, ended a month below RM 0.";
   if (pShortfall === 0) {
     return {
-      headline: `In none of the futures we simulated did you run short of money over the next ${span}.`,
-      detail,
+      headline: `In none of the many ways we tried your next ${span} did you run short of money.`,
     };
   }
-  const percent = formatPercent(pShortfall);
-  // "an 8%", "an 11%", "an 18%", "an 85%", but "a 10%"
-  const article = /^(8\d?|11|18)$/.test(String(Math.round(pShortfall * 100))) ? "an" : "a";
-  const chance = percent === "under 1%" ? "under a 1% chance" : `${article} ${percent} chance`;
   return {
-    headline: `There is ${chance} you would run short of money at some point in the next ${span}.`,
-    detail,
+    headline: `There is ${chanceOf(pShortfall)} you would run short of money at some point in the next ${span}.`,
   };
+}
+
+/** A chance as a phrase that reads in a sentence: "a 16% chance", "an 8% chance", "under a 1% chance". */
+export function chanceOf(probability: number): string {
+  const percent = formatPercent(probability);
+  if (percent === "under 1%") return "under a 1% chance";
+  // "an 8%", "an 11%", "an 18%", "an 85%", but "a 10%"
+  const article = /^(8\d?|11|18)$/.test(String(Math.round(probability * 100))) ? "an" : "a";
+  return `${article} ${percent} chance`;
 }
 
 /** What the headline band means for the month-by-month outlook (not for one purchase). */

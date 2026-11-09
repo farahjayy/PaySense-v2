@@ -228,6 +228,16 @@ describe("DashboardScreen", () => {
     expect(screen.queryByText(/of the futures we simulated over the next/i)).not.toBeInTheDocument();
   });
 
+  it("titles the health card, like the cards below it, and drops the method line and the word futures", async () => {
+    respond(OK);
+    render(<DashboardScreen />, { wrapper });
+
+    expect(await screen.findByRole("heading", { name: "Your financial health" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: /financial health forecast/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/played your recent income and spending forward/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/futures/i)).not.toBeInTheDocument();
+  });
+
   it("says in plain words what the running margin starts from and what each point means", async () => {
     respond(OK);
     render(<DashboardScreen />, { wrapper });
@@ -239,7 +249,23 @@ describe("DashboardScreen", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("Your running margin")).not.toBeInTheDocument();
     expect(await screen.findByText(/imagine you start october 2026 with rm 0/i)).toBeInTheDocument();
-    expect(screen.getByText(/by the end of each month/i)).toBeInTheDocument();
+    expect(screen.getByText(/how much money you would have left by the end of that month/i)).toBeInTheDocument();
+    expect(screen.getByText(/counting everything since october/i)).toBeInTheDocument();
+    expect(screen.getByText(/if a point falls below rm 0, you would be short/i)).toBeInTheDocument();
+    expect(screen.getByText(/your real savings aren't included/i)).toBeInTheDocument();
+  });
+
+  it("titles the logged-months card for what it holds, and marks the unfinished month", async () => {
+    // The forecast starts in October 2026, so October is the month still going.
+    const october = { ...SUMMARY.months[0], month: "2026-10", income_sen: 0, net_sen: -150000 };
+    respond(OK, { "/api/summary/months": { months: [october, SUMMARY.months[0]], history: null } });
+    render(<DashboardScreen />, { wrapper });
+
+    expect(await screen.findByRole("heading", { name: "Monthly money summary" })).toBeInTheDocument();
+    expect(screen.getByText("Logged income and spending, by month")).toBeInTheDocument();
+    expect(screen.queryByText("Recent months")).not.toBeInTheDocument();
+    expect(await screen.findByRole("rowheader", { name: "Oct 2026 (so far)" })).toBeInTheDocument();
+    expect(screen.getByRole("rowheader", { name: "Sep 2026" })).toBeInTheDocument();
   });
 
   it("tells a student what to do next, and why, while steps are still open", async () => {

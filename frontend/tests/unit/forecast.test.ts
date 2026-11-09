@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { Forecast } from "@/lib/api/queries";
-import { chartSummary, marginPoints, marginTable, notices, shortfallLine } from "@/lib/forecast";
+import {
+  chanceOf,
+  chartSummary,
+  marginPoints,
+  marginTable,
+  notices,
+  shortfallLine,
+} from "@/lib/forecast";
 
 const SIM = {
   months: ["2026-10", "2026-11", "2026-12"],
@@ -159,6 +166,17 @@ describe("notices", () => {
   });
 });
 
+describe("chanceOf", () => {
+  it("writes a chance as a phrase with the right article, so it reads in a sentence", () => {
+    expect(chanceOf(0)).toBe("a 0% chance");
+    expect(chanceOf(0.1)).toBe("a 10% chance");
+    expect(chanceOf(0.08)).toBe("an 8% chance");
+    expect(chanceOf(0.16)).toBe("a 16% chance");
+    expect(chanceOf(0.18)).toBe("an 18% chance");
+    expect(chanceOf(0.004)).toBe("under a 1% chance");
+  });
+});
+
 describe("shortfallLine", () => {
   it("says the chance in plain words: a 10% chance you would run short of money", () => {
     const line = shortfallLine(0.1, 3);
@@ -168,19 +186,18 @@ describe("shortfallLine", () => {
     );
   });
 
-  it("says what was counted, without borrowing the engine's term or inventing a number of runs", () => {
-    const { detail } = shortfallLine(0.1, 3);
-
-    expect(detail).toMatch(/played your recent income and spending forward many times/i);
-    expect(detail).toMatch(/running total/i);
-    expect(detail).toMatch(/below RM 0/);
-    expect(detail).not.toMatch(/1,?000/); // the response carries no run count, so none is quoted
+  it("is the headline alone: no method note under it (the chart card explains what short means)", () => {
+    expect(Object.keys(shortfallLine(0.1, 3))).toEqual(["headline"]);
+    expect(Object.keys(shortfallLine(0, 3))).toEqual(["headline"]);
   });
 
-  it("handles no chance at all, which is the best result", () => {
-    expect(shortfallLine(0, 3).headline).toBe(
-      "In none of the futures we simulated did you run short of money over the next 3 months.",
+  it("handles no chance at all, which is the best result, without the word futures", () => {
+    const { headline } = shortfallLine(0, 3);
+
+    expect(headline).toBe(
+      "In none of the many ways we tried your next 3 months did you run short of money.",
     );
+    expect(headline).not.toMatch(/futures/i);
   });
 
   it("handles a chance too small to round to 1%", () => {
@@ -191,7 +208,7 @@ describe("shortfallLine", () => {
 
   it("says one month, not 1 months", () => {
     expect(shortfallLine(0.25, 1).headline).toContain("in the next 1 month.");
-    expect(shortfallLine(0, 1).headline).toContain("over the next 1 month.");
+    expect(shortfallLine(0, 1).headline).toContain("your next 1 month did you");
   });
 
   it("keeps a high chance as plain as a low one", () => {

@@ -15,7 +15,7 @@ function rowsFor(point: MarginPoint): Row[] {
       key: "high",
       label: "Higher outcome",
       sen: point.high,
-      note: "only 1 in 10 futures end above this",
+      note: "only 1 in 10 times you end up above this",
       marker: "hollow",
     },
     {
@@ -29,7 +29,7 @@ function rowsFor(point: MarginPoint): Row[] {
       key: "low",
       label: "Lower outcome",
       sen: point.low,
-      note: "only 1 in 10 futures end below this",
+      note: "only 1 in 10 times you end up below this",
       marker: "hollow",
     },
   ];

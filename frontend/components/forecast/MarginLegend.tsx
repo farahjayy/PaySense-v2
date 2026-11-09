@@ -43,7 +43,7 @@ function Swatch({ kind }: { kind: "line" | "band" | "zero" }) {
 
 const ITEMS = [
   { kind: "line", text: "Most likely" },
-  { kind: "band", text: "Where 8 out of 10 possible futures land" },
+  { kind: "band", text: "Usual range: 8 out of 10 times you end up in here" },
   { kind: "zero", text: "RM 0: below this you would be short of money" },
 ] as const;
 

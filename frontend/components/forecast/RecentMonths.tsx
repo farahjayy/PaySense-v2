@@ -8,7 +8,14 @@ const SHOWN = 6;
  * What actually happened in the latest months, straight from the ledger (no model involved). It is
  * sized to fit its card with no sideways scrolling: compact month names, tight columns.
  */
-export function RecentMonths({ summary }: { summary: MonthSummary }) {
+export function RecentMonths({
+  summary,
+  currentMonth,
+}: {
+  summary: MonthSummary;
+  /** The month still going ("2026-11"). Its row says "(so far)", since it is not a finished month. */
+  currentMonth?: string;
+}) {
   const months = [...summary.months].sort((a, b) => b.month.localeCompare(a.month)).slice(0, SHOWN);
   if (months.length === 0) return null;
   return (
@@ -35,6 +42,7 @@ export function RecentMonths({ summary }: { summary: MonthSummary }) {
           <tr key={m.month} className="border-t border-line">
             <th scope="row" className="whitespace-nowrap py-1.5 pr-2 font-medium">
               {formatMonthCompact(m.month)}
+              {m.month === currentMonth && " (so far)"}
             </th>
             <td className="whitespace-nowrap py-1.5 pr-2 text-right">{formatRm(m.income_sen)}</td>
             <td className="whitespace-nowrap py-1.5 pr-2 text-right">{formatRm(m.spend_sen)}</td>

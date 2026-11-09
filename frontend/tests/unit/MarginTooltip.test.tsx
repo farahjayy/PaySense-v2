@@ -21,11 +21,11 @@ describe("MarginTooltip", () => {
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(3);
     expect(rows[0]).toHaveTextContent("Higher outcome: RM 1,480.00");
-    expect(rows[0]).toHaveTextContent("only 1 in 10 futures end above this");
+    expect(rows[0]).toHaveTextContent("only 1 in 10 times you end up above this");
     expect(rows[1]).toHaveTextContent("Most likely: RM 1,244.42");
     expect(rows[1]).toHaveTextContent("the middle result");
     expect(rows[2]).toHaveTextContent("Lower outcome: RM 450.00");
-    expect(rows[2]).toHaveTextContent("only 1 in 10 futures end below this");
+    expect(rows[2]).toHaveTextContent("only 1 in 10 times you end up below this");
   });
 
   it("uses the chart's own band values, never a figure of its own", () => {

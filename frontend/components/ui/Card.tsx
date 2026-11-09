@@ -9,8 +9,12 @@ export function Card({ className = "", ...rest }: HTMLAttributes<HTMLDivElement>
   );
 }
 
-export function CardTitle({ children }: { children: ReactNode }) {
-  return <h2 className="text-sm font-semibold text-ink">{children}</h2>;
+export function CardTitle({ children, id }: { children: ReactNode; id?: string }) {
+  return (
+    <h2 id={id} className="text-sm font-semibold text-ink">
+      {children}
+    </h2>
+  );
 }
 
 export function CardCaption({ children }: { children: ReactNode }) {

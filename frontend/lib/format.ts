@@ -34,6 +34,12 @@ export function formatMonth(key: string, short = false): string {
   return short ? `${month.slice(0, 3)} ${match[1].slice(2)}` : `${month} ${match[1]}`;
 }
 
+/** "2025-11" -> "November": the month on its own, for sentences that already know the year. */
+export function formatMonthName(key: string): string {
+  const match = ISO_MONTH.exec(key);
+  return (match && MONTHS[Number(match[2]) - 1]) || key;
+}
+
 /** "2026-02" -> "Feb 2026": short enough for a narrow table column, with the year in full. */
 export function formatMonthCompact(key: string): string {
   const match = ISO_MONTH.exec(key);

@@ -49,27 +49,34 @@ describe("MarginFan", () => {
     expect(within(november).getByText("tightest")).toBeInTheDocument();
   });
 
-  it("names the columns with the tooltip's own words: this month alone, then the total so far", () => {
+  it("groups the three totals under one heading that names where they start, then the case under it", () => {
     render(<MarginFan simulation={SIM} />);
 
     const table = screen.getByRole("table", { name: /forecast running margin by month/i });
     const headers = within(table)
       .getAllByRole("columnheader")
       .map((h) => h.textContent);
+    // SIM starts in October, so the heading says October: the month comes from the data
     expect(headers).toEqual([
       "Month",
       "This month alone",
-      "Total so far, lower outcome",
-      "Total so far, most likely",
-      "Total so far, higher outcome",
+      "Total since October",
+      "Lower",
+      "Most likely",
+      "Higher",
     ]);
+    expect(within(table).getByRole("columnheader", { name: "Total since October" })).toHaveAttribute(
+      "colspan",
+      "3",
+    );
   });
 
-  it("says why the columns do not add up, instead of leaving the reader to think it is a mistake", () => {
+  it("says why the amounts may not add up, instead of leaving the reader to think it is a mistake", () => {
     render(<MarginFan simulation={SIM} />);
 
-    expect(screen.getByText(/do not add up line by line/i)).toBeInTheDocument();
-    expect(screen.getByText(/typical total is not the sum of the typical months/i)).toBeInTheDocument();
+    expect(
+      screen.getByText("The amounts won't always add up exactly, because each is worked out separately."),
+    ).toBeInTheDocument();
   });
 
   it("puts a legend above the chart with the three things a student needs to read it", () => {
@@ -79,7 +86,7 @@ describe("MarginFan", () => {
     const items = within(legend).getAllByRole("listitem");
     expect(items.map((i) => i.textContent)).toEqual([
       "Most likely",
-      "Where 8 out of 10 possible futures land",
+      "Usual range: 8 out of 10 times you end up in here",
       "RM 0: below this you would be short of money",
     ]);
     // above the chart, not under it

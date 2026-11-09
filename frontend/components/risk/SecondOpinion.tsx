@@ -35,9 +35,9 @@ export function AddsCard({
     <Card>
       <CardTitle>{started ? "What this plan adds" : "What this purchase adds"}</CardTitle>
       <CardCaption>
-        From a direct simulation of your coming months, run without and with{" "}
+        A direct test of your coming months, run without and with{" "}
         {started ? "what is still owed on this plan" : "this purchase"}. It can differ a few points
-        from the estimate above.
+        from the risk model&apos;s estimate above.
       </CardCaption>
       <div className="mt-3 grid grid-cols-3 gap-2">
         <Tile label="Without it" value={formatPercent(opinion.without_probability)} />
@@ -45,8 +45,8 @@ export function AddsCard({
         <Tile label="Adds" value={formatPoints(pointsAdded(opinion))} strong />
       </div>
       <p className="mt-2 text-[12px] text-ink-muted">
-        The chance of running short is how often your running margin dips below zero across the
-        simulated futures.
+        The chance of running short is how often your running total dips below RM 0 across the many
+        ways we tried your coming months.
       </p>
       {opinion.already_at_risk && (
         <Banner

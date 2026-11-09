@@ -50,6 +50,29 @@ describe("RecentMonths", () => {
     expect(within(may).getByText("RM 943.20")).not.toHaveClass("text-danger");
   });
 
+  it("marks the month that is still going with (so far), and only that month", () => {
+    render(<RecentMonths summary={SUMMARY} currentMonth="2026-07" />);
+
+    const names = within(screen.getByRole("table"))
+      .getAllByRole("rowheader")
+      .map((header) => header.textContent);
+
+    expect(names).toEqual([
+      "Jul 2026 (so far)",
+      "Jun 2026",
+      "May 2026",
+      "Apr 2026",
+      "Mar 2026",
+      "Feb 2026",
+    ]);
+  });
+
+  it("marks no month when it does not know which one is current", () => {
+    render(<RecentMonths summary={SUMMARY} />);
+
+    expect(screen.queryByText(/so far/i)).not.toBeInTheDocument();
+  });
+
   it("fits its card: nothing in it scrolls sideways, so no figure is cropped", () => {
     const { container } = render(<RecentMonths summary={SUMMARY} />);
 

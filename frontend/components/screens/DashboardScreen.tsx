@@ -15,7 +15,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ScoreRing } from "@/components/ui/ScoreRing";
 import { ErrorState, Skeleton } from "@/components/ui/States";
 import { useBills, useForecast, useMonthSummary } from "@/lib/api/queries";
-import { formatMonth } from "@/lib/format";
+import { formatMonth, formatMonthName } from "@/lib/format";
 import { notices, OUTLOOK_LINE, shortfallLine } from "@/lib/forecast";
 import { useAuth } from "@/lib/session";
 
@@ -63,30 +63,30 @@ function Outlook() {
   const chance = shortfallLine(sim.p_shortfall, sim.months.length);
   return (
     <section aria-labelledby="outlook-heading" className="space-y-4">
-      <Card data-tour="forecast" className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:gap-8">
-        <ScoreRing score={data.health_score} band={data.band} caption="financial health" />
-        <div className="text-center sm:text-left">
-          <h2 id="outlook-heading" className="sr-only">
-            Your financial health forecast
-          </h2>
-          <div className="flex items-center justify-center gap-3 sm:justify-start">
-            <Face band={data.band} size={56} />
-            <BandBadge band={data.band} large />
+      <Card data-tour="forecast">
+        <CardTitle id="outlook-heading">Your financial health</CardTitle>
+        <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:gap-8">
+          <ScoreRing score={data.health_score} band={data.band} caption="financial health" />
+          <div className="text-center sm:text-left">
+            <div className="flex items-center justify-center gap-3 sm:justify-start">
+              <Face band={data.band} size={56} />
+              <BandBadge band={data.band} large />
+            </div>
+            <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink">
+              {OUTLOOK_LINE[data.band]}
+            </p>
+            <p className="mt-2 text-[13px] text-ink-secondary">{chance.headline}</p>
           </div>
-          <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink">
-            {OUTLOOK_LINE[data.band]}
-          </p>
-          <p className="mt-2 text-[13px] text-ink-secondary">{chance.headline}</p>
-          <p className="mt-1 text-[12px] text-ink-muted">{chance.detail}</p>
         </div>
       </Card>
       <Notices items={notices(data)} />
       <Card>
         <CardTitle>How much money you would have left over, month by month</CardTitle>
         <CardCaption>
-          Imagine you start {formatMonth(sim.months[0])} with RM 0. Each point is how far ahead of
-          that, or short of it, you would be by the end of each month, after income, spending and
-          BNPL instalments.
+          Imagine you start {formatMonth(sim.months[0])} with RM 0. Each point shows how much money
+          you would have left by the end of that month, counting everything since{" "}
+          {formatMonthName(sim.months[0])}: your income, minus your spending and BNPL instalments.
+          If a point falls below RM 0, you would be short. Your real savings aren&apos;t included.
         </CardCaption>
         <div className="mt-4">
           <MarginFan simulation={sim} />
@@ -116,17 +116,21 @@ function BillsCard() {
 
 function RecentCard() {
   const summary = useMonthSummary();
+  // The forecast starts in the month still going, so that month's row is the unfinished one. The
+  // forecast is already fetched for the card above (same query), so this costs no extra request.
+  const forecast = useForecast();
+  const currentMonth = forecast.data?.simulation?.months[0];
   return (
     <Card>
-      <CardTitle>Recent months</CardTitle>
-      <CardCaption>What you actually logged.</CardCaption>
+      <CardTitle>Monthly money summary</CardTitle>
+      <CardCaption>Logged income and spending, by month</CardCaption>
       <div className="mt-3">
         {summary.isPending ? (
           <Skeleton lines={4} label="Loading recent months" />
         ) : summary.isError ? (
           <ErrorState message={summary.error.message} onRetry={() => summary.refetch()} />
         ) : (
-          <RecentMonths summary={summary.data} />
+          <RecentMonths summary={summary.data} currentMonth={currentMonth} />
         )}
       </div>
     </Card>

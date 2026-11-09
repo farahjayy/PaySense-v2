@@ -14,6 +14,7 @@ import {
 import type { Forecast } from "@/lib/api/queries";
 import { MarginLegend } from "@/components/forecast/MarginLegend";
 import { MarginTooltip } from "@/components/forecast/MarginTooltip";
+import { formatMonthName } from "@/lib/format";
 import { chartSummary, marginPoints, marginTable } from "@/lib/forecast";
 
 type Simulation = NonNullable<Forecast["simulation"]>;
@@ -181,20 +182,33 @@ export function MarginFan({ simulation }: { simulation: Simulation }) {
             <caption className="sr-only">Forecast running margin by month</caption>
             <thead className="text-[11px] uppercase tracking-wide text-ink-muted">
               <tr>
-                <th scope="col" className="py-1.5 pr-3 font-medium">
+                <th scope="col" rowSpan={2} className="py-1.5 pr-3 align-bottom font-medium">
                   Month
                 </th>
-                <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                <th
+                  scope="col"
+                  rowSpan={2}
+                  className="py-1.5 pr-3 text-right align-bottom font-medium"
+                >
                   This month alone
                 </th>
+                <th
+                  scope="colgroup"
+                  colSpan={3}
+                  className="border-b border-line py-1.5 text-center font-medium"
+                >
+                  Total since {formatMonthName(simulation.months[0])}
+                </th>
+              </tr>
+              <tr>
                 <th scope="col" className="py-1.5 pr-3 text-right font-medium">
-                  Total so far, lower outcome
+                  Lower
                 </th>
                 <th scope="col" className="py-1.5 pr-3 text-right font-medium">
-                  Total so far, most likely
+                  Most likely
                 </th>
                 <th scope="col" className="py-1.5 text-right font-medium">
-                  Total so far, higher outcome
+                  Higher
                 </th>
               </tr>
             </thead>
@@ -215,8 +229,7 @@ export function MarginFan({ simulation }: { simulation: Simulation }) {
           </table>
         </div>
         <p className="mt-2 text-[12px] leading-relaxed text-ink-secondary">
-          Each figure is a typical value worked out on its own, so the columns do not add up line
-          by line: the typical total is not the sum of the typical months.
+          The amounts won&apos;t always add up exactly, because each is worked out separately.
         </p>
       </details>
     </figure>
