@@ -39,7 +39,7 @@ Status vocabulary — use these exactly, and never round up:
 
 ## P9 — UAT testers (seeded 2026-11-06)
 
-Eleven tester accounts exist in the real Supabase project (`paysense-v2`). Names and usernames are deliberately **not** listed here: this repository is public (D-14), and they live only in the gitignored `uat/testers.csv` (D-68). Each tester is known in the forms and reports by code only.
+Twelve tester accounts exist in the real Supabase project (`paysense-v2`). Names and usernames are deliberately **not** listed here: this repository is public (D-14), and they live only in the gitignored `uat/testers.csv` (D-68). Each tester is known in the forms and reports by code only.
 
 | Code | Persona | Statement file they import | Scenario | Account | Signed in once |
 |---|---|---|---|---|---|
@@ -54,6 +54,7 @@ Eleven tester accounts exist in the real Supabase project (`paysense-v2`). Names
 | P09 | frequent_bnpl | `frequent_bnpl` history | V1 headphones | ✅ created 2026-11-08 | not yet |
 | P10 | frequent_bnpl | `frequent_bnpl` history | V1 headphones | ✅ created 2026-11-09 | not yet |
 | P11 | budget_conscious | `budget_conscious` history | V3 shoes | ✅ created 2026-11-09 | not yet |
+| P12 | irregular_income | `irregular_income` history | V2 laptop repair | ✅ created 2026-11-10 | not yet |
 
 Each account holds only its default settings row (no transactions, plans or checks), so every tester starts from the locked dashboard and the welcome tour. The `admin` account is separate and holds the sample history. Done 2026-11-07: both forms are built and the seven pages are generated for a 2026-11-08 session (in the gitignored `uat/data/pack/`). The nine purchase cards were run on the live site with the pack's shifted files and all nine match `reports/uat/purchase_cards_session_2026-11-08.md` (2026-11-07). Afterwards budget_conscious card B2 was changed to a RM 50 phone case (Safe 7%); the budget set was re-run live and matches the key (B1 Caution 11%, B2 Safe 7%, B3 At Risk 76%), so all nine cards are checked. The app accepted the same recurring suggestion confirmed twice (it doubled the income and made B3 read Safe in one attempt); the Recurring page now asks "You already have this one" before adding a second copy (frontend only; live on Vercel and seen working by the author on 2026-11-07; the double-tap case was not tried live). Not yet done for any tester: a sign-in on the live site, sending the pages, and deleting the accounts when the study ends.
 

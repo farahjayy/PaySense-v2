@@ -28,6 +28,12 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-11-10 — Twelfth UAT tester (P12, irregular_income) seeded
+- **Changed:** one account added to the real Supabase project with `scripts/seed_users.py` (persona `irregular_income`, scenario V2 laptop repair). The name and username are in the gitignored `uat/testers.csv` only (D-68); `STATUS.md` lists the code P12.
+- **Verified:** `uv run python scripts/seed_users.py ...` printed `Created:` with a new id. Nothing else was run: no sign-in, no pack page for P12 yet.
+- **Also:** P12's pack built with `ml.uat.booklet` (one-row roster, session 2026-11-08, same app link and forms as P01 to P11) into the gitignored `uat/data/pack/P12/`; its statement is byte-identical to P05's (same persona, same date), so the 8 November answer key applies.
+- **Known issues / next steps:** P12 has not signed in; the page was not opened in a browser.
+
 ### 2026-11-08 — Dashboard wording for the forecast card and the logged-months card (plain words)
 - **Reported:** the author, reading the dashboard as a budget-conscious student, could not tell what the forecast table's headers meant ("This month alone", "Total so far, lower outcome"), what "possible futures" meant, whether the numbers were a bank balance, or what "Recent months" was showing. Walked through each part with the author, then agreed the wording below.
 - **Changed (copy only; no numbers, no API, no backend):**
