@@ -94,7 +94,7 @@ Confirmed from the founding context documents and the scaffold interview (2026-1
 
 | Element | Definition |
 |---|---|
-| Target | `p_shortfall_with`: Engine 1's simulated probability that, **with the proposed plan added** (its checkout payment in the purchase month, its financed instalments on their dates), the cumulative income-minus-outgoings margin at any month-end within the plan's horizon falls below RM0. Precedent: Bijak, Thomas & Mues (dynamic affordability); BNM household financial-margin stress test; CCA 2025 affordability duty. |
+| Target | `p_shortfall_with`: Engine 1's simulated probability that, **with the proposed plan added** (its checkout payment in the purchase month, its financed instalments on their dates), the cumulative income-minus-outgoings margin at any month-end within the plan's horizon falls below RM0. Precedent: Bijak, Thomas & Mues (dynamic affordability); BNM household financial-margin stress test; BNM Policy Document on Personal Financing paras 11.1 and 11.4 (BNPL affordability assessment; the Consumer Credit Act 2025 only empowers such rules, s.85(1)(f)). |
 | Training data | ~10,000 synthetic student profiles from `ml/datagen` (transaction-level histories + existing plans + one proposed purchase each), every one run through the *served* Engine 1 to produce its label — so training and serving see the same forecaster. |
 | Soft labels | Trained as probabilistic classifiers on soft targets by duplicate-and-weight: each profile appears once as class 1 with weight p and once as class 0 with weight 1 − p. Works identically for all four models. |
 | Features | Defined only in `engines/risk/features.py` (§3.2 table). Age and employment status are dropped (not needed for affordability; fairness). |

@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-11-10 — Correction: who sets the BNPL affordability standard (D-07 (c), PRD §3.1, research note)
+- **Reported:** the author, checking the new literature review against this repo, found the old wording still in the decision log (D-07, point c), the PRD and the research note.
+- **Diagnosed:** all three credited the Consumer Credit Act 2025 with an affordability duty and quoted "without undue financial hardship over the duration of the credit facility" as the Act's standard. Read against the official texts (Act 873 from the Attorney General's Chambers; BNM/RH/PD 028-130): the Act only empowers affordability rules (s.85(1)(f)) and sets none; the quoted phrase is BNM's para 11.1, which applies to licensed banks, Islamic banks and prescribed DFIs, and para 11.4 sets the RM1,500 affordability assessment. The source was two law-firm and news summaries.
+- **Changed (wording only):** `DECISIONS.md` D-07 "Why" (c) now cites BNM paras 11.1 and 11.4 and says the Act only empowers such rules; `paysense-v2-PRD.md` §3.1 Engine 2 target row says the same; `context/research-2026-10-08.md` cites the official PDFs, gives BNM para numbers, records that the 1 Mar 2026 commencement is unconfirmed (s.1(2): by ministerial appointment) and carries a dated correction note. D-07's decision, the label and every number are unchanged.
+- **Verified:** read the quoted passages in the downloaded official PDFs (text extracted with `pdftotext`); nothing was run against the code, because no code changed.
+- **Noted, not changed:** the "BNM financial-margin stress test" precedent in D-07 (b) and the PRD was not re-checked against a primary source in this pass.
+
 ### 2026-11-10 — Twelfth UAT tester (P12, irregular_income) seeded
 - **Changed:** one account added to the real Supabase project with `scripts/seed_users.py` (persona `irregular_income`, scenario V2 laptop repair). The name and username are in the gitignored `uat/testers.csv` only (D-68); `STATUS.md` lists the code P12.
 - **Verified:** `uv run python scripts/seed_users.py ...` printed `Created:` with a new id. Nothing else was run: no sign-in, no pack page for P12 yet.
