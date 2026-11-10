@@ -74,7 +74,7 @@ Run it as one of the seeded testers, on the live URL, in a private window.
 - [ ] Keyboard only: Tab reaches "Skip to content" first; the main journey works without a mouse.
 - [ ] Log out, then press Back: the app does not show private data.
 - [ ] Browser console: no red errors, no "Content Security Policy" lines.
-- [ ] Phone: nothing scrolls sideways; the bottom bar shows five items; the import and the plan form are usable one-handed.
+- [ ] Phone: nothing scrolls sideways; the bottom bar shows four items (Dashboard, Transactions, Risk check, Plans; the other pages are in the "More pages" row, D-61); the import and the plan form are usable one-handed.
 - [ ] **Memory:** Render → the service → Metrics → Memory stays under 400 MB through the checklist. If it does not, record the Cloud Run fallback as an ADR (D-15).
 
 ## Rollback and secrets

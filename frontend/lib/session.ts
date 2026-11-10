@@ -3,6 +3,11 @@
 import { useSyncExternalStore } from "react";
 import { z } from "zod";
 
+// The Content-Security-Policy forbids eval (lib/csp.ts). By default zod probes for it with a caught
+// `new Function`, which the browser still reports as a policy violation. Telling zod not to compile
+// its parsers skips the probe; it must run before the first schema is built, so it sits above it.
+z.config({ jitless: true });
+
 /**
  * The login session (ADR D-03): a bearer credential plus the user, kept in sessionStorage so it
  * dies with the tab. Reads never throw — storage can be blocked — and never have side effects, so
