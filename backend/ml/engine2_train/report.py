@@ -20,6 +20,7 @@ import pandas as pd
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
+from ml.display_names import display_name  # noqa: E402
 from ml.engine2_train.data import LABELS_PATH, LOW_BASELINE, Dataset, load_labels  # noqa: E402
 from ml.engine2_train.labels import MANIFEST_FILE  # noqa: E402
 from ml.engine2_train.labelstats import (  # noqa: E402
@@ -574,12 +575,31 @@ def _stress_table(stress: dict[str, Any] | None) -> pd.DataFrame | None:
     return pd.DataFrame(rows)
 
 
-def _figures(cv: pd.DataFrame, data: Dataset, record: dict, run_dir: Path, out_dir: Path) -> None:
-    fig, ax = plt.subplots(figsize=(6.5, 3.6))
-    ax.barh(cv["model"], cv["brier"], xerr=cv["brier_se"].fillna(0), color="#1d4ed8")
+def brier_figure_data(cv: pd.DataFrame) -> pd.DataFrame:
+    """What the Brier figure draws: the cross-validation numbers as they are, best model first,
+    under names a reader can use. The constant baseline has no error bar and is marked as a
+    baseline so it can be drawn differently."""
+    shown = cv[["model", "brier", "brier_se"]].sort_values("brier").reset_index(drop=True)
+    shown["label"] = [display_name(m) for m in shown["model"]]
+    shown["is_baseline"] = shown["model"].str.startswith("constant")
+    shown["brier_se"] = shown["brier_se"].fillna(0.0)
+    return shown
+
+
+def _brier_figure(cv: pd.DataFrame, path: Path) -> None:
+    shown = brier_figure_data(cv).iloc[::-1]  # the best model at the top of a horizontal chart
+    colours = ["#9ca3af" if base else "#2f7f90" for base in shown["is_baseline"]]
+    fig, ax = plt.subplots(figsize=(7.2, 3.8))
+    bars = ax.barh(shown["label"], shown["brier"], xerr=shown["brier_se"], color=colours)
+    ax.bar_label(bars, labels=[f"{v:.4f}" for v in shown["brier"]], padding=4, fontsize=8)
     ax.set_xlabel("Brier score against the soft label (lower is better)")
     ax.set_title("Cross-validated error by model (development profiles)")
-    _save(fig, out_dir / "figures" / "brier_by_model.png")
+    ax.set_xlim(right=float(shown["brier"].max()) * 1.15)
+    _save(fig, path)
+
+
+def _figures(cv: pd.DataFrame, data: Dataset, record: dict, run_dir: Path, out_dir: Path) -> None:
+    _brier_figure(cv, out_dir / "figures" / "brier_by_model.png")
     _histograms(data, out_dir / "figures" / "label_distribution.png")
     oof_path = run_dir / "oof_winner.npy"
     oof = np.load(oof_path) if oof_path.exists() else None

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ml.engine1_eval.report import build_report, select_model
+from ml.engine1_eval.report import build_report, decision_figure_data, select_model
 from ml.engine1_eval.run import DataPaths, RunConfig, run
 
 
@@ -232,3 +232,22 @@ def test_one_series_with_a_huge_error_cannot_decide_between_two_models():
     assert choice.arithmetic_metric["arima"] > choice.arithmetic_metric["ma4"]  # the mean is fooled
     assert choice.metric["arima"] < choice.metric["ma4"]  # the geometric mean is not
     assert choice.served == "arima"
+
+
+def test_the_error_figure_plots_the_decision_metric_the_geometric_mean_not_the_arithmetic():
+    rows = []
+    for i in range(20):
+        rows.append(("synthetic", f"s{i}", "spend", "arima", 0.8))
+        rows.append(("synthetic", f"s{i}", "spend", "ma4", 1.0))
+        rows.append(("berka", f"b{i}", "spend", "arima", 0.9))
+        rows.append(("berka", f"b{i}", "spend", "ma4", 1.0))
+    rows[0] = ("synthetic", "s0", "spend", "arima", 30.0)  # one series where arima blew up
+
+    shown = decision_figure_data(scores(rows))
+    choice = select_model(scores(rows))
+
+    for model, value in choice.metric.items():
+        assert shown.loc[model, "decision"] == pytest.approx(value)
+    assert shown.loc["arima", "decision"] < choice.arithmetic_metric["arima"]
+    assert set(shown.columns) == {"decision", "berka", "synthetic"}
+    assert shown.loc["arima", "berka"] == pytest.approx(0.9)

@@ -19,7 +19,9 @@ import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib.patches import Patch  # noqa: E402
 
+from ml.display_names import display_name  # noqa: E402
 from ml.engine1_eval.report_text import (  # noqa: E402
     ALL_SOURCES,
     CAVEATS,
@@ -67,6 +69,22 @@ def _geometric_mean(values: pd.Series) -> float:
     return float(np.exp(np.log(values.clip(lower=GEOMETRIC_FLOOR)).mean()))
 
 
+def _complete_series(scores: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, int]:
+    """The series every model scored, wide and long, and how many series there were in all."""
+    wide = scores.pivot_table(index=["source", "series_id", "kind"], columns="model", values="mase")
+    complete = wide.dropna()
+    if complete.empty:
+        raise ValueError("no series was scored by every model")
+    long = complete.reset_index().melt(
+        id_vars=["source", "series_id", "kind"], var_name="model", value_name="mase"
+    )
+    return complete, long, len(wide)
+
+
+def _geometric_by_source(long: pd.DataFrame) -> pd.DataFrame:
+    return long.groupby(["model", "source"])["mase"].apply(_geometric_mean).reset_index()
+
+
 def select_model(scores: pd.DataFrame, seed: int = 0) -> Selection:
     """Apply the D-06 rule to per-series mean MASE (columns source, series_id, kind, model, mase).
 
@@ -76,15 +94,8 @@ def select_model(scores: pd.DataFrame, seed: int = 0) -> Selection:
     benchmark beats it by at least MATERIAL_MASE_DIFFERENCE with a Holm-adjusted Wilcoxon
     p < SIGNIFICANCE (Holm over every literature candidate against that benchmark).
     """
-    wide = scores.pivot_table(index=["source", "series_id", "kind"], columns="model", values="mase")
-    total = len(wide)
-    complete = wide.dropna()
-    if complete.empty:
-        raise ValueError("no series was scored by every model")
-    long = complete.reset_index().melt(
-        id_vars=["source", "series_id", "kind"], var_name="model", value_name="mase"
-    )
-    geometric = long.groupby(["model", "source"])["mase"].apply(_geometric_mean).reset_index()
+    complete, long, total = _complete_series(scores)
+    geometric = _geometric_by_source(long)
     metric = geometric.groupby("model")["mase"].mean().to_dict()
     arithmetic = long.groupby(["model", "source"])["mase"].mean().reset_index()
     arithmetic_metric = arithmetic.groupby("model")["mase"].mean().to_dict()
@@ -393,18 +404,64 @@ def _save(fig, path: Path) -> None:
     plt.close(fig)
 
 
-def _figures(tables: dict[str, pd.DataFrame], horizon: int, out: Path) -> None:
-    pooled = tables["pooled_mase"]
-    numeric = pd.to_numeric(pooled["history_limit"], errors="coerce")
-    decision = pooled[pooled["history_limit"].eq("") | numeric.eq(numeric.max())]
-    wide = decision.groupby(["source", "model"])[f"mase_{horizon}"].mean().unstack("source")
-    fig, ax = plt.subplots(figsize=(7.5, 3.8))
-    wide.plot.bar(ax=ax)
+def decision_figure_data(scores: pd.DataFrame) -> pd.DataFrame:
+    """What the error figure draws: the decision metric per model (geometric mean over a dataset's
+    series, then the mean over datasets, as the table and the rule use) and, beside it, each
+    dataset's own geometric mean. Same series, same function as `select_model`."""
+    _, long, _ = _complete_series(scores)
+    by_source = _geometric_by_source(long).pivot(index="model", columns="source", values="mase")
+    by_source.insert(0, "decision", by_source.mean(axis=1))
+    by_source.columns.name = None
+    return by_source
+
+
+def _error_figure(scores: pd.DataFrame, horizon: int, path: Path) -> None:
+    shown = decision_figure_data(scores)
+    order = [m for m in (*BENCHMARKS, *LITERATURE) if m in shown.index]
+    order += [m for m in shown.index if m not in order]
+    shown = shown.loc[order]
+    labels = [display_name(m).replace(" (", "\n(") for m in shown.index]
+    teal, grey = "#2f7f90", "#9ca3af"
+    colours = [teal if m in LITERATURE else grey for m in shown.index]
+    fig, ax = plt.subplots(figsize=(9.6, 4.8))
+    bars = ax.bar(labels, shown["decision"], color=colours, width=0.6)
+    ax.bar_label(bars, labels=[f"{v:.4f}" for v in shown["decision"]], padding=3, fontsize=8)
+    markers = {"berka": "o", "moneydata": "s", "synthetic": "^"}
+    for source in shown.columns.drop("decision"):
+        ax.scatter(
+            labels,
+            shown[source],
+            marker=markers.get(source, "D"),
+            s=26,
+            color="#111827",
+            zorder=3,
+            label=f"{source} (one dataset)",
+        )
     ax.axhline(1.0, color="#94a3b8", linewidth=1, linestyle="--")
-    ax.set_ylabel(f"Mean MASE, {horizon}-week horizon")
-    ax.set_title("Forecast error by model and dataset (1.0 = the naive error)")
-    ax.legend(title="dataset")
-    _save(fig, out / "figures" / "mase_by_model.png")
+    ax.set_ylabel(f"MASE, {horizon}-week horizon (geometric mean)")
+    ax.set_title("Forecast error by model (1.0 = the in-sample naive error; lower is better)")
+    ax.set_ylim(bottom=0)
+    handles, names = ax.get_legend_handles_labels()
+    key = [
+        Patch(color=grey, label="Benchmark (bar: mean of the datasets)"),
+        Patch(color=teal, label="Literature candidate (bar: mean of the datasets)"),
+    ]
+    ax.legend(
+        handles=[*key, *handles],
+        labels=[k.get_label() for k in key] + names,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.16),
+        ncol=2,
+        fontsize=8,
+        frameon=False,
+    )
+    _save(fig, path)
+
+
+def _figures(
+    tables: dict[str, pd.DataFrame], scores: pd.DataFrame, horizon: int, out: Path
+) -> None:
+    _error_figure(scores, horizon, out / "figures" / "mase_by_model.png")
 
     history = tables["by_history"]
     if len(history):
@@ -510,7 +567,7 @@ def build_report(run_dir: Path, out_dir: Path) -> Selection:
         "by_history_selection": _by_history_selection(data, horizon, seed, out_dir),
         "winners": _winners_by_source(scores, out_dir),
     }
-    _figures(tables, horizon, out_dir)
+    _figures(tables, scores, horizon, out_dir)
     (out_dir / "selection.json").write_text(
         json.dumps(asdict(selection), indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
