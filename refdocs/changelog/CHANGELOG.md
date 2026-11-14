@@ -28,6 +28,9 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-11-14 — Housekeeping: Form A / Form B PDFs removed from `refdocs/`; `tsconfig.json` include list
+- **Changed:** `refdocs/form_a.pdf` and `refdocs/form_b.pdf` were deleted from the working tree before this session's commits and are committed as deleted (they stay in history, `4c193fe`; the forms live on in `uat/forms.md`). `frontend/tsconfig.json` gained two type-folder paths for a `.next-shots` build directory, written by Next.js when it ran with that directory; nothing else in the file changed. Both were found already changed, not made in this step.
+- **Verified:** `git status` was clean after the commit; no command run beyond `git`.
 ### 2026-11-14 — Four report figures saved at print resolution (300 dpi)
 - **Reported:** `reliability.png` was 488 x 465 px, too small to print; the same was asked of three more figures. No number, label or colour may change.
 - **Changed (scripts, not images; tests first):** `ml/engine2_train/report.py` `FIGURE_DPI` 110 -> 300, which covers all three Engine 2 figures (`brier_by_model`, `label_distribution`, `reliability`). `ml/engine1_eval/report.py` keeps `FIGURE_DPI = 110` for its other two figures and gains `PRINT_DPI = 300`; `_save` takes an optional `dpi`, and only the error figure (`mase_by_model`) passes `PRINT_DPI`, because `mase_by_history.png` and `coverage.png` share `_save` and were not asked for. Figure sizes in inches are unchanged. New tests read each PNG's stored dpi (300 for the four, 110 for the two left alone).
