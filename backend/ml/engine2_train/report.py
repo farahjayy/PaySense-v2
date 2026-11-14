@@ -34,7 +34,7 @@ from ml.engine2_train.train import RUNS_DIR  # noqa: E402
 
 REPORT_DIR = Path(__file__).resolve().parents[3] / "reports" / "engine2"
 DECIMALS = 4
-FIGURE_DPI = 110
+FIGURE_DPI = 300  # print resolution; every Engine 2 figure goes into the dissertation
 PNG_METADATA = {"Software": None}
 BANDS = (0.10, 0.30)  # pre-registered: Safe < 0.10, Caution < 0.30, At Risk >= 0.30
 PRICE_RATIO_EDGES = (0.0, 0.25, 0.5, 1.0, 2.0, np.inf)

@@ -2,6 +2,7 @@ import json
 
 import numpy as np
 import pytest
+from PIL import Image
 from scipy import stats
 
 from app.engines.risk.features import ENGINE1_FEATURES, FEATURE_NAMES
@@ -256,6 +257,16 @@ def test_the_report_is_built_from_a_stored_run_and_states_what_it_computed(tiny,
     assert "the six Engine 1 features" not in readme  # the count comes from the record
     for name in ("lockbox_by_class", "lockbox_subgroup", "logistic_signs"):
         assert (tmp_path / "out" / "tables" / f"{name}.csv").is_file(), name
+
+
+def test_every_engine_2_figure_is_saved_at_print_resolution(tiny, tmp_path):
+    root, _ = tiny
+
+    report.build_report(root / "run", tmp_path / "out", root / "labels.jsonl")
+
+    for name in ("brier_by_model", "label_distribution", "reliability"):
+        image = Image.open(tmp_path / "out" / "figures" / f"{name}.png")
+        assert round(image.info["dpi"][0]) == 300, name
 
 
 def test_the_report_regenerates_identically(tiny, tmp_path):

@@ -28,6 +28,13 @@ Rules that make this file worth keeping:
 
 ## [Unreleased]
 
+### 2026-11-14 — Four report figures saved at print resolution (300 dpi)
+- **Reported:** `reliability.png` was 488 x 465 px, too small to print; the same was asked of three more figures. No number, label or colour may change.
+- **Changed (scripts, not images; tests first):** `ml/engine2_train/report.py` `FIGURE_DPI` 110 -> 300, which covers all three Engine 2 figures (`brier_by_model`, `label_distribution`, `reliability`). `ml/engine1_eval/report.py` keeps `FIGURE_DPI = 110` for its other two figures and gains `PRINT_DPI = 300`; `_save` takes an optional `dpi`, and only the error figure (`mase_by_model`) passes `PRINT_DPI`, because `mase_by_history.png` and `coverage.png` share `_save` and were not asked for. Figure sizes in inches are unchanged. New tests read each PNG's stored dpi (300 for the four, 110 for the two left alone).
+- **Regenerated with:** `cd backend && uv run python -m ml.engine1_eval.report --config full` and `uv run python -m ml.engine2_train.report --config full`.
+- **Checked:** `git status --short reports` lists exactly the four PNGs; no other file under `reports/` changed, so every table, both READMEs and `selection.json` are byte-identical. Pixel sizes, before -> after: `mase_by_model` 907 x 583 -> 2473 x 1585; `brier_by_model` 845 x 414 -> 2313 x 1130; `label_distribution` 861 x 380 -> 2348 x 1038; `reliability` 488 x 465 -> 1330 x 1269. `coverage` (675 x 441) and `mase_by_history` (643 x 397) are unchanged. Looked at `reliability.png`: same layout and colours, sharper.
+- **Verified:** failing tests first (2), then `uv run pytest tests/ml/engine1/test_report.py tests/ml/engine2/test_run_train.py -q` -> 38 passed; `tests/ml/test_committed_artefacts.py`, `test_display_names.py`, `engine2/test_report_figures.py` and `engine1/test_report.py` -> 40 passed; `uv run ruff check .` and `ruff format --check .` clean (291 files). Not run: the full backend suite (only the report scripts and their tests changed).
+
 ### 2026-11-12 — Dissertation review items: Figures 4.2 and 4.3 redrawn, test counts, CSP cause, `+dirty`, Appendix C sources, P9 account state
 - **Reported:** a pasted repo prompt listing six items. No number may change and nothing is pushed.
 - **ASSUMED:** the repo has no "Figure 4.2" or "Table 4.2" (they live in the dissertation). From the prompt (4.2 shows `arima`, 4.3 shows `random_forest`) they are taken to be `reports/engine1/figures/mase_by_model.png` and `reports/engine2/figures/brier_by_model.png`. Surface this at the next review.

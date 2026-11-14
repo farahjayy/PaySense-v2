@@ -44,6 +44,7 @@ BENCHMARKS = ("naive", "ma4", "ma13")
 LITERATURE = ("arima", "prophet", "lstm")
 DECIMALS = 4
 FIGURE_DPI = 110
+PRINT_DPI = 300  # the error figure goes into the dissertation; the other two are for the README
 PNG_METADATA = {"Software": None}
 MIN_ORIGINS_FOR_DM = 3
 GEOMETRIC_FLOOR = 1e-6  # a perfect forecast has MASE 0, which a logarithm cannot take
@@ -398,9 +399,9 @@ def _margin_sentence(tables: dict[str, pd.DataFrame], selection: Selection, hori
     return sentence
 
 
-def _save(fig, path: Path) -> None:
+def _save(fig, path: Path, dpi: int = FIGURE_DPI) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, dpi=FIGURE_DPI, metadata=PNG_METADATA, bbox_inches="tight")
+    fig.savefig(path, dpi=dpi, metadata=PNG_METADATA, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -455,7 +456,7 @@ def _error_figure(scores: pd.DataFrame, horizon: int, path: Path) -> None:
         fontsize=8,
         frameon=False,
     )
-    _save(fig, path)
+    _save(fig, path, PRINT_DPI)
 
 
 def _figures(

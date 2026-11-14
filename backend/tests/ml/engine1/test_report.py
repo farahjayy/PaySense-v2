@@ -6,6 +6,7 @@ from datetime import date, timedelta
 import numpy as np
 import pandas as pd
 import pytest
+from PIL import Image
 
 from ml.engine1_eval.report import build_report, decision_figure_data, select_model
 from ml.engine1_eval.run import DataPaths, RunConfig, run
@@ -251,3 +252,19 @@ def test_the_error_figure_plots_the_decision_metric_the_geometric_mean_not_the_a
     assert shown.loc["arima", "decision"] < choice.arithmetic_metric["arima"]
     assert set(shown.columns) == {"decision", "berka", "synthetic"}
     assert shown.loc["arima", "berka"] == pytest.approx(0.9)
+
+
+def png_dpi(path):
+    return round(Image.open(path).info["dpi"][0])
+
+
+def test_the_error_figure_is_saved_at_print_resolution_and_the_other_figures_are_not(
+    stored, tmp_path
+):
+    build_report(stored, tmp_path)
+
+    assert png_dpi(tmp_path / "figures" / "mase_by_model.png") == 300
+    assert png_dpi(tmp_path / "figures" / "coverage.png") == 110  # not asked for, left as it was
+    history = tmp_path / "figures" / "mase_by_history.png"
+    if history.exists():
+        assert png_dpi(history) == 110
