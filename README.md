@@ -90,7 +90,6 @@ PaySense_v2/
 | [`refdocs/guides/env_setup.md`](refdocs/guides/env_setup.md) | Every environment variable and where to get it |
 | [`refdocs/guides/checklist.md`](refdocs/guides/checklist.md) | Pre-ship checklist |
 | [`refdocs/context/`](refdocs/context/) | v1 lessons, research brief, academic constraints, BNPL billing rules |
-| [`refdocs/guides/kickoff-superprompt.md`](refdocs/guides/kickoff-superprompt.md) | The prompt that starts (or resumes) a build session |
 | [`CLAUDE.md`](CLAUDE.md) | Operating brief for AI sessions on this repo |
 
 ## Data & privacy
