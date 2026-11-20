@@ -2,7 +2,7 @@
 
 An AI-driven decision support system that helps Malaysian university students make informed Buy Now, Pay Later (BNPL) purchasing decisions — by forecasting their financial health and classifying the risk of a proposed BNPL purchase before they commit.
 
-**Status:** scaffolded 2026-10-08 — no application code yet. See [`refdocs/STATUS.md`](refdocs/STATUS.md).
+**Status:** the application is built and deployed (frontend on Vercel, API on Render, database on Supabase). Phase-by-phase detail, including what is still open, is in [`refdocs/STATUS.md`](refdocs/STATUS.md).
 
 Final Year Project, BSc (Hons) Computer Science, Universiti Teknologi PETRONAS — Nur Farah Binti Ahmad Nazri. Supervisor: Dr. Nazleeni Samiha Bt Haron.
 
@@ -50,34 +50,33 @@ cd backend && uv run uvicorn app.main:app --reload --port 8000
 cd frontend && npm run dev   # http://localhost:3000 → log in with the seeded username
 ```
 
-(The backend and frontend commands above exist as of P0. The backend needs `backend/.env` for anything that touches the database; see `refdocs/guides/env_setup.md`.)
+(The backend needs `backend/.env` for anything that touches the database; see `refdocs/guides/env_setup.md`.)
 
 ## Project layout
-
-Entries marked *(planned)* do not exist yet and arrive with their phase; everything else is built (P0).
 
 ```
 PaySense_v2/
 ├── backend/
-│   ├── app/
-│   │   ├── api/            auth, health, deps, rate limiter, response schemas; (planned) transactions, imports, recurring, plans, forecast, risk, dashboard
-│   │   ├── core/           settings (fail-fast env), security (session tokens), errors (envelope)
-│   │   ├── db/             Supabase client; ScopedTable (the user-isolation boundary); users, user_settings
-│   │   ├── domain/         (planned) ledger, schedule (sen maths), providers, categorize, recurring detection
-│   │   ├── engines/        (planned)
-│   │   │   ├── forecasting/   financial health forecasting (component model + Monte Carlo)
-│   │   │   └── risk/          BNPL risk classification (features.py, model, SHAP, counterfactuals)
+│   ├── app/                   the FastAPI service
+│   │   ├── api/               route handlers: auth, transactions, imports, recurring, bills, plans, providers, categories, summary, forecast, risk, second opinion, alerts, model info, account
+│   │   ├── core/              settings (fail-fast env), security (session tokens), errors (envelope), request body limit
+│   │   ├── db/                Supabase client; ScopedTable (the user-isolation boundary) and the per-table repositories
+│   │   ├── domain/            ledger, schedule (sen maths), providers, categorisation, recurring bills, plan building, CSV import, export
+│   │   ├── engines/
+│   │   │   ├── forecasting/   financial health forecasting (component model + Monte Carlo, served through ONNX)
+│   │   │   └── risk/          BNPL risk classification (features.py, model, SHAP reasons, counterfactuals, repayment flag)
 │   │   ├── export_openapi.py  writes the OpenAPI document with no credentials (used by `npm run gen:api`)
-│   │   └── seed.py         tester account seeding
-│   ├── ml/                 (planned) datagen/, engine1_eval/, engine2_train/
-│   ├── models/             (planned) served artefacts + metadata
-│   ├── migrations/         0001_init.sql + how to apply it
-│   ├── scripts/            seed_users.py, check_rls.py
-│   └── tests/              unit tests on an in-memory fake (fakes.py); integration/ hits real Supabase; e2e_server.py backs Playwright
-├── frontend/               Next.js app: app/ (login, (app) shell), components/, lib/ (session, api client + generated schema.d.ts), tests/unit + tests/e2e
-├── data/                   (planned) personas/ (committed synthetic CSVs), external/ (download scripts), private/ (gitignored, never committed)
-├── reports/                spikes/ so far; generated evaluation tables and figures later
-└── refdocs/                PRD, status, decisions, plans, guides, context
+│   │   └── seed.py            tester account seeding
+│   ├── ml/                    offline only: datagen/ (synthetic population), engine1_eval/, engine2_train/, uat/ (study pack and analysis), buffer_check.py
+│   ├── models/                served artefacts and metadata (engine1/, engine2/)
+│   ├── migrations/            0001 to 0004 SQL files + how to apply them
+│   ├── scripts/               seed_users.py, seed_testers.py, set_role.py, check_rls.py, smoke_live.py
+│   └── tests/                 unit tests on an in-memory fake; integration/ hits real Supabase; e2e_server.py backs Playwright
+├── frontend/                  Next.js app: app/ (welcome, login, signed-in shell), components/, lib/ (session, api client + generated schema.d.ts), tests/unit + tests/e2e
+├── data/                      personas/ (committed synthetic CSVs), external/ (download scripts); engine1/, engine2/ and synthetic/ hold generated files (large ones git-ignored, manifests committed)
+├── reports/                   evaluation tables and figures (engine1, engine2, datagen), buffer_check, spikes, uat
+├── uat/                       self-guided usability study kit: forms, instruments, purchase cards, tester template
+└── refdocs/                   PRD, status, decisions, plans, execution plans, guides, context
 ```
 
 ## Documentation
