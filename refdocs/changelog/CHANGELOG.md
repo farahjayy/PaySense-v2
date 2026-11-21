@@ -59,6 +59,11 @@ Rules that make this file worth keeping:
 - **STATUS L53 (P08):** the row is right: the roster has P08 as `budget_conscious`, the live database has one `budget_conscious` account created 2026-11-07, and it holds one persona import (129 rows), consistent with the author's live check. The paragraph under the table was wrong: it said every account holds only a settings row. Counted read-only on 2026-11-12: all 12 accounts have a settings row and none has a plan or a risk check, but nine hold imported history (129, 239, 258 or 309 rows; the 258 is a file imported twice) and eight of those hold recurring items. STATUS now says so and that they need clearing before the pages are sent, because a tester is meant to import the file themselves.
 - **Known issues / next steps:** clear the nine accounts (Settings → Factory reset) or decide to keep them; decide the persona-length wording; the Playwright setup is flaky at the default worker count (options: `workers: 4` in the config, or a longer wait in `signIn`).
 
+### 2026-11-21 — README rewritten in the PaySense v3 layout; v3 link removed
+- **Changed:** `README.md` now follows the v3 README's layout (centred header with logo and badges, a "What it does" table, a Mermaid architecture diagram, measured results, honest limits, run, tests, deployment, layout, docs). Content is v2's own: stack, features and every figure come from this repo and `reports/engine1` and `reports/engine2`; nothing was copied from v3 except the logo (`public/logo.svg`). The "See also" link to PaySense-v3 added earlier the same day is removed (the repositories are not connected).
+- **Left out on purpose:** v3's assistant, Google sign-in, Groq/Gemini, tests-passing badge, licence badge and team line, none of which apply to v2. There is no LICENSE file, so the empty "License" heading is dropped.
+- **Verified:** counts taken this session: frontend 766 unit tests passed; backend 2,391 tests collected (20 integration deselected), not re-run; Playwright 30 tests listed, not re-run.
+
 ### 2026-11-21 — README points to PaySense v3
 - **Changed:** `README.md` has a "See also" line linking `https://github.com/farahjayy/PaySense-v3`, under the Status paragraph.
 - **Verified:** read the diff only; no code or tests involved.
