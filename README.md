@@ -4,6 +4,8 @@ An AI-driven decision support system that helps Malaysian university students ma
 
 **Status:** the application is built and deployed (frontend on Vercel, API on Render, database on Supabase). Phase-by-phase detail, including what is still open, is in [`refdocs/STATUS.md`](refdocs/STATUS.md).
 
+**See also:** [PaySense v3](https://github.com/farahjayy/PaySense-v3).
+
 Final Year Project, BSc (Hons) Computer Science, Universiti Teknologi PETRONAS — Nur Farah Binti Ahmad Nazri. Supervisor: Dr. Nazleeni Samiha Bt Haron.
 
 ## What it does
